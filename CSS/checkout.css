@@ -1,0 +1,563 @@
+@import url("root-variables.css");
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Outfit", sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  width: 100%;
+  background-color: #080c14;
+}
+
+/* ============================================================
+   PAGE BACKGROUND
+   ============================================================ */
+.checkout-container {
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 48px 20px 60px;
+  position: relative;
+  overflow: hidden;
+
+  background-color: #080c14;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 15% -5%,  rgba(58, 124, 255, 0.2)  0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 110%, rgba(163, 91, 255, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 30% 30% at 50% 50%,  rgba(62, 207, 142, 0.04) 0%, transparent 70%);
+}
+
+/* Subtle grid overlay */
+.checkout-container::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(58, 124, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(58, 124, 255, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================================
+   PAGE TITLE
+   ============================================================ */
+.checkout-container h1 {
+  position: relative;
+  z-index: 1;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 32px;
+  background: linear-gradient(135deg, #fff 40%, rgba(58, 124, 255, 0.75));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   MAIN CARD
+   ============================================================ */
+.info-container {
+  position: relative;
+  z-index: 1;
+  width: 52%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 28px;
+  padding: 36px 40px;
+  box-shadow:
+    0 0 0 1px rgba(58, 124, 255, 0.06),
+    0 32px 64px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   LOGO
+   ============================================================ */
+.info-container .img-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.info-container .img-container img {
+  height: 48px;
+  filter: brightness(1.1);
+}
+
+/* ============================================================
+   PERSONAL INFO (Billed to)
+   ============================================================ */
+.info-container .personal-info {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.info-container .personal-info div {
+  width: 100%;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.info-container .personal-info div + div {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-container .personal-info p {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin: 0;
+  padding: 0;
+}
+
+.info-container .personal-info p b {
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.info-container .personal-info span {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: auto;
+  width: auto;
+  padding: 0;
+}
+
+/* ============================================================
+   SECTION HEADERS (Purchase / Discount / Total)
+   ============================================================ */
+.info-container .purchase-info,
+.info-container .discount-info,
+.info-container .total-info {
+  margin-bottom: 20px;
+}
+
+.info-container .purchase-info h3,
+.info-container .discount-info h3,
+.info-container .total-info h3 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: #475569;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: none;
+}
+
+.info-container .purchase-info h3::after,
+.info-container .discount-info h3::after,
+.info-container .total-info h3::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ============================================================
+   LINE ITEMS
+   ============================================================ */
+.info-container .purchase-info div,
+.info-container .discount-info div,
+.info-container .total-info div {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0 4px;
+}
+
+.info-container .purchase-info p,
+.info-container .discount-info p,
+.info-container .total-info p {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  margin: 0;
+  padding: 0;
+}
+
+.info-container .discount-info p b { color: #ffb237; }
+
+.info-container .purchase-info span,
+.info-container .discount-info span {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  width: auto;
+  min-width: 120px;
+  padding: 0;
+  border-left: none;
+}
+
+/* Discount span — amber highlight */
+.info-container .discount-info span {
+  color: #ffb237;
+}
+
+/* Total span — prominent */
+.info-container .total-info {
+  margin-bottom: 28px;
+}
+
+.info-container .total-info div {
+  height: 52px;
+  background: rgba(58, 124, 255, 0.06);
+  border: 1px solid rgba(58, 124, 255, 0.15);
+  border-radius: 12px;
+  padding: 0 16px;
+}
+
+.info-container .total-info p {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0;
+  padding: 0;
+}
+
+.info-container .total-info span {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #3a7cff;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  width: auto;
+  min-width: 120px;
+  padding: 0;
+  border-left: none;
+}
+
+/* ============================================================
+   FORM — CHECKBOX & BUTTON
+   ============================================================ */
+form {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+}
+
+form .checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+}
+
+form .checkbox input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.04);
+  cursor: pointer;
+  margin-top: 1px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+form .checkbox input[type="checkbox"]:checked {
+  background: #3a7cff;
+  border-color: #3a7cff;
+}
+
+form .checkbox input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1;
+  top: 1px;
+  left: 2px;
+}
+
+form .checkbox label {
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+form .checkbox label a {
+  color: #3a7cff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+form .checkbox label a:hover {
+  color: #6b9fff;
+  text-decoration: underline;
+}
+
+/* ============================================================
+   CONFIRM BUTTON
+   ============================================================ */
+#checkoutBtn {
+  width: 100%;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #3a7cff 0%, #5b52f5 100%);
+  color: #fff;
+  font-family: "Outfit", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+#checkoutBtn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+#checkoutBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(58, 124, 255, 0.45), 0 0 0 1px rgba(255,255,255,0.1);
+  letter-spacing: 0.6px;
+}
+
+#checkoutBtn:hover::before { opacity: 1; }
+#checkoutBtn:active { transform: translateY(0); }
+
+#checkoutBtn:disabled {
+  background: linear-gradient(135deg, #1e3a6e 0%, #2d2a6e 100%);
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================================
+   SPINNER
+   ============================================================ */
+.loader {
+  border: 2.5px solid rgba(255,255,255,0.2);
+  border-top-color: #fff;
+  border-right-color: #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   LOADING OVERLAY
+   ============================================================ */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 8, 16, 0.82);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  color: #e2e8f0;
+  font-size: 1rem;
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadein 0.3s ease;
+}
+
+.loading-overlay .loader {
+  width: 36px;
+  height: 36px;
+  border-width: 3px;
+}
+
+@keyframes fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1080px) {
+  .info-container { width: 72%; }
+}
+
+@media (max-width: 768px) {
+  .checkout-container { padding: 32px 16px 48px; }
+  .checkout-container h1 { font-size: 1.7rem; margin-bottom: 24px; }
+  .info-container { width: 100%; border-radius: 20px; padding: 24px 20px; }
+
+  .info-container .personal-info div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    height: auto;
+    padding: 10px 0;
+  }
+
+  .info-container .personal-info span {
+    justify-content: flex-start;
+  }
+
+  .info-container .purchase-info div,
+  .info-container .discount-info div { font-size: 0.88rem; }
+
+  .info-container .total-info div { height: 48px; }
+
+  form .checkbox label { font-size: 0.78rem; }
+}
+
+@media (max-width: 480px) {
+  .info-container { padding: 20px 16px; }
+  .checkout-container h1 { font-size: 1.4rem; }
+}
+/* ============================================================
+   LANDING PAGE NOTE
+   ============================================================ */
+.landing-note {
+  background: rgba(255, 178, 55, 0.06);
+  border: 1px solid rgba(255, 178, 55, 0.22);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  color: #ffb237;
+  letter-spacing: 0.3px;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   ADD-ONS SECTION
+   ============================================================ */
+.info-container .addons-info {
+  margin-bottom: 20px;
+}
+
+.info-container .addons-info h3 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: #a35bff;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: none;
+}
+
+.info-container .addons-info h3::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(163, 91, 255, 0.2);
+}
+
+.info-container .addons-info .addon-line {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  padding: 0 4px;
+}
+
+.info-container .addons-info .addon-line p {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.info-container .addons-info .addon-line p b { color: #c084fc; }
+.info-container .addons-info .addon-line p small { color: #475569; font-size: 0.72rem; }
+
+.info-container .addons-info .addon-line span {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #c084fc;
+}

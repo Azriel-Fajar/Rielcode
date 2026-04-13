@@ -1,0 +1,218 @@
+@import url("root-variables.css");
+
+/* ============================================================
+   PROJECTS SECTION
+   ============================================================ */
+#projects {
+  position: relative;
+  padding: 96px 0;
+  background-color: #080c14;
+  background-image:
+    radial-gradient(ellipse 55% 45% at 80% 10%, rgba(163, 91, 255, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 10% 80%, rgba(58, 124, 255, 0.07) 0%, transparent 55%);
+  overflow: hidden;
+}
+
+/* Top border glow */
+#projects::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(163, 91, 255, 0.3) 50%, transparent 100%);
+}
+
+/* ============================================================
+   SECTION HEADER
+   ============================================================ */
+#projects .text-center {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 60px !important;
+}
+
+/* Mono tag above title */
+#projects .text-center::before {
+  content: "// OUR WORK";
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #a35bff;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+  opacity: 0.8;
+}
+
+#projects .text-center h2 {
+  font-family: "Syne", sans-serif !important;
+  font-size: clamp(1.8rem, 4vw, 2.8rem) !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
+#projects .text-center p.lead {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.92rem !important;
+  color: #475569 !important;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+}
+
+/* ============================================================
+   PROJECT CARDS
+   ============================================================ */
+.projects.row {
+  position: relative;
+  z-index: 1;
+}
+
+.projects .card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 20px !important;
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05) inset,
+    0 4px 24px rgba(0,0,0,0.3);
+}
+
+.projects .card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(163, 91, 255, 0.25) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.07) inset,
+    0 24px 64px rgba(0,0,0,0.45),
+    0 0 0 1px rgba(163, 91, 255, 0.12),
+    0 0 40px rgba(163, 91, 255, 0.06);
+}
+
+/* ============================================================
+   CARD IMAGE
+   ============================================================ */
+.projects .card img.card-img-top {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  transition: transform 0.4s ease;
+  display: block;
+}
+
+.projects .card:hover img.card-img-top {
+  transform: scale(1.03);
+}
+
+/* Contain logos nicely */
+.projects .card img.card-img-top[src*="Logo"],
+.projects .card img.card-img-top[src*="logo"],
+.projects .card img.card-img-top[src*=".png"] {
+  object-fit: contain;
+  background: rgba(255,255,255,0.03);
+  padding: 28px;
+  height: 180px;
+}
+
+/* ============================================================
+   CARD BODY
+   ============================================================ */
+.projects .card .card-body {
+  padding: 28px 28px 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.projects .card-title {
+  font-family: "Syne", sans-serif !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #e2e8f0 !important;
+  letter-spacing: -0.1px;
+  line-height: 1.3;
+  margin-bottom: 0 !important;
+}
+
+.projects .card-text {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: #475569 !important;
+  flex: 1;
+}
+
+/* ============================================================
+   VISIT SITE BUTTON
+   ============================================================ */
+.projects .card-body a.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Outfit", sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  padding: 0 20px !important;
+  height: 38px;
+  border-radius: 50px !important;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  width: max-content;
+
+  /* Ghost style */
+  background: transparent !important;
+  border: 1.5px solid rgba(163, 91, 255, 0.4) !important;
+  color: #a35bff !important;
+}
+
+.projects .card-body a.btn::after {
+  content: "↗";
+  font-size: 0.8rem;
+  transition: transform 0.2s ease;
+}
+
+.projects .card-body a.btn:hover {
+  background: rgba(163, 91, 255, 0.1) !important;
+  border-color: rgba(163, 91, 255, 0.7) !important;
+  color: #c084fc !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(163, 91, 255, 0.2);
+}
+
+.projects .card-body a.btn:hover::after {
+  transform: translate(2px, -2px);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  #projects { padding: 64px 0; }
+
+  #projects .text-center {
+    margin-bottom: 40px !important;
+  }
+
+  .projects .card img.card-img-top { height: 180px; }
+
+  .projects .card img.card-img-top[src*="Logo"],
+  .projects .card img.card-img-top[src*="logo"],
+  .projects .card img.card-img-top[src*=".png"] {
+    height: 140px;
+    padding: 20px;
+  }
+
+  .projects .card .card-body { padding: 20px !important; }
+  .projects .card-text { font-size: 0.82rem; }
+
+  p.lead { font-size: 0.88rem !important; }
+}

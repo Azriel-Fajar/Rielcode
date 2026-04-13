@@ -1,0 +1,403 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import url("root-variables.css");
+
+/* ============================================================
+   REQUIREMENTS SECTION
+   ============================================================ */
+.requirements-section {
+  position: relative;
+  padding: 96px 0;
+  background-color: #080c14;
+  background-image:
+    radial-gradient(ellipse 55% 50% at 50% -5%,  rgba(255, 178, 55, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 5%  60%,  rgba(58, 124, 255, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 35% 35% at 95% 80%,  rgba(62, 207, 142, 0.05) 0%, transparent 50%);
+  overflow: hidden;
+}
+
+/* Top/bottom border glow */
+.requirements-section::before,
+.requirements-section::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  pointer-events: none;
+}
+
+.requirements-section::before {
+  top: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 178, 55, 0.3) 50%, transparent 100%);
+}
+
+.requirements-section::after {
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(58, 124, 255, 0.2) 50%, transparent 100%);
+}
+
+/* Grid overlay */
+.requirements-section .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   SECTION HEADER
+   ============================================================ */
+.requirements-section .text-center {
+  margin-bottom: 56px !important;
+}
+
+.requirements-section .text-center::before {
+  content: "// BEFORE YOU ORDER";
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #ffb237;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+  opacity: 0.85;
+}
+
+.requirements-section .text-center h2 {
+  font-family: "Syne", sans-serif !important;
+  font-size: clamp(1.8rem, 4vw, 2.8rem) !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
+.requirements-section .text-center p.lead {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.9rem !important;
+  color: #475569 !important;
+  max-width: 540px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ============================================================
+   INTRO CARD
+   ============================================================ */
+.req-intro-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  background: rgba(255, 178, 55, 0.05);
+  border: 1px solid rgba(255, 178, 55, 0.2);
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin-bottom: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Amber left accent bar */
+.req-intro-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(180deg, #ffb237, rgba(255, 178, 55, 0.2));
+  border-radius: 3px 0 0 3px;
+}
+
+/* Top shimmer line */
+.req-intro-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, #ffb237, transparent 70%);
+  opacity: 0.4;
+}
+
+.req-intro-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.req-intro-title {
+  font-family: "Syne", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-bottom: 10px;
+}
+
+.req-intro-text {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ============================================================
+   REQUIREMENTS GRID
+   ============================================================ */
+.req-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px;
+}
+
+/* ============================================================
+   REQUIREMENT CARD
+   ============================================================ */
+.req-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Hover top shimmer */
+.req-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 1px;
+  border-radius: 1px;
+  opacity: 0;
+  transition: opacity 0.3s ease, width 0.3s ease;
+}
+
+.req-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.req-card:hover::before {
+  opacity: 1;
+  width: 65%;
+}
+
+/* Card type color variants via nth-child (Required = blue) */
+.req-card:nth-child(1),
+.req-card:nth-child(3),
+.req-card:nth-child(4),
+.req-card:nth-child(5),
+.req-card:nth-child(7) {
+  border-color: rgba(58, 124, 255, 0.12);
+}
+
+.req-card:nth-child(1):hover,
+.req-card:nth-child(3):hover,
+.req-card:nth-child(4):hover,
+.req-card:nth-child(5):hover,
+.req-card:nth-child(7):hover {
+  border-color: rgba(58, 124, 255, 0.3);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35), 0 0 0 1px rgba(58, 124, 255, 0.1);
+}
+
+.req-card:nth-child(1)::before,
+.req-card:nth-child(3)::before,
+.req-card:nth-child(4)::before,
+.req-card:nth-child(5)::before,
+.req-card:nth-child(7)::before {
+  background: linear-gradient(90deg, transparent, #3a7cff, transparent);
+}
+
+/* Recommended = green */
+.req-card:nth-child(2),
+.req-card:nth-child(6) {
+  border-color: rgba(62, 207, 142, 0.12);
+}
+
+.req-card:nth-child(2):hover,
+.req-card:nth-child(6):hover {
+  border-color: rgba(62, 207, 142, 0.3);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35), 0 0 0 1px rgba(62, 207, 142, 0.08);
+}
+
+.req-card:nth-child(2)::before,
+.req-card:nth-child(6)::before {
+  background: linear-gradient(90deg, transparent, #3ecf8e, transparent);
+}
+
+/* Optional = muted */
+.req-card:nth-child(8) {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.req-card:nth-child(8):hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+}
+
+.req-card:nth-child(8)::before {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+
+/* ============================================================
+   CARD CONTENT
+   ============================================================ */
+.req-card-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.req-card-title {
+  font-family: "Syne", sans-serif;
+  font-size: 0.975rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0;
+  letter-spacing: -0.1px;
+}
+
+.req-card-desc {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.835rem;
+  color: #475569;
+  line-height: 1.7;
+  flex-grow: 1;
+  margin: 0;
+}
+
+/* ============================================================
+   TAG BADGES
+   ============================================================ */
+.req-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+/* Required → blue */
+.req-card:nth-child(1) .req-tag,
+.req-card:nth-child(3) .req-tag,
+.req-card:nth-child(4) .req-tag,
+.req-card:nth-child(5) .req-tag,
+.req-card:nth-child(7) .req-tag {
+  background: rgba(58, 124, 255, 0.1);
+  color: #3a7cff;
+  border: 1px solid rgba(58, 124, 255, 0.25);
+}
+
+.req-card:nth-child(1) .req-tag::before,
+.req-card:nth-child(3) .req-tag::before,
+.req-card:nth-child(4) .req-tag::before,
+.req-card:nth-child(5) .req-tag::before,
+.req-card:nth-child(7) .req-tag::before {
+  content: "●";
+  font-size: 0.45rem;
+  color: #3a7cff;
+}
+
+/* Recommended → green */
+.req-card:nth-child(2) .req-tag,
+.req-card:nth-child(6) .req-tag {
+  background: rgba(62, 207, 142, 0.08);
+  color: #3ecf8e;
+  border: 1px solid rgba(62, 207, 142, 0.2);
+}
+
+.req-card:nth-child(2) .req-tag::before,
+.req-card:nth-child(6) .req-tag::before {
+  content: "●";
+  font-size: 0.45rem;
+  color: #3ecf8e;
+}
+
+/* Optional → muted */
+.req-card:nth-child(8) .req-tag {
+  background: rgba(255, 255, 255, 0.05);
+  color: #334155;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.req-card:nth-child(8) .req-tag::before {
+  content: "●";
+  font-size: 0.45rem;
+  color: #334155;
+}
+
+/* ============================================================
+   CTA BOTTOM
+   ============================================================ */
+.requirements-section .text-center.mt-5 {
+  margin-top: 64px !important;
+}
+
+.requirements-section .text-center.mt-5 p {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.9rem;
+  color: #475569;
+  margin-bottom: 24px;
+}
+
+.requirements-section a.btn-glow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Outfit", sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.2px;
+  color: #fff;
+  background: linear-gradient(135deg, #3a7cff 0%, #5b52f5 100%);
+  padding: 0 36px;
+  height: 52px;
+  border-radius: 50px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(58, 124, 255, 0.3);
+}
+
+.requirements-section a.btn-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 32px rgba(58, 124, 255, 0.5);
+  color: #fff;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .requirements-section { padding: 64px 0; }
+
+  .req-intro-card {
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 20px;
+  }
+
+  .req-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .req-card { padding: 22px 18px 20px; }
+}

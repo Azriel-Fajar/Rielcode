@@ -1,0 +1,173 @@
+@import url("root-variables.css");
+
+/* ============================================================
+   PROMO BAR — Desktop
+   ============================================================ */
+.promo-bar {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 48px);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 10px 0 20px;
+  z-index: var(--z-overlay);
+  border-radius: 50px;
+
+  /* Dark glass with amber/gold tint */
+  background: rgba(10, 15, 25, 0.88);
+  border: 1px solid rgba(255, 178, 55, 0.25);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 0 0 1px rgba(255, 178, 55, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 24px rgba(255, 178, 55, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  font-family: "Outfit", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #94a3b8;
+  white-space: nowrap;
+
+  animation: promoSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
+}
+
+.promo-bar.mobile {
+  display: none;
+}
+
+/* Emoji/text content */
+.promo-bar > span {
+  color: #ffb237;
+  font-weight: 700;
+}
+
+/* ============================================================
+   PROMO BUTTON (desktop)
+   ============================================================ */
+.promo-bar a.promo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #ffb237 0%, #f97316 100%);
+  color: #1a0a00;
+  font-family: "Outfit", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.2px;
+  text-decoration: none;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 12px rgba(255, 178, 55, 0.35);
+}
+
+.promo-bar a.promo-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.promo-bar a.promo-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(255, 178, 55, 0.5);
+  color: #1a0a00;
+}
+
+.promo-bar a.promo-btn:hover::before { opacity: 1; }
+.promo-bar a.promo-btn:active { transform: scale(0.98); }
+
+/* ============================================================
+   ANIMATION
+   ============================================================ */
+@keyframes promoSlideUp {
+  from { transform: translateX(-50%) translateY(80px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+}
+
+/* ============================================================
+   MOBILE PROMO BAR
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Hide desktop version */
+  .promo-bar:not(.mobile) {
+    display: none;
+  }
+
+  /* Show mobile version */
+  .promo-bar.mobile {
+    display: flex;
+    position: fixed;
+    bottom: 16px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    transform: none;
+    height: 52px;
+    padding: 0;
+    border-radius: 16px;
+
+    background: rgba(10, 15, 25, 0.92);
+    border: 1px solid rgba(255, 178, 55, 0.3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+      0 0 0 1px rgba(255, 178, 55, 0.08),
+      0 8px 32px rgba(0, 0, 0, 0.55),
+      0 0 20px rgba(255, 178, 55, 0.08);
+
+    animation: promoSlideUpMobile 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
+    overflow: hidden;
+  }
+
+  .promo-bar.mobile a.promo-btn {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 0;
+    background: transparent;
+    color: #ffb237;
+    font-family: "Outfit", sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.2px;
+    padding: 0 20px;
+    text-decoration: none;
+    box-shadow: none;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .promo-bar.mobile a.promo-btn::before {
+    display: none;
+  }
+
+  .promo-bar.mobile a.promo-btn:hover {
+    background: rgba(255, 178, 55, 0.06);
+    color: #ffc55a;
+    transform: none;
+    box-shadow: none;
+  }
+
+  @keyframes promoSlideUpMobile {
+    from { transform: translateY(80px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+}

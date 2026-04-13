@@ -1,0 +1,217 @@
+@import url("root-variables.css");
+
+/* ============================================================
+   ABOUT SECTION
+   ============================================================ */
+section#about,
+section.about {
+  position: relative;
+  width: 100%;
+  padding: 96px 0;
+  background-color: #080c14;
+  background-image:
+    radial-gradient(ellipse 50% 60% at 0% 50%, rgba(58, 124, 255, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 100% 20%, rgba(163, 91, 255, 0.05) 0%, transparent 50%);
+  overflow: hidden;
+}
+
+/* Divider lines */
+section#about::before,
+section.about::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(58, 124, 255, 0.3) 50%, transparent 100%);
+}
+
+section#about::after,
+section.about::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(58, 124, 255, 0.15) 50%, transparent 100%);
+}
+
+section#about .container,
+section.about .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   LOGO COLUMN
+   ============================================================ */
+section#about .container .row .col-lg-4,
+section.about .container .row .col-lg-4 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+section#about .container .row .col-lg-4 img,
+section.about .container .row .col-lg-4 img {
+  max-width: 100%;
+  max-height: 280px;
+  width: auto;
+  height: auto;
+  /* Glass card treatment for logo */
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 28px;
+  padding: 40px;
+  box-shadow:
+    0 0 0 1px rgba(58, 124, 255, 0.06),
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+section#about .container .row .col-lg-4 img:hover,
+section.about .container .row .col-lg-4 img:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow:
+    0 0 0 1px rgba(58, 124, 255, 0.15),
+    0 28px 72px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(58, 124, 255, 0.06),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+/* ============================================================
+   TEXT COLUMN
+   ============================================================ */
+section#about .container .row .col-lg-8,
+section.about .container .row .col-lg-8 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 20px 20px 40px;
+}
+
+/* Section tag */
+section#about .container .row .col-lg-8::before,
+section.about .container .row .col-lg-8::before {
+  content: "// ABOUT US";
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #3a7cff;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+section#about .container .row .col-lg-8 h2,
+section.about .container .row .col-lg-8 h2 {
+  font-family: "Syne", sans-serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+  margin-bottom: 28px;
+  line-height: 1.1;
+}
+
+section#about .container .row .col-lg-8 p,
+section.about .container .row .col-lg-8 p {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #64748b;
+  line-height: 1.75;
+  margin-bottom: 14px;
+  text-align: left;
+  width: 100%;
+}
+
+/* Highlight first paragraph */
+section#about .container .row .col-lg-8 p:first-of-type,
+section.about .container .row .col-lg-8 p:first-of-type {
+  font-size: 0.975rem;
+  color: #94a3b8;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+/* Key phrase highlight */
+section#about .container .row .col-lg-8 p b,
+section.about .container .row .col-lg-8 p b {
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+/* ============================================================
+   STAT CHIPS (optional enhancement if user adds them)
+   ============================================================ */
+.about-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.about-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 20px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  min-width: 100px;
+}
+
+.about-stat .stat-value {
+  font-family: "Syne", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #3a7cff;
+  line-height: 1;
+}
+
+.about-stat .stat-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  color: #475569;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 991px) {
+  section#about .container .row .col-lg-8,
+  section.about .container .row .col-lg-8 {
+    padding: 32px 20px 20px;
+  }
+
+  section#about .container .row .col-lg-4 img,
+  section.about .container .row .col-lg-4 img {
+    max-height: 200px;
+    padding: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  section#about,
+  section.about { padding: 64px 0; }
+
+  section#about .container .row .col-lg-8 p,
+  section.about .container .row .col-lg-8 p {
+    font-size: 0.85rem;
+    line-height: 1.65;
+  }
+
+  section#about .container .row .col-lg-8 p:first-of-type,
+  section.about .container .row .col-lg-8 p:first-of-type {
+    font-size: 0.9rem;
+  }
+}

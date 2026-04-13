@@ -1,0 +1,287 @@
+@import url("root-variables.css");
+
+/* ============================================================
+   NAVBAR BASE
+   ============================================================ */
+nav.navbar {
+  width: 100%;
+  height: 72px;
+  background: transparent;
+  z-index: var(--z-nav);
+  /* Explicitly set all transitioning properties so browser interpolates correctly */
+  transition:
+    width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.35s ease,
+    border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease,
+    backdrop-filter 0.35s ease;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 !important;
+}
+
+/* ============================================================
+   SCROLLED STATE (active)
+   ============================================================ */
+nav.navbar.active {
+  width: 88%;
+  top: 16px;
+  border-radius: 18px;
+  background: rgba(8, 12, 20, 0.80);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(58, 124, 255, 0.07),
+    0 8px 32px rgba(0, 0, 0, 0.45);
+  height: 60px;
+}
+
+/* ============================================================
+   CONTAINER
+   ============================================================ */
+nav .navbar-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+}
+
+/* ============================================================
+   LOGO
+   ============================================================ */
+nav .navbar-container .navbar-logo {
+  height: 44px;
+  width: 140px;
+  background-image: url("../IMG/Rielcode Logo Transparent.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left center;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease;
+}
+
+nav .navbar-container .navbar-logo:hover {
+  opacity: 0.85;
+}
+
+/* ============================================================
+   DESKTOP MENU
+   ============================================================ */
+nav .navbar-container .navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav .navbar-container .navbar-menu li a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: rgba(226, 232, 240, 0.7);
+  font-family: "Outfit", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+nav .navbar-container .navbar-menu li a:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+nav .navbar-container .navbar-menu li a.active {
+  color: #fff;
+  background: rgba(58, 124, 255, 0.12);
+}
+
+/* Active underline indicator */
+nav .navbar-container .navbar-menu li a::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 0;
+  height: 1.5px;
+  background: #3a7cff;
+  border-radius: 2px;
+  transform: translateX(-50%);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+nav .navbar-container .navbar-menu li a:hover::after,
+nav .navbar-container .navbar-menu li a.active::after {
+  width: calc(100% - 28px);
+}
+
+/* ============================================================
+   CTA BUTTON
+   ============================================================ */
+nav .button-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+nav .button-container .cta-navbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #3a7cff 0%, #5b52f5 100%);
+  color: #fff !important;
+  font-family: "Outfit", sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.2px;
+  padding: 0 20px !important;
+  height: 38px;
+  border-radius: 50px;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 12px rgba(58, 124, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+nav .button-container .cta-navbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.1);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+nav .button-container .cta-navbar:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(58, 124, 255, 0.45);
+  color: #fff !important;
+}
+
+nav .button-container .cta-navbar:hover::before { opacity: 1; }
+nav .button-container .cta-navbar:active { transform: translateY(0) scale(1); }
+
+/* ============================================================
+   BURGER ICON
+   ============================================================ */
+nav .button-container img#burger {
+  height: 28px;
+  width: 28px;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+  filter: brightness(2);
+}
+
+nav .button-container img#burger:hover { opacity: 1; }
+
+/* ============================================================
+   MOBILE DROPDOWN
+   ============================================================ */
+nav .navbar-mobile-container {
+  position: absolute;
+  left: 0;
+  top: 72px;
+  width: 100%;
+  height: 0;
+  overflow: hidden;
+  background: rgba(8, 12, 20, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 0;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+nav.active .navbar-mobile-container {
+  top: 68px;
+  border-radius: 0 0 18px 18px;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-top: none;
+}
+
+nav .navbar-mobile-container.active {
+  height: 336px;
+}
+
+nav .navbar-mobile-container .menu-mobile {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  width: 100%;
+}
+
+nav .navbar-mobile-container .menu-mobile li {
+  width: 100%;
+  height: 48px;
+  display: flex;
+}
+
+nav .navbar-mobile-container .menu-mobile li a {
+  text-decoration: none;
+  color: rgba(226, 232, 240, 0.75);
+  font-family: "Outfit", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  transition: all 0.2s ease;
+  letter-spacing: 0.1px;
+  border-left: 2px solid transparent;
+}
+
+nav .navbar-mobile-container .menu-mobile li a:hover {
+  color: #fff;
+  background: rgba(58, 124, 255, 0.08);
+  border-left-color: #3a7cff;
+  padding-left: 36px;
+}
+
+/* ============================================================
+   MOBILE — transparent nav always shows bg color
+   ============================================================ */
+@media (max-width: 991px) {
+  nav.navbar {
+    background: rgba(8, 12, 20, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  nav.navbar.active {
+    width: 100%;
+    top: 0;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    height: 72px;
+    box-shadow: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  nav.active .navbar-mobile-container {
+    top: 72px;
+    border-radius: 0;
+  }
+}

@@ -1,0 +1,754 @@
+@import url("root-variables.css");
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html { scroll-behavior: smooth; }
+
+/* ============================================================
+   BACKGROUND — animated mesh gradient
+   ============================================================ */
+.background {
+  font-family: "Outfit", sans-serif;
+  background-color: #080c14;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% -10%, rgba(58, 124, 255, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 110%, rgba(163, 91, 255, 0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(62, 207, 142, 0.05) 0%, transparent 70%);
+  min-height: 100dvh;
+  height: max-content;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle grid overlay */
+.background::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(58, 124, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(58, 124, 255, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================================
+   BACK BUTTON
+   ============================================================ */
+.background > a.btn {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #e2e8f0;
+  font-family: "Outfit", sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  letter-spacing: 0.3px;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-bottom: 0;
+}
+
+.background > a.btn::before {
+  content: "←";
+  font-size: 1rem;
+}
+
+.background > a.btn:hover {
+  background: rgba(58, 124, 255, 0.15);
+  border-color: rgba(58, 124, 255, 0.5);
+  color: #fff;
+  transform: translateX(-2px);
+}
+
+/* ============================================================
+   FORM CONTAINER
+   ============================================================ */
+.form-container {
+  position: relative;
+  z-index: 1;
+  width: 52%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 28px;
+  padding: 44px 48px;
+  box-shadow:
+    0 0 0 1px rgba(58, 124, 255, 0.06),
+    0 32px 64px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.form-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+/* ============================================================
+   TITLE
+   ============================================================ */
+form .title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+form .title h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #fff 40%, rgba(58, 124, 255, 0.8));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+form .title p {
+  font-size: 0.875rem;
+  color: #64748b;
+  letter-spacing: 0.2px;
+  font-weight: 400;
+}
+
+/* ============================================================
+   SECTION LABELS
+   ============================================================ */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.section-label h2 {
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: "JetBrains Mono", monospace !important;
+  margin: 0 !important;
+}
+
+.section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.07);
+}
+
+/* Fallback for h2 not wrapped */
+form .customer-info-container > h2,
+form .package-details-container > h2,
+form .additional-contaianer > h2 {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: "JetBrains Mono", monospace;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+form .customer-info-container > h2::after,
+form .package-details-container > h2::after,
+form .additional-contaianer > h2::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.07);
+}
+
+/* ============================================================
+   CUSTOMER INFO — INPUTS
+   ============================================================ */
+form .customer-info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+form .customer-info-container input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: #e2e8f0;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  padding: 14px 18px;
+  border-radius: 14px;
+  transition: all 0.2s ease;
+  outline: none;
+  /* Remove number input arrows */
+  -moz-appearance: textfield;
+}
+
+form .customer-info-container input::-webkit-outer-spin-button,
+form .customer-info-container input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+form .customer-info-container input::placeholder { color: #475569; }
+
+form .customer-info-container input:hover {
+  border-color: rgba(58, 124, 255, 0.3);
+  background: rgba(58, 124, 255, 0.04);
+}
+
+form .customer-info-container input:focus {
+  border-color: rgba(58, 124, 255, 0.7);
+  background: rgba(58, 124, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(58, 124, 255, 0.12);
+}
+
+/* ============================================================
+   PACKAGE DETAIL
+   ============================================================ */
+form .package-details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Plan radio cards */
+form .package-details-container .plan-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+form .package-details-container .plan-container input[type="radio"] { display: none; }
+
+form .package-details-container .plan-container label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: "Outfit", sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  background: rgba(255,255,255,0.03);
+  color: #94a3b8;
+  width: 100%;
+  height: auto;
+  white-space: nowrap;
+}
+
+form .package-details-container .plan-container label h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Starter — green */
+form .package-details-container .plan-container label[for="starter"] {
+  border-color: rgba(62, 207, 142, 0.25);
+}
+form .package-details-container .plan-container label[for="starter"]::before {
+  content: "✦";
+  font-size: 0.7rem;
+  color: #3ecf8e;
+  opacity: 0.6;
+}
+form .package-details-container .plan-container label[for="starter"]:hover {
+  border-color: rgba(62, 207, 142, 0.6);
+  background: rgba(62, 207, 142, 0.07);
+  color: #3ecf8e;
+}
+form .package-details-container .plan-container input[id="starter"]:checked + label {
+  border-color: #3ecf8e;
+  background: rgba(62, 207, 142, 0.12);
+  color: #3ecf8e;
+  box-shadow: 0 0 20px rgba(62, 207, 142, 0.15);
+  padding: 14px 16px;
+}
+
+/* Pro — blue */
+form .package-details-container .plan-container label[for="pro"] {
+  border-color: rgba(58, 124, 255, 0.25);
+}
+form .package-details-container .plan-container label[for="pro"]::before {
+  content: "◈";
+  font-size: 0.7rem;
+  color: #3a7cff;
+  opacity: 0.6;
+}
+form .package-details-container .plan-container label[for="pro"]:hover {
+  border-color: rgba(58, 124, 255, 0.6);
+  background: rgba(58, 124, 255, 0.07);
+  color: #3a7cff;
+}
+form .package-details-container .plan-container input[id="pro"]:checked + label {
+  border-color: #3a7cff;
+  background: rgba(58, 124, 255, 0.12);
+  color: #3a7cff;
+  box-shadow: 0 0 20px rgba(58, 124, 255, 0.2);
+  padding: 14px 16px;
+}
+
+/* Business — purple */
+form .package-details-container .plan-container label[for="business"] {
+  border-color: rgba(163, 91, 255, 0.25);
+}
+form .package-details-container .plan-container label[for="business"]::before {
+  content: "⬡";
+  font-size: 0.7rem;
+  color: #a35bff;
+  opacity: 0.6;
+}
+form .package-details-container .plan-container label[for="business"]:hover {
+  border-color: rgba(163, 91, 255, 0.6);
+  background: rgba(163, 91, 255, 0.07);
+  color: #a35bff;
+}
+form .package-details-container .plan-container input[id="business"]:checked + label {
+  border-color: #a35bff;
+  background: rgba(163, 91, 255, 0.12);
+  color: #a35bff;
+  box-shadow: 0 0 20px rgba(163, 91, 255, 0.2);
+  padding: 14px 16px;
+}
+
+/* Domain / Hosting question labels */
+form .package-details-container h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-family: "JetBrains Mono", monospace;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+/* ============================================================
+   PROMO BADGE
+   ============================================================ */
+.promo-check {
+  display: flex;
+  align-items: center;
+}
+
+.promo-check input { display: none; }
+
+.promo-check label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: "Outfit", sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #e2e8f0;
+  background: linear-gradient(135deg, rgba(255,178,55,0.1), rgba(255,100,100,0.1));
+  border: 1.5px solid rgba(255, 178, 55, 0.25);
+  transition: all 0.22s ease;
+  position: relative;
+  height: auto;
+}
+
+.promo-check label::before {
+  content: "🎁";
+  font-size: 0.9rem;
+}
+
+.promo-check label:hover {
+  border-color: rgba(255, 178, 55, 0.6);
+  background: linear-gradient(135deg, rgba(255,178,55,0.18), rgba(255,100,100,0.12));
+  box-shadow: 0 0 16px rgba(255, 178, 55, 0.15);
+}
+
+.promo-check input:checked + label {
+  border-color: #ffb237;
+  background: linear-gradient(135deg, rgba(255,178,55,0.2), rgba(255,100,100,0.15));
+  box-shadow: 0 0 20px rgba(255, 178, 55, 0.2);
+  color: #ffb237;
+}
+
+/* ============================================================
+   DOMAIN/HOSTING TOGGLE
+   ============================================================ */
+#domain-hosting-section,
+.domain-hosting-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+form .package-details-container .domain-container {
+  display: flex;
+  gap: 10px;
+}
+
+form .package-details-container .domain-container input[type="radio"] { display: none; }
+
+form .package-details-container .domain-container label {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: "Outfit", sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #64748b;
+  border: 1.5px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  transition: all 0.2s ease;
+  height: auto;
+  width: auto;
+}
+
+form .package-details-container .domain-container label:hover {
+  border-color: rgba(58, 124, 255, 0.4);
+  color: #94a3b8;
+  background: rgba(58, 124, 255, 0.05);
+}
+
+form .package-details-container .domain-container input[type="radio"]:checked + label {
+  border-color: rgba(58, 124, 255, 0.8);
+  background: rgba(58, 124, 255, 0.12);
+  color: #3a7cff;
+  box-shadow: 0 0 16px rgba(58, 124, 255, 0.15);
+  padding: 12px 16px;
+}
+
+/* ============================================================
+   ADDITIONAL TEXTAREA
+   ============================================================ */
+form .additional-contaianer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+form .additional-contaianer textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: #e2e8f0;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  padding: 16px 18px;
+  border-radius: 14px;
+  resize: none;
+  outline: none;
+  transition: all 0.2s ease;
+  line-height: 1.6;
+}
+
+form .additional-contaianer textarea::placeholder { color: #475569; }
+
+form .additional-contaianer textarea:hover {
+  border-color: rgba(58, 124, 255, 0.3);
+}
+
+form .additional-contaianer textarea:focus {
+  border-color: rgba(58, 124, 255, 0.7);
+  background: rgba(58, 124, 255, 0.04);
+  box-shadow: 0 0 0 3px rgba(58, 124, 255, 0.1);
+}
+
+/* ============================================================
+   SUBMIT BUTTON
+   ============================================================ */
+.background .submit-container {
+  background: transparent;
+  padding: 0;
+  width: 100%;
+}
+
+.background .submit-container button {
+  width: 100%;
+  position: relative;
+  background: linear-gradient(135deg, #3a7cff 0%, #5b52f5 100%);
+  font-family: "Outfit", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+  height: 56px;
+  border-radius: 14px;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.background .submit-container button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.background .submit-container button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(58, 124, 255, 0.45), 0 0 0 1px rgba(255,255,255,0.1);
+  letter-spacing: 0.5px;
+}
+
+.background .submit-container button:hover::before { opacity: 1; }
+.background .submit-container button:active { transform: translateY(0); }
+
+/* ============================================================
+   POPUP — Incomplete Order
+   ============================================================ */
+.popup-background {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 8, 16, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.popup-background .popup-container {
+  width: 460px;
+  max-width: calc(100vw - 40px);
+  background: #0f1623;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow:
+    0 0 0 1px rgba(58, 124, 255, 0.1),
+    0 40px 80px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.popup-background .popup-container h3 {
+  font-family: "Outfit", sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.popup-background .popup-container h3::before {
+  content: "⚠";
+  font-size: 1rem;
+  color: #ffb237;
+}
+
+.popup-background .popup-container > p {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+/* Popup personal info table */
+.popup-background .popup-container .personal-info {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popup-background .popup-container .personal-info div {
+  width: 100%;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.popup-background .popup-container .personal-info div + div {
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 8px;
+}
+
+.popup-background .popup-container .personal-info p {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  padding: 0;
+  margin: 0;
+}
+
+.popup-background .popup-container .personal-info p b {
+  color: #e2e8f0;
+}
+
+.popup-background .popup-container .personal-info span {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+  color: #475569;
+  width: auto;
+  height: auto;
+  padding: 0;
+  justify-content: flex-end;
+}
+
+/* Popup action buttons */
+.popup-background .popup-container form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+}
+
+.popup-background .popup-container form button {
+  height: 46px;
+  border-radius: 12px;
+  font-family: "Outfit", sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  letter-spacing: 0.2px;
+}
+
+.popup-background .popup-container form button[name="continue"] {
+  background: rgba(62, 207, 142, 0.12);
+  border: 1.5px solid rgba(62, 207, 142, 0.4);
+  color: #3ecf8e;
+}
+
+.popup-background .popup-container form button[name="continue"]:hover {
+  background: rgba(62, 207, 142, 0.2);
+  border-color: #3ecf8e;
+  box-shadow: 0 0 20px rgba(62, 207, 142, 0.2);
+  transform: translateY(-1px);
+  letter-spacing: 0.4px;
+}
+
+.popup-background .popup-container form button[name="no"] {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1.5px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.popup-background .popup-container form button[name="no"]:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #f87171;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+  transform: translateY(-1px);
+  letter-spacing: 0.4px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1080px) {
+  .form-container { width: 72%; }
+}
+
+@media (max-width: 768px) {
+  .background {
+    padding: 20px;
+    align-items: stretch;
+  }
+
+  .background > a.btn {
+    position: relative;
+    top: 0; left: 0;
+    width: 100%;
+    justify-content: center;
+    height: 46px;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+  }
+
+  .form-container {
+    width: 100%;
+    border-radius: 20px;
+    padding: 28px 24px;
+  }
+
+  form .title h1 { font-size: 1.9rem; }
+
+  form .package-details-container .plan-container {
+    grid-template-columns: 1fr;
+  }
+
+  .popup-background .popup-container { padding: 24px 20px; }
+}
+
+@media (max-width: 480px) {
+  .form-container { padding: 22px 18px; }
+  form .title h1 { font-size: 1.6rem; }
+  form .additional-contaianer textarea { font-size: 0.9rem; }
+  .promo-check label { font-size: 0.8rem; }
+}

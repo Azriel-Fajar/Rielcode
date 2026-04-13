@@ -1,0 +1,86 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap");
+/**
+ * ============================================================
+ *  ROOT DESIGN TOKENS — import this file first in every page
+ *  Usage: color: var(--color-primary);
+ * ============================================================
+ */
+
+:root {
+  /* ── Brand / Accent Colors ── */
+  --color-primary:        #3a7bff;   /* main blue  */
+  --color-primary-dark:   #195bde;   /* hover blue */
+  --color-primary-hover:  #1e55c4;
+
+  --color-green:          #3ecf8e;   /* starter / success */
+  --color-green-dark:     #1a9e68;
+
+  --color-purple:         #a35bff;   /* business plan */
+  --color-purple-dark:    #7c3de0;
+  --color-purple-light:   #d38bff;
+
+  --color-red:            #ff4b4b;   /* danger / delete */
+  --color-red-dark:       #e84118;
+
+  --color-success:        #22c55e;   /* success page */
+  --color-success-dark:   #16a34a;
+
+  /* ── Promo Gradient ── */
+  --color-promo-from:     #4f46e5;
+  --color-promo-to:       #9333ea;
+
+  /* ── Cyan / Highlight ── */
+  --color-cyan:           #00d4ff;
+
+  /* ── Neutral / Background ── */
+  --color-bg-body:        #1c1f22;   /* main dark bg */
+  --color-bg-alt:         #1f2529;   /* slightly lighter section bg */
+  --color-bg-deep:        #1a1a1a;   /* cards, forms */
+  --color-bg-deepest:     #111315;   /* footer copyright */
+  --color-bg-card:        #2a2a2a;   /* project cards */
+  --color-bg-input:       #2a2f35;   /* form inputs */
+  --color-bg-input-alt:   #2d3439;   /* testi inputs */
+  --color-bg-sidebar:     #2f3640;   /* admin sidebar */
+  --color-bg-admin-body:  #f5f6fa;   /* admin page body */
+  --color-bg-white:       #ffffff;
+
+  /* ── Text ── */
+  --color-text-primary:   #ffffff;
+  --color-text-muted:     #cccccc;
+  --color-text-dimmed:    rgba(255, 255, 255, 0.60);
+  --color-text-faint:     rgba(255, 255, 255, 0.38);
+  --color-text-dark:      #333333;
+
+  /* ── Border / Divider ── */
+  --color-border:         rgba(255, 255, 255, 0.08);
+  --color-border-hover:   rgba(255, 255, 255, 0.18);
+  --color-border-divider: rgba(255, 255, 255, 0.32);
+  --color-border-admin:   #dcdde1;
+
+  /* ── Shadow ── */
+  --shadow-card:          0 10px 20px rgba(0, 0, 0, 0.2);
+  --shadow-glow-blue:     0 0 15px rgba(58, 123, 255, 0.5);
+  --shadow-glow-green:    0 0 15px rgba(62, 207, 142, 0.5);
+  --shadow-glow-purple:   0 0 15px rgba(163, 91, 255, 0.5);
+  --shadow-glow-red:      0 0 10px rgba(255, 75, 75, 0.4);
+
+  /* ── Border Radius ── */
+  --radius-sm:   5px;
+  --radius-md:   10px;
+  --radius-lg:   20px;
+  --radius-xl:   30px;
+  --radius-pill: 50px;
+
+  /* ── Transitions ── */
+  --transition-fast:   0.2s ease;
+  --transition-base:   0.3s ease;
+  --transition-slow:   0.6s ease;
+
+  /* ── Typography ── */
+  --font-main:  "Poppins", sans-serif;
+  --font-ui:    "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+  /* ── Z-index ── */
+  --z-nav:      999;
+  --z-overlay:  9999;
+}

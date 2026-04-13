@@ -1,0 +1,55 @@
+# --- Enable Rewrite ---
+RewriteEngine On
+RewriteBase /
+
+# --- Prevent directory listing ---
+Options -Indexes
+
+# --- Protect sensitive config files ---
+<Files "config.php">
+  Require all denied
+</Files>
+
+# --- Cache control ---
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType image/* "access plus 1 year"
+</IfModule>
+
+
+# --- Proxy alias for chatbot (MUST be first) ---
+RewriteRule ^proxy$ proxy.php [L,QSA]
+
+# --- Admin aliases (allow direct access) ---
+RewriteRule ^admin_login\.php$ admin_login.php [L,QSA]
+RewriteRule ^admin_logout\.php$ admin_logout.php [L,QSA]
+RewriteRule ^admin\.php$ admin.php [L,QSA]
+RewriteRule ^admin_edit\.php$ admin_edit.php [L,QSA]
+
+RewriteRule ^admin_login$ admin_login.php [L,QSA]
+RewriteRule ^admin_logout$ admin_logout.php [L,QSA]
+RewriteRule ^admin$ admin.php [L,QSA]
+RewriteRule ^admin_edit$ admin_edit.php [L,QSA]
+
+# --- Redirect index.php to root (SEO) ---
+RewriteCond %{THE_REQUEST} /index\.php [NC]
+RewriteRule ^index\.php$ / [R=301,L]
+
+# --- Clean URLs for all other .php files ---
+RewriteCond %{THE_REQUEST} \s/([^.]+)\.php[\s?]
+# BUG FIX: old pattern !^proxy$ only matched when %1 was exactly "proxy".
+# On localhost the subdirectory prefix makes %1 = "Rielcode/proxy", which
+# did NOT match, so proxy.php got redirected → 404.
+# New pattern !proxy$ excludes ANY path that ends with "proxy".
+RewriteCond %1 !proxy$
+RewriteCond %1 !^(admin|admin_edit|admin_login|admin_logout)
+RewriteRule ^ %1 [R=301,L]
+
+# --- Internally rewrite clean URLs back to .php ---
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI}      !proxy$
+RewriteCond %{REQUEST_URI}      !^/(admin|admin_edit|admin_login|admin_logout)($|/)
+RewriteRule ^([^/]+)$ $1.php [L]
