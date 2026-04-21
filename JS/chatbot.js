@@ -315,7 +315,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const scrollingDown = scrollTop > lastScrollTop;
     const chatOpen = !chatContainer.classList.contains("hidden");
 
-    if (promo) promo.style.bottom = scrollingDown ? "-80px" : "25px";
+    if (promo) promo.style.bottom = scrollingDown ? "-100px" : "25px";
     if (window.innerWidth <= 768) {
       chatIcon.style.bottom = scrollingDown ? "25px" : "100px";
       greeting.style.bottom = scrollingDown ? "92px" : "167px";
