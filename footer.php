@@ -17,6 +17,10 @@
                 target="_blank"
                 class="mx-2"><i class="bi bi-instagram"></i></a>
         </div>
+        <div class="footer-address">
+            <i class="bi bi-geo-alt-fill"></i>
+            <span>Jl. Dipomenggolo, RT.01/RW.04, Ngentaksari, Pulutan, Sidorejo District, Salatiga City, Central Java</span>
+        </div>
     </div>
     <div class="copyright w-100 text-center text-white">
         <p class="mb-0">Copyright &copy; 2026 Rielcode. All rights reserved.</p>

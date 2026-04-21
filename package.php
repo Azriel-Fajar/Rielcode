@@ -30,6 +30,7 @@ include 'inc/seo.php';
                         <div class="pricing-price">
                             <span class="old-price">$60 / IDR 998k</span>
                             <span class="new-price">$29.99 / IDR 499k</span>
+                            <span class="savings-pill">Save $30 / IDR 499k</span>
                         </div>
                         <ul class="pricing-list">
                             <li>1 page website (single page)</li>
@@ -57,6 +58,7 @@ include 'inc/seo.php';
                         <div class="pricing-price">
                             <span class="old-price">$120 / IDR 2jt</span>
                             <span class="new-price">$59.99 / IDR 999k</span>
+                            <span class="savings-pill">Save $60 / IDR 1jt</span>
                         </div>
                         <ul class="pricing-list">
                             <li>Landing page website (1 page)</li>
@@ -82,6 +84,7 @@ include 'inc/seo.php';
                         <div class="pricing-price">
                             <span class="old-price">$240 / IDR 4jt</span>
                             <span class="new-price">$119.99 / IDR 1.999jt</span>
+                            <span class="savings-pill">Save $120 / IDR 2jt</span>
                         </div>
                         <ul class="pricing-list">
                             <li><b>All in Starter</b>,&nbsp;plus:</li>
@@ -108,6 +111,7 @@ include 'inc/seo.php';
                         <div class="pricing-price">
                             <span class="old-price">$480 / IDR 8jt</span>
                             <span class="new-price">$239.99 / IDR 3.999jt</span>
+                            <span class="savings-pill">Save $240 / IDR 4jt</span>
                         </div>
                         <ul class="pricing-list">
                             <li><b>All in Pro</b>,&nbsp;plus:</li>

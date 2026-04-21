@@ -3,13 +3,17 @@
 /* ============================================================
    RESET & BASE
    ============================================================ */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+}
 
 /* ============================================================
    BACKGROUND — animated mesh gradient
@@ -18,9 +22,21 @@ html { scroll-behavior: smooth; }
   font-family: "Outfit", sans-serif;
   background-color: #080c14;
   background-image:
-    radial-gradient(ellipse 80% 60% at 20% -10%, rgba(58, 124, 255, 0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 90% 110%, rgba(163, 91, 255, 0.14) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(62, 207, 142, 0.05) 0%, transparent 70%);
+    radial-gradient(
+      ellipse 80% 60% at 20% -10%,
+      rgba(58, 124, 255, 0.18) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 90% 110%,
+      rgba(163, 91, 255, 0.14) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 40% 40% at 50% 50%,
+      rgba(62, 207, 142, 0.05) 0%,
+      transparent 70%
+    );
   min-height: 100dvh;
   height: max-content;
   width: 100%;
@@ -107,8 +123,14 @@ html { scroll-behavior: smooth; }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .form-container form {
@@ -171,7 +193,7 @@ form .title p {
   content: "";
   flex: 1;
   height: 1px;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 /* Fallback for h2 not wrapped */
@@ -196,7 +218,7 @@ form .additional-contaianer > h2::after {
   content: "";
   flex: 1;
   height: 1px;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 /* ============================================================
@@ -229,7 +251,9 @@ form .customer-info-container input::-webkit-inner-spin-button {
   -webkit-appearance: none;
 }
 
-form .customer-info-container input::placeholder { color: #475569; }
+form .customer-info-container input::placeholder {
+  color: #475569;
+}
 
 form .customer-info-container input:hover {
   border-color: rgba(58, 124, 255, 0.3);
@@ -258,7 +282,9 @@ form .package-details-container .plan-container {
   gap: 10px;
 }
 
-form .package-details-container .plan-container input[type="radio"] { display: none; }
+form .package-details-container .plan-container input[type="radio"] {
+  display: none;
+}
 
 form .package-details-container .plan-container label {
   display: flex;
@@ -275,7 +301,7 @@ form .package-details-container .plan-container label {
   position: relative;
   overflow: hidden;
   border: 1.5px solid transparent;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
   color: #94a3b8;
   width: 100%;
   height: auto;
@@ -303,7 +329,11 @@ form .package-details-container .plan-container label[for="starter"]:hover {
   background: rgba(62, 207, 142, 0.07);
   color: #3ecf8e;
 }
-form .package-details-container .plan-container input[id="starter"]:checked + label {
+form
+  .package-details-container
+  .plan-container
+  input[id="starter"]:checked
+  + label {
   border-color: #3ecf8e;
   background: rgba(62, 207, 142, 0.12);
   color: #3ecf8e;
@@ -326,7 +356,11 @@ form .package-details-container .plan-container label[for="pro"]:hover {
   background: rgba(58, 124, 255, 0.07);
   color: #3a7cff;
 }
-form .package-details-container .plan-container input[id="pro"]:checked + label {
+form
+  .package-details-container
+  .plan-container
+  input[id="pro"]:checked
+  + label {
   border-color: #3a7cff;
   background: rgba(58, 124, 255, 0.12);
   color: #3a7cff;
@@ -349,7 +383,11 @@ form .package-details-container .plan-container label[for="business"]:hover {
   background: rgba(163, 91, 255, 0.07);
   color: #a35bff;
 }
-form .package-details-container .plan-container input[id="business"]:checked + label {
+form
+  .package-details-container
+  .plan-container
+  input[id="business"]:checked
+  + label {
   border-color: #a35bff;
   background: rgba(163, 91, 255, 0.12);
   color: #a35bff;
@@ -377,7 +415,9 @@ form .package-details-container h4 {
   align-items: center;
 }
 
-.promo-check input { display: none; }
+.promo-check input {
+  display: none;
+}
 
 .promo-check label {
   display: inline-flex;
@@ -390,7 +430,11 @@ form .package-details-container h4 {
   font-weight: 600;
   font-size: 0.85rem;
   color: #e2e8f0;
-  background: linear-gradient(135deg, rgba(255,178,55,0.1), rgba(255,100,100,0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 178, 55, 0.1),
+    rgba(255, 100, 100, 0.1)
+  );
   border: 1.5px solid rgba(255, 178, 55, 0.25);
   transition: all 0.22s ease;
   position: relative;
@@ -404,13 +448,21 @@ form .package-details-container h4 {
 
 .promo-check label:hover {
   border-color: rgba(255, 178, 55, 0.6);
-  background: linear-gradient(135deg, rgba(255,178,55,0.18), rgba(255,100,100,0.12));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 178, 55, 0.18),
+    rgba(255, 100, 100, 0.12)
+  );
   box-shadow: 0 0 16px rgba(255, 178, 55, 0.15);
 }
 
 .promo-check input:checked + label {
   border-color: #ffb237;
-  background: linear-gradient(135deg, rgba(255,178,55,0.2), rgba(255,100,100,0.15));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 178, 55, 0.2),
+    rgba(255, 100, 100, 0.15)
+  );
   box-shadow: 0 0 20px rgba(255, 178, 55, 0.2);
   color: #ffb237;
 }
@@ -431,7 +483,9 @@ form .package-details-container .domain-container {
   gap: 10px;
 }
 
-form .package-details-container .domain-container input[type="radio"] { display: none; }
+form .package-details-container .domain-container input[type="radio"] {
+  display: none;
+}
 
 form .package-details-container .domain-container label {
   flex: 1;
@@ -445,8 +499,8 @@ form .package-details-container .domain-container label {
   font-weight: 600;
   font-size: 0.9rem;
   color: #64748b;
-  border: 1.5px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.02);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
   transition: all 0.2s ease;
   height: auto;
   width: auto;
@@ -458,7 +512,11 @@ form .package-details-container .domain-container label:hover {
   background: rgba(58, 124, 255, 0.05);
 }
 
-form .package-details-container .domain-container input[type="radio"]:checked + label {
+form
+  .package-details-container
+  .domain-container
+  input[type="radio"]:checked
+  + label {
   border-color: rgba(58, 124, 255, 0.8);
   background: rgba(58, 124, 255, 0.12);
   color: #3a7cff;
@@ -491,7 +549,9 @@ form .additional-contaianer textarea {
   line-height: 1.6;
 }
 
-form .additional-contaianer textarea::placeholder { color: #475569; }
+form .additional-contaianer textarea::placeholder {
+  color: #475569;
+}
 
 form .additional-contaianer textarea:hover {
   border-color: rgba(58, 124, 255, 0.3);
@@ -533,19 +593,29 @@ form .additional-contaianer textarea:focus {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 100%
+  );
   opacity: 0;
   transition: opacity 0.2s ease;
 }
 
 .background .submit-container button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(58, 124, 255, 0.45), 0 0 0 1px rgba(255,255,255,0.1);
+  box-shadow:
+    0 8px 32px rgba(58, 124, 255, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
   letter-spacing: 0.5px;
 }
 
-.background .submit-container button:hover::before { opacity: 1; }
-.background .submit-container button:active { transform: translateY(0); }
+.background .submit-container button:hover::before {
+  opacity: 1;
+}
+.background .submit-container button:active {
+  transform: translateY(0);
+}
 
 /* ============================================================
    POPUP — Incomplete Order
@@ -564,20 +634,24 @@ form .additional-contaianer textarea:focus {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .popup-background .popup-container {
   width: 460px;
   max-width: calc(100vw - 40px);
   background: #0f1623;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 24px;
   padding: 32px;
   box-shadow:
     0 0 0 1px rgba(58, 124, 255, 0.1),
-    0 40px 80px rgba(0,0,0,0.6);
+    0 40px 80px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -585,8 +659,14 @@ form .additional-contaianer textarea:focus {
 }
 
 @keyframes popIn {
-  from { opacity: 0; transform: scale(0.94) translateY(10px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .popup-background .popup-container h3 {
@@ -614,8 +694,8 @@ form .additional-contaianer textarea:focus {
 
 /* Popup personal info table */
 .popup-background .popup-container .personal-info {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 14px;
   padding: 16px 18px;
   display: flex;
@@ -633,7 +713,7 @@ form .additional-contaianer textarea:focus {
 }
 
 .popup-background .popup-container .personal-info div + div {
-  border-top: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 8px;
 }
 
@@ -707,11 +787,289 @@ form .additional-contaianer textarea:focus {
   letter-spacing: 0.4px;
 }
 
+/* ── Plan grid 2×2 ──────────────────────────────── */
+.plan-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.plan-container input[type="radio"] {
+  display: none;
+}
+
+.plan-container label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.plan-container label:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(58, 124, 255, 0.3);
+}
+
+.plan-container input[type="radio"]:checked + label {
+  background: rgba(58, 124, 255, 0.08);
+  border-color: #3a7cff;
+  box-shadow: 0 0 0 1px rgba(58, 124, 255, 0.25);
+}
+
+/* Landing checked = amber */
+#landing:checked + label {
+  background: rgba(255, 178, 55, 0.08);
+  border-color: #ffb237;
+  box-shadow: 0 0 0 1px rgba(255, 178, 55, 0.25);
+}
+
+.plan-label-name {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.plan-label-price {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  color: #475569;
+  letter-spacing: 0.2px;
+}
+
+.plan-label-badge {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 2px;
+}
+
+.badge-landing {
+  background: rgba(255, 178, 55, 0.12);
+  color: #ffb237;
+}
+
+.badge-starter {
+  background: rgba(62, 207, 142, 0.12);
+  color: #3ecf8e;
+}
+
+.badge-pro {
+  background: rgba(58, 124, 255, 0.12);
+  color: #3a7cff;
+}
+
+.badge-business {
+  background: rgba(163, 91, 255, 0.12);
+  color: #a35bff;
+}
+
+/* ── Landing page note ──────────────────────────── */
+.landing-notice {
+  display: none;
+  background: rgba(255, 178, 55, 0.06);
+  border: 1px solid rgba(255, 178, 55, 0.22);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  color: #ffb237;
+  line-height: 1.6;
+}
+
+/* ── Add-ons section ────────────────────────────── */
+.addons-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.addons-section h2 {
+  font-family: "Syne", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
+}
+
+.addons-subtitle {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  color: #475569;
+  margin-bottom: 16px;
+  letter-spacing: 0.3px;
+}
+
+.addon-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.addon-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addon-item:hover {
+  background: rgba(163, 91, 255, 0.05);
+  border-color: rgba(163, 91, 255, 0.2);
+}
+
+.addon-item.selected {
+  background: rgba(163, 91, 255, 0.07);
+  border-color: rgba(163, 91, 255, 0.35);
+}
+
+.addon-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  margin-top: 2px;
+  transition: all 0.2s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.addon-item input[type="checkbox"]:checked {
+  background: #a35bff;
+  border-color: #a35bff;
+}
+
+.addon-item input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #fff;
+  font-weight: 700;
+  top: 1px;
+  left: 2px;
+}
+
+.addon-text {
+  flex: 1;
+}
+
+.addon-name {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 2px;
+}
+
+.addon-desc {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.75rem;
+  color: #475569;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.addon-price {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  color: #a35bff;
+  letter-spacing: 0.2px;
+}
+
+.addon-qty-row {
+  display: none;
+  margin-top: 8px;
+  align-items: center;
+  gap: 8px;
+}
+
+.addon-qty-row.visible {
+  display: flex;
+}
+
+.addon-qty-row label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  color: #475569;
+}
+
+.addon-qty-row input[type="number"] {
+  width: 60px;
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+/* ── Live total display ─────────────────────────── */
+.addons-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 12px 18px;
+  background: rgba(163, 91, 255, 0.05);
+  border: 1px solid rgba(163, 91, 255, 0.15);
+  border-radius: 12px;
+}
+
+.addons-total-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.addons-total-value {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #c084fc;
+}
+
+/* ── Domain/hosting hidden for Landing ─────────── */
+.domain-hosting-wrap.hidden {
+  display: none;
+}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1080px) {
-  .form-container { width: 72%; }
+  .form-container {
+    width: 72%;
+  }
 }
 
 @media (max-width: 768px) {
@@ -722,7 +1080,8 @@ form .additional-contaianer textarea:focus {
 
   .background > a.btn {
     position: relative;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     width: 100%;
     justify-content: center;
     height: 46px;
@@ -737,18 +1096,45 @@ form .additional-contaianer textarea:focus {
     padding: 28px 24px;
   }
 
-  form .title h1 { font-size: 1.9rem; }
+  form .title h1 {
+    font-size: 1.9rem;
+  }
 
   form .package-details-container .plan-container {
     grid-template-columns: 1fr;
   }
 
-  .popup-background .popup-container { padding: 24px 20px; }
+  .popup-background .popup-container {
+    padding: 24px 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .plan-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .addon-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-label-name {
+    font-size: 0.82rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .form-container { padding: 22px 18px; }
-  form .title h1 { font-size: 1.6rem; }
-  form .additional-contaianer textarea { font-size: 0.9rem; }
-  .promo-check label { font-size: 0.8rem; }
+  .form-container {
+    padding: 22px 18px;
+  }
+  form .title h1 {
+    font-size: 1.6rem;
+  }
+  form .additional-contaianer textarea {
+    font-size: 0.9rem;
+  }
+  .promo-check label {
+    font-size: 0.8rem;
+  }
 }

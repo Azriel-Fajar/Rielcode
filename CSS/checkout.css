@@ -491,6 +491,7 @@ form .checkbox label a:hover {
   .info-container { padding: 20px 16px; }
   .checkout-container h1 { font-size: 1.4rem; }
 }
+
 /* ============================================================
    LANDING PAGE NOTE
    ============================================================ */
@@ -560,4 +561,118 @@ form .checkbox label a:hover {
   font-size: 0.85rem;
   font-weight: 500;
   color: #c084fc;
+}
+
+/* ============================================================
+   FEATURE 2 — AI ORDER SUMMARY CARD
+   ============================================================ */
+.ai-summary-card {
+  background: rgba(58, 124, 255, 0.03);
+  border: 1px solid rgba(58, 124, 255, 0.15);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ai-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  color: #3a7cff;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.ai-summary-header::before {
+  content: "⬡";
+  font-size: 0.8rem;
+}
+
+.ai-summary-text {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  line-height: 1.65;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  border-left: 3px solid #3a7cff;
+  min-height: 72px;
+  transition: all 0.3s;
+}
+
+.ai-summary-text.loading {
+  color: #334155;
+  font-style: italic;
+}
+
+.ai-summary-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 178, 55, 0.06);
+  border: 1px solid rgba(255, 178, 55, 0.2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.8rem;
+  color: #ffb237;
+  line-height: 1.5;
+}
+
+.ai-summary-warning::before {
+  content: "⚠";
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ai-summary-warning.hidden {
+  display: none;
+}
+
+.ai-gen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  background: rgba(58, 124, 255, 0.1);
+  border: 1px solid rgba(58, 124, 255, 0.3);
+  color: #60a5fa;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: "Outfit", sans-serif;
+  align-self: flex-start;
+}
+
+.ai-gen-btn:hover {
+  background: rgba(58, 124, 255, 0.18);
+  border-color: rgba(58, 124, 255, 0.55);
+}
+
+.ai-gen-btn .spin {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+
+.ai-gen-btn.loading .spin     { display: block; }
+.ai-gen-btn.loading .btn-txt  { display: none; }
+
+.ai-summary-note {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  color: #1e293b;
+  letter-spacing: 0.3px;
 }

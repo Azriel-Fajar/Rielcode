@@ -156,7 +156,7 @@ body::before {
 .sidebar-overlay {
   position: fixed;
   inset: 0;
-  z-index: 49;           /* above toggle (40), below sidebar (50) */
+  z-index: 49;
   background: rgba(0,0,0,0.55);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
@@ -483,7 +483,6 @@ body.login-page::before { z-index: 0; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Top accent line */
 .login-container::before {
   content: "";
   position: absolute;
@@ -526,7 +525,7 @@ body.login-page::before { z-index: 0; }
 }
 
 .login-container h2 {
-  display: none; /* replaced by login-logo */
+  display: none;
 }
 
 .login-container form {
@@ -605,6 +604,271 @@ body.login-page::before { z-index: 0; }
 }
 
 /* ============================================================
+   FEATURE 3 — AI REPLY DRAFT MODAL
+   ============================================================ */
+
+/* Button added to each order row */
+.ai-draft-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3a7cff, #5b52f5);
+  border: none;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Outfit", sans-serif;
+  white-space: nowrap;
+}
+
+.ai-draft-btn:hover {
+  box-shadow: 0 4px 16px rgba(58,124,255,0.45);
+  transform: translateY(-1px);
+}
+
+/* Modal backdrop */
+.ai-reply-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(4, 8, 16, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.ai-reply-modal.open {
+  display: flex;
+}
+
+/* Modal panel */
+.ai-reply-panel {
+  background: rgba(12, 18, 32, 0.98);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 20px;
+  padding: 32px;
+  width: 100%;
+  max-width: 560px;
+  box-shadow: 0 0 0 1px rgba(58,124,255,0.1), 0 32px 64px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Modal header */
+.ai-reply-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-reply-modal-title {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  color: #3a7cff;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-reply-modal-title::before {
+  content: "⬡";
+  font-size: 0.8rem;
+}
+
+.ai-reply-close {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #475569;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.ai-reply-close:hover {
+  border-color: rgba(255,255,255,0.25);
+  color: #e2e8f0;
+}
+
+/* Order context strip */
+.ai-reply-context {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: 0.2px;
+}
+
+.ai-reply-context strong {
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+/* Tabs */
+.reply-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.reply-tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: #475569;
+  font-size: 0.72rem;
+  font-family: "JetBrains Mono", monospace;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.reply-tab:hover {
+  border-color: rgba(58,124,255,0.3);
+  color: #64748b;
+}
+
+.reply-tab.active {
+  background: rgba(58,124,255,0.12);
+  border-color: rgba(58,124,255,0.4);
+  color: #60a5fa;
+}
+
+/* Draft text box */
+.reply-box {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 140px;
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  transition: all 0.3s;
+  font-family: "Outfit", sans-serif;
+  word-break: break-word;
+}
+
+.reply-box.empty {
+  color: #1e293b;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+}
+
+/* Action buttons */
+.reply-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ai-copy-btn,
+.ai-wa-btn,
+.ai-gen-reply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: "Outfit", sans-serif;
+}
+
+.ai-copy-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #64748b;
+}
+
+.ai-copy-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #e2e8f0;
+  border-color: rgba(255,255,255,0.2);
+}
+
+.ai-wa-btn {
+  background: rgba(37,211,102,0.1);
+  border: 1px solid rgba(37,211,102,0.25);
+  color: #25d366;
+}
+
+.ai-wa-btn:hover {
+  background: rgba(37,211,102,0.18);
+  border-color: rgba(37,211,102,0.5);
+}
+
+.ai-gen-reply-btn {
+  background: linear-gradient(135deg, #3a7cff, #5b52f5);
+  border: none;
+  color: #fff;
+  margin-left: auto;
+  box-shadow: 0 4px 14px rgba(58,124,255,0.3);
+}
+
+.ai-gen-reply-btn:hover {
+  box-shadow: 0 6px 20px rgba(58,124,255,0.45);
+  transform: translateY(-1px);
+}
+
+.ai-gen-reply-btn .spin {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+
+.ai-gen-reply-btn.loading .spin    { display: block; }
+.ai-gen-reply-btn.loading .btn-txt { display: none; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.ai-reply-note {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  color: #1e293b;
+  letter-spacing: 0.3px;
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 900px) {
@@ -634,4 +898,5 @@ body.login-page::before { z-index: 0; }
   .table-container  { overflow-x: auto; }
   .form-card        { padding: 22px 18px; }
   .login-container  { margin: 20px; padding: 32px 24px; }
+  .ai-reply-panel   { padding: 24px 20px; }
 }

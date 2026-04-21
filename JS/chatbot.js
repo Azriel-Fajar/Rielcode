@@ -4,6 +4,13 @@ document.addEventListener("DOMContentLoaded", function () {
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
   </svg>
+  <span id="chatbot-badge" class="chatbot-badge">1</span>
+</div>
+
+<!-- Greeting bubble above chatbot icon -->
+<div id="chatbot-greeting" class="chatbot-greeting">
+  👋 Halo! Ada yang bisa saya bantu?
+  <button id="chatbot-greeting-close" class="chatbot-greeting-close">×</button>
 </div>
 
 <!-- Chatbot Window -->
@@ -28,6 +35,20 @@ document.addEventListener("DOMContentLoaded", function () {
   <!-- Messages -->
   <div id="chat-messages" class="chat-messages"></div>
 
+  <!-- Quick Reply Dropup -->
+  <div id="quick-replies" class="quick-replies-dropup">
+    <div id="quick-menu" class="quick-menu">
+      <button class="quick-chip" data-msg="Apa saja paket yang tersedia?">📦 Lihat Paket</button>
+      <button class="quick-chip" data-msg="Berapa harga paket Rielcode?">💰 Cek Harga</button>
+      <button class="quick-chip" data-msg="Berapa lama waktu pengerjaan website?">⏱ Lama Pengerjaan</button>
+      <button class="quick-chip" data-msg="Bagaimana cara memesan website?">🚀 Cara Order</button>
+    </div>
+    <button id="quick-toggle" class="quick-toggle" title="Quick questions">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+      Quick Ask
+    </button>
+  </div>
+
   <!-- Input -->
   <div class="chat-input">
     <input type="text" id="user-input" placeholder="Ask me anything…" autocomplete="off" />
@@ -51,6 +72,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const sendBtn      = document.getElementById("send-btn");
   const input        = document.getElementById("user-input");
   const messages     = document.getElementById("chat-messages");
+  const badge        = document.getElementById("chatbot-badge");
+  const greeting     = document.getElementById("chatbot-greeting");
+  const greetingClose = document.getElementById("chatbot-greeting-close");
+  const quickReplies = document.getElementById("quick-replies");
 
   // ─── Resolve proxy URL ──────────────────────────────────────────────────────
   // BUG FIX: the old code hardcoded "/Rielcode" as the localhost subdirectory.
@@ -86,14 +111,44 @@ document.addEventListener("DOMContentLoaded", function () {
   const PROXY_URL = getProxyUrl();
   // ─────────────────────────────────────────────────────────────────────────────
 
+  // ─── Greeting bubble auto-show (after 3 s) ───────────────────────────────
+  let greetingSent = false;
+  setTimeout(() => {
+    if (chatContainer.classList.contains("hidden")) {
+      greeting.classList.add("visible");
+    }
+  }, 3000);
+
+  greetingClose.addEventListener("click", (e) => {
+    e.stopPropagation();
+    greeting.classList.remove("visible");
+    badge.style.display = "none";
+  });
+
   // ─── UI event listeners ───────────────────────────────────────────────────
   chatIcon.addEventListener("click", () => {
     chatContainer.classList.toggle("hidden");
+    greeting.classList.remove("visible");
+    badge.style.display = "none";
 
     if (promo) promo.style.bottom = "-80px";
     if (window.innerWidth <= 768) chatIcon.style.bottom = "25px";
 
     if (!chatContainer.classList.contains("hidden")) {
+      // Send bot greeting on first open
+      if (!greetingSent) {
+        greetingSent = true;
+        setTimeout(() => {
+          const typingDiv = addMessage("bot", "");
+          typingDiv.classList.add("typing");
+          typingDiv.innerHTML = "<span></span><span></span><span></span>";
+          setTimeout(() => {
+            typingDiv.classList.remove("typing");
+            typingDiv.innerHTML = "👋 Halo! Saya <strong>RielBot</strong>, asisten virtual Rielcode.<br><br>Mau tanya soal paket, harga, atau cara order? Langsung tanya aja — atau klik salah satu tombol di bawah! 😊";
+            messages.scrollTop = messages.scrollHeight;
+          }, 1200);
+        }, 300);
+      }
       setTimeout(() => input.focus(), 100);
     }
 
@@ -107,6 +162,34 @@ document.addEventListener("DOMContentLoaded", function () {
     if (typeof gtag === "function") {
       gtag("event", "chat_close", { event_category: "Chatbot", event_label: "User closed chatbot" });
     }
+  });
+
+  // ─── Click-outside-to-close ────────────────────────────────────────────────
+  document.addEventListener("click", (e) => {
+    if (chatContainer.classList.contains("hidden")) return;
+    // Ignore clicks inside the chatbot container or on the icon
+    if (chatContainer.contains(e.target) || chatIcon.contains(e.target)) return;
+    chatContainer.classList.add("hidden");
+  });
+
+  // ─── Quick reply dropup ────────────────────────────────────────────────────
+  const quickToggle = document.getElementById("quick-toggle");
+  const quickMenu   = document.getElementById("quick-menu");
+
+  quickToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    quickMenu.classList.toggle("open");
+    quickToggle.classList.toggle("open");
+  });
+
+  quickReplies.addEventListener("click", (e) => {
+    const chip = e.target.closest(".quick-chip");
+    if (!chip) return;
+    input.value = chip.dataset.msg;
+    sendMessage();
+    // Close the dropup but keep it accessible
+    quickMenu.classList.remove("open");
+    quickToggle.classList.remove("open");
   });
 
   sendBtn.addEventListener("click", sendMessage);
@@ -155,7 +238,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     addMessage("user", text);
-    const botMsgDiv = addMessage("bot", "Typing...");
+    const botMsgDiv = addMessage("bot", "");
+    botMsgDiv.classList.add("typing");
+    botMsgDiv.innerHTML = "<span></span><span></span><span></span>";
 
     try {
       const controller = new AbortController();
@@ -164,7 +249,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const res = await fetch(PROXY_URL, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ message: text }),
+        body:    JSON.stringify({ message: text, source: "chatbot" }),
         signal:  controller.signal,
       });
       clearTimeout(timeoutId);
@@ -183,8 +268,10 @@ document.addEventListener("DOMContentLoaded", function () {
         replyText = replyText.replace(/(Grand Opening.*?OFF)/gi, "🔥 $1 🔥");
       }
 
+      botMsgDiv.classList.remove("typing");
       botMsgDiv.innerHTML = parseMarkdown(replyText);
     } catch (err) {
+      botMsgDiv.classList.remove("typing");
       if (err.name === "AbortError") {
         botMsgDiv.textContent = "⚠️ Request timed out. Please try again.";
       } else {
@@ -270,8 +357,8 @@ style.textContent = `
   right: 96px;
   width: 360px;
   max-width: 90vw;
-  height: 520px;
-  max-height: 90vh;
+  min-height: 70dvh;
+  height: 70dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -594,6 +681,162 @@ style.textContent = `
     width: 100%;
     border-radius: 11px;
   }
+}
+
+/* ── Notification badge on icon ── */
+.chatbot-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px #080c14, 0 2px 8px rgba(239,68,68,0.6);
+  animation: badgePop 0.4s cubic-bezier(0.16, 1, 0.3, 1) 3.1s both;
+}
+
+@keyframes badgePop {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* ── Greeting bubble above icon ── */
+.chatbot-greeting {
+  position: fixed;
+  bottom: 92px;
+  right: 18px;
+  background: rgba(10, 15, 25, 0.95);
+  border: 1px solid rgba(58, 124, 255, 0.3);
+  border-radius: 16px 16px 4px 16px;
+  padding: 12px 36px 12px 16px;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.85rem;
+  color: #e2e8f0;
+  max-width: 220px;
+  line-height: 1.4;
+  z-index: 999;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(58,124,255,0.1);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+
+.chatbot-greeting.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.chatbot-greeting-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #475569;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.15s;
+}
+.chatbot-greeting-close:hover { color: #e2e8f0; }
+
+/* ── Quick reply dropup ── */
+.quick-replies-dropup {
+  position: relative;
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.quick-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 14px;
+  border-radius: 10px;
+  background: rgba(58, 124, 255, 0.06);
+  border: 1px solid rgba(58, 124, 255, 0.18);
+  color: #93b4ff;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  justify-content: center;
+}
+
+.quick-toggle svg {
+  transition: transform 0.25s ease;
+}
+
+.quick-toggle.open svg {
+  transform: rotate(180deg);
+}
+
+.quick-toggle:hover {
+  background: rgba(58, 124, 255, 0.12);
+  border-color: rgba(58, 124, 255, 0.35);
+  color: #c0d4ff;
+}
+
+.quick-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px;
+  background: rgba(10, 15, 25, 0.96);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 14px;
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.4);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  z-index: 10;
+}
+
+.quick-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-4px);
+}
+
+.quick-chip {
+  background: rgba(58, 124, 255, 0.08);
+  border: 1px solid rgba(58, 124, 255, 0.22);
+  border-radius: 20px;
+  color: #93b4ff;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.quick-chip:hover {
+  background: rgba(58, 124, 255, 0.18);
+  border-color: rgba(58, 124, 255, 0.5);
+  color: #c0d4ff;
+  transform: translateY(-1px);
 }
 `;
 document.head.appendChild(style);

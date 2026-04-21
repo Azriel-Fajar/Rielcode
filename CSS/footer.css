@@ -6,8 +6,11 @@
 footer#contact {
   position: relative;
   background-color: #080c14;
-  background-image:
-    radial-gradient(ellipse 60% 80% at 50% 100%, rgba(58, 124, 255, 0.1) 0%, transparent 60%);
+  background-image: radial-gradient(
+    ellipse 60% 80% at 50% 100%,
+    rgba(58, 124, 255, 0.1) 0%,
+    transparent 60%
+  );
   overflow: hidden;
   text-align: center;
 }
@@ -20,7 +23,12 @@ footer#contact::before {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(58, 124, 255, 0.4) 50%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(58, 124, 255, 0.4) 50%,
+    transparent 100%
+  );
 }
 
 /* Decorative grid */
@@ -124,33 +132,45 @@ footer#contact .container p.lead {
 }
 
 /* Individual icon colors */
-.social-icons a:nth-child(1) { /* Email */
+.social-icons a:nth-child(1) {
+  /* Email */
   --icon-color: #3a7cff;
   --icon-bg: rgba(58, 124, 255, 0.12);
   --icon-glow: rgba(58, 124, 255, 0.3);
 }
-.social-icons a:nth-child(1)::before { background: var(--icon-bg); }
+.social-icons a:nth-child(1)::before {
+  background: var(--icon-bg);
+}
 
-.social-icons a:nth-child(2) { /* WhatsApp */
+.social-icons a:nth-child(2) {
+  /* WhatsApp */
   --icon-color: #3ecf8e;
   --icon-bg: rgba(62, 207, 142, 0.12);
   --icon-glow: rgba(62, 207, 142, 0.3);
 }
-.social-icons a:nth-child(2)::before { background: var(--icon-bg); }
+.social-icons a:nth-child(2)::before {
+  background: var(--icon-bg);
+}
 
-.social-icons a:nth-child(3) { /* GitHub */
+.social-icons a:nth-child(3) {
+  /* GitHub */
   --icon-color: #e2e8f0;
   --icon-bg: rgba(226, 232, 240, 0.08);
   --icon-glow: rgba(226, 232, 240, 0.2);
 }
-.social-icons a:nth-child(3)::before { background: var(--icon-bg); }
+.social-icons a:nth-child(3)::before {
+  background: var(--icon-bg);
+}
 
-.social-icons a:nth-child(4) { /* Instagram */
+.social-icons a:nth-child(4) {
+  /* Instagram */
   --icon-color: #f472b6;
   --icon-bg: rgba(244, 114, 182, 0.12);
   --icon-glow: rgba(244, 114, 182, 0.3);
 }
-.social-icons a:nth-child(4)::before { background: var(--icon-bg); }
+.social-icons a:nth-child(4)::before {
+  background: var(--icon-bg);
+}
 
 .social-icons a:hover {
   color: var(--icon-color);
@@ -159,8 +179,37 @@ footer#contact .container p.lead {
   box-shadow: 0 8px 24px var(--icon-glow);
 }
 
-.social-icons a:hover::before { opacity: 1; }
-.social-icons a:active { transform: translateY(0); }
+.social-icons a:hover::before {
+  opacity: 1;
+}
+.social-icons a:active {
+  transform: translateY(0);
+}
+
+/* ============================================================
+   FOOTER ADDRESS
+   ============================================================ */
+.footer-address {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 36px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: #334155;
+  letter-spacing: 0.2px;
+  line-height: 1.5;
+  max-width: 550px;
+  text-align: center;
+}
+
+.footer-address i {
+  color: #3a7cff;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
 
 /* ============================================================
    COPYRIGHT BAR

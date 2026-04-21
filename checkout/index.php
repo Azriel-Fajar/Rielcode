@@ -31,6 +31,8 @@ $order_name = htmlspecialchars($orderRow['order_name']);
 $email      = htmlspecialchars($orderRow['email']);
 $phone      = htmlspecialchars($orderRow['phone_number']);
 $plan       = htmlspecialchars($orderRow['package']);
+$owns_domain   = htmlspecialchars($orderRow['owns_domain'] ?? 'No');
+$owns_hosting  = htmlspecialchars($orderRow['owns_hosting'] ?? 'No');
 
 // --- Load package price ---
 $stmt = $conn->prepare("SELECT idr_price, orders FROM packages WHERE package_name = ?");
@@ -45,7 +47,7 @@ $price          = (int)$priceRow['idr_price'];
 $currentOrders  = (int)$priceRow['orders'];
 $discount_pct   = 0.5;
 $discount_price = $price * $discount_pct;
-$package_price  = $price - $discount_price;  // discounted package price
+$package_price  = $price - $discount_price;
 
 // --- Load available add-ons ---
 $addonsResult = $conn->query("SELECT * FROM package_addons ORDER BY id ASC");
@@ -62,7 +64,6 @@ $addons_total     = 0;
 foreach ($availableAddons as $addon) {
     if (in_array($addon['id'], $selectedAddonIds)) {
         $qty = 1;
-        // For per_page and monthly type, qty comes from session
         if ($addon['type'] === 'per_page') {
             $qty = (int)($_SESSION['addon_qty'][$addon['id']] ?? 1);
             $qty = max(1, min($qty, 20));
@@ -81,26 +82,34 @@ foreach ($availableAddons as $addon) {
 }
 
 $final_price = $package_price + $addons_total;
-
 $isStudentPlan = ($plan === 'Student Plan');
+
+// Detect if user claimed free hosting & domain promo
+$claimedFreePromo = (strpos($orderRow['description'] ?? '', '🎁 Claimed') !== false) ||
+                    (strpos($orderRow['description'] ?? '', 'Free Hosting') !== false && strpos($orderRow['description'] ?? '', 'Promo') !== false);
+
+// Determine if hosting/domain warnings should show
+$needsDomainWarning  = false;
+$needsHostingWarning = false;
+if (!$isStudentPlan && !$claimedFreePromo) {
+    $needsDomainWarning  = ($owns_domain === 'No');
+    $needsHostingWarning = ($owns_hosting === 'No');
+}
 
 // --- Handle Confirm submission ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progress') {
 
-    // Increment package order count
     $orders_after = $currentOrders + 1;
     $stmt = $conn->prepare("UPDATE packages SET orders = ? WHERE package_name = ?");
     $stmt->bind_param("is", $orders_after, $plan);
     $stmt->execute();
     $stmt->close();
 
-    // Set order status + store price breakdown
     $stmt = $conn->prepare("UPDATE orders SET status='On Progress', package_price=?, addons_total=?, final_price=? WHERE id=?");
     $stmt->bind_param("iiii", $package_price, $addons_total, $final_price, $id);
     $stmt->execute();
     $stmt->close();
 
-    // Save add-ons to order_addons table
     if (!empty($selectedAddons)) {
         $stmtAddon = $conn->prepare("INSERT INTO order_addons (order_id, addon_id, quantity, price_total) VALUES (?,?,?,?)");
         foreach ($selectedAddons as $sa) {
@@ -110,16 +119,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
         $stmtAddon->close();
     }
 
-    // --- Invoice number ---
     $invoice_number = 'INV-' . date('Ymd') . '-' . $id;
 
-    // --- Load background image ---
     $bgPath = realpath('../IMG/invoice_bg.png');
     if (!$bgPath || !file_exists($bgPath)) die('Invoice background image not found.');
     $bgData = base64_encode(file_get_contents($bgPath));
     $bgExt  = strtolower(pathinfo($bgPath, PATHINFO_EXTENSION));
 
-    // --- Build add-on rows HTML ---
     $addonRowsHtml = '';
     foreach ($selectedAddons as $sa) {
         $addonLabel = htmlspecialchars($sa['addon']['name']);
@@ -145,7 +151,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
             </tr>';
     }
 
-    // --- Build invoice HTML ---
     $invoiceHTML = '
 <!DOCTYPE html>
 <html lang="en">
@@ -196,7 +201,6 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
 </body>
 </html>';
 
-    // --- Render & save PDF ---
     $dompdf = new Dompdf();
     $dompdf->loadHtml($invoiceHTML);
     $dompdf->setPaper('A4', 'portrait');
@@ -207,7 +211,6 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
     $invoice_file = $invoiceDir . '/' . $invoice_number . '.pdf';
     file_put_contents($invoice_file, $dompdf->output());
 
-    // --- Send email ---
     include_once '../smtp_config.php';
     $mail = new PHPMailer(true);
     try {
@@ -252,15 +255,24 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
         $stmt->close();
     }
 
-    // Clear session add-ons
     unset($_SESSION['selected_addons'], $_SESSION['addon_qty']);
 
     header('Location: ../checkout/success/');
     exit;
 }
+
+// Build JS-safe data for AI summary
+$summaryData = json_encode([
+    'name'    => $orderRow['order_name'],
+    'package' => $plan,
+    'price'   => 'Rp' . number_format($final_price, 0, ',', '.'),
+    'domain'  => $owns_domain === 'Yes' ? 'Have' : 'Don\'t have',
+    'hosting' => $owns_hosting === 'Yes' ? 'Have' : 'Don\'t have',
+]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -269,10 +281,11 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
     <link rel="icon" type="image/png" sizes="32x32" href="../IMG/Rielcode Logo Square Transparent Icon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-          crossorigin="anonymous">
+        rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+        crossorigin="anonymous">
 </head>
+
 <body>
     <div class="checkout-container p-4">
         <h1 class="text-white fw-bold d-flex flex-column justify-content-start align-items-center">
@@ -296,11 +309,24 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
                 </div>
             </div>
 
-            <!-- Landing Page note -->
+            <!-- Package-specific notes -->
             <?php if ($isStudentPlan): ?>
-            <div class="landing-note">
-                ⚠ Note: Student Plan does not include free hosting or domain. Website design only.
-            </div>
+                <div class="landing-note">
+                    ⚠ Note: Student Plan does not include free hosting or domain. Website design only.
+                </div>
+            <?php elseif ($claimedFreePromo): ?>
+                <div class="landing-note" style="background: rgba(62,207,142,0.08); border-color: rgba(62,207,142,0.25); color: #3ecf8e;">
+                    ✅ Free hosting &amp; .COM domain included via promo.
+                </div>
+            <?php elseif ($needsHostingWarning || $needsDomainWarning): ?>
+                <div class="landing-note">
+                    ⚠ Note: <?php
+                        $warnings = [];
+                        if ($needsHostingWarning) $warnings[] = 'hosting';
+                        if ($needsDomainWarning)  $warnings[] = 'domain';
+                        echo 'You indicated you don\'t have ' . implode(' or ', $warnings) . '. ';
+                    ?>Rielcode will help set up free <?= implode(' &amp; ', $warnings) ?> based on your package.
+                </div>
             <?php endif; ?>
 
             <!-- Purchase Info -->
@@ -321,24 +347,24 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
                 </div>
             </div>
 
-            <!-- Add-ons (shown only if any selected) -->
+            <!-- Add-ons -->
             <?php if (!empty($selectedAddons)): ?>
-            <div class="addons-info">
-                <h3>Add-ons</h3>
-                <?php foreach ($selectedAddons as $sa): ?>
-                <div class="addon-line">
-                    <p>
-                        <?= htmlspecialchars($sa['addon']['name']) ?>
-                        <?php if ($sa['addon']['type'] === 'per_page'): ?>
-                            <b> ×<?= $sa['qty'] ?> pages</b>
-                        <?php elseif ($sa['addon']['type'] === 'monthly'): ?>
-                            <b> ×<?= $sa['qty'] ?> month<?= $sa['qty'] > 1 ? 's' : '' ?></b>
-                        <?php endif; ?>
-                    </p>
-                    <span>+Rp<?= number_format($sa['line_total'], 0, ',', '.') ?></span>
+                <div class="addons-info">
+                    <h3>Add-ons</h3>
+                    <?php foreach ($selectedAddons as $sa): ?>
+                        <div class="addon-line">
+                            <p>
+                                <?= htmlspecialchars($sa['addon']['name']) ?>
+                                <?php if ($sa['addon']['type'] === 'per_page'): ?>
+                                    <b> ×<?= $sa['qty'] ?> pages</b>
+                                <?php elseif ($sa['addon']['type'] === 'monthly'): ?>
+                                    <b> ×<?= $sa['qty'] ?> month<?= $sa['qty'] > 1 ? 's' : '' ?></b>
+                                <?php endif; ?>
+                            </p>
+                            <span>+Rp<?= number_format($sa['line_total'], 0, ',', '.') ?></span>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
-                <?php endforeach; ?>
-            </div>
             <?php endif; ?>
 
             <!-- Total -->
@@ -348,6 +374,21 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
                     <p>Grand Total</p>
                     <span>Rp<?= number_format($final_price, 0, ',', '.') ?></span>
                 </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════
+                 FEATURE 2 — AI Order Summary Card
+            ════════════════════════════════════════════ -->
+            <div class="ai-summary-card">
+                <div class="ai-summary-header">RielBot Analysis</div>
+                <div class="ai-summary-text loading" id="ai-summary-text">
+                    Click the button below to generate a summary of your order…
+                </div>
+                <div class="ai-summary-warning hidden" id="ai-summary-warning"></div>
+                <button class="ai-gen-btn" id="ai-gen-btn" onclick="rielGenerateSummary()">
+                    <div class="spin"></div>
+                    <span class="btn-txt">✦ Generate AI Summary of your order</span>
+                </button>
             </div>
 
             <form method="post" id="checkoutForm">
@@ -367,5 +408,74 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
+
+    <!-- Feature 2 — AI Order Summary Script -->
+    <script>
+        (function() {
+            const PROXY_URL = window.location.hostname === 'localhost' ?
+                window.location.origin + '/proxy.php' :
+                window.location.origin + '/proxy';
+
+            const orderData = <?= $summaryData ?>;
+
+            window.rielGenerateSummary = async function() {
+                const btn = document.getElementById('ai-gen-btn');
+                const box = document.getElementById('ai-summary-text');
+                const warn = document.getElementById('ai-summary-warning');
+
+                btn.classList.add('loading');
+                box.classList.add('loading');
+                box.textContent = 'Menganalisis pesananmu…';
+                warn.classList.add('hidden');
+
+                const prompt = `You are a Rielcode checkout assistant. Summarize the following order in two short, clear, and friendly sentences in English. Also mention one important point to note based on the following information.
+
+Order data:
+- Name: ${orderData.name}
+- Package: ${orderData.package}
+- Total: ${orderData.price}
+- Domain: ${orderData.domain}
+- Hosting: ${orderData.hosting}
+
+Respond ONLY with valid JSON:
+{"summary":"2-sentence summary","warning":"1 important point or empty string if none"}`;
+
+                try {
+                    const res = await fetch(PROXY_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: prompt
+                        })
+                    });
+                    const data = await res.json();
+                    const text = (data.reply || '{}').replace(/```json|```/g, '').trim();
+                    const parsed = JSON.parse(text);
+
+                    box.classList.remove('loading');
+                    box.textContent = parsed.summary || 'Your order is ready to be confirmed.';
+
+                    if (parsed.warning && parsed.warning.trim()) {
+                        warn.textContent = parsed.warning;
+                        warn.classList.remove('hidden');
+                    }
+                } catch (e) {
+                    box.classList.remove('loading');
+                    box.textContent = orderData.name + ' ordered ' + orderData.package +
+                        ' for ' + orderData.price +
+                        ' (50% discount). This package is ready to be processed after confirmation.';
+                    if (orderData.hosting === 'Don\'t have') {
+                        warn.textContent = 'You don\'t have hosting yet — Rielcode will help set up free hosting according to the selected package.';
+                        warn.classList.remove('hidden');
+                    }
+                }
+
+                btn.classList.remove('loading');
+            };
+        })();
+    </script>
 </body>
+
 </html>

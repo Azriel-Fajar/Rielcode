@@ -15,7 +15,7 @@ include 'inc/seo.php';
         <div class="text-center mb-5">
             <h2 class="fw-bold display-5 text-white">Projects</h2>
             <p class="lead text-white-50">
-                Every Website is Unique | Rielcode, Real experience.
+                Every Website is Unique | Rielcode, Real code.
             </p>
         </div>
 

@@ -104,7 +104,6 @@ body {
   line-height: 1.05;
   letter-spacing: -1.5px;
   margin-bottom: 20px;
-  /* Subtle text shimmer */
   background: linear-gradient(135deg, #ffffff 30%, rgba(130, 180, 255, 0.9) 65%, #ffffff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -190,4 +189,348 @@ body {
    ============================================================ */
 .section-padding {
   padding: 96px 0;
+}
+
+/* ============================================================
+   FEATURE 4 — AI PRICE ESTIMATOR SECTION
+   ============================================================ */
+   .estimator-section {
+  position: relative;
+  z-index: 1;
+  padding: 96px 24px;
+  background-color: #060a10;
+}
+
+.estimator-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(58, 124, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(58, 124, 255, 0.06) 1px, transparent 1px);
+  background-size: 52px 52px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.estimator-section .section-header {
+  text-align: center;
+  margin-bottom: 48px;
+  z-index: 2;
+}
+
+.estimator-section .section-tag {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  color: #3a7cff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.estimator-section .section-title {
+  font-family: "Syne", sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.estimator-section .section-desc {
+  font-size: 0.875rem;
+  color: #475569;
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+/* Outer card wrapper */
+.estimator-card {
+  max-width: 860px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 36px;
+  box-shadow:
+    0 0 0 1px rgba(58, 124, 255, 0.06),
+    0 24px 56px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  z-index: 2;
+}
+
+/* Two-column grid */
+.estimator-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+/* Left: Controls */
+.estimator-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.est-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  color: #475569;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.est-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-bottom: 10px;
+}
+
+/* Range slider */
+.est-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+  cursor: pointer;
+}
+
+.est-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3a7cff, #5b52f5);
+  box-shadow: 0 0 12px rgba(58, 124, 255, 0.5);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.est-slider:hover::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+.est-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  color: #1e293b;
+  margin-top: 6px;
+}
+
+/* Toggle chips */
+.est-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.est-chip {
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #475569;
+  font-size: 0.8rem;
+  font-family: "Outfit", sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.est-chip.on {
+  border-color: rgba(58, 124, 255, 0.5);
+  background: rgba(58, 124, 255, 0.1);
+  color: #60a5fa;
+}
+
+/* Right: Result panel */
+.estimator-result {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.est-rec-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  color: #3a7cff;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.est-plan-card {
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.35s ease;
+  border: 2px solid;
+}
+
+.est-plan-card.student-plan {
+  background: rgba(255, 178, 55, 0.05);
+  border-color: rgba(255, 178, 55, 0.3);
+}
+
+.est-plan-card.starter {
+  background: rgba(62, 207, 142, 0.05);
+  border-color: rgba(62, 207, 142, 0.3);
+}
+
+.est-plan-card.pro {
+  background: rgba(58, 124, 255, 0.07);
+  border-color: rgba(58, 124, 255, 0.4);
+}
+
+.est-plan-card.premium {
+  background: rgba(163, 91, 255, 0.06);
+  border-color: rgba(163, 91, 255, 0.3);
+}
+
+.est-plan-name {
+  font-family: "Syne", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.est-plan-card.student-plan .est-plan-name { color: #ffb237; }
+.est-plan-card.starter .est-plan-name      { color: #3ecf8e; }
+.est-plan-card.pro .est-plan-name          { color: #3a7cff; }
+.est-plan-card.premium .est-plan-name      { color: #a35bff; }
+
+.est-plan-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.est-old {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+  color: #334155;
+  text-decoration: line-through;
+  text-decoration-color: #ef4444;
+  text-decoration-thickness: 2px;
+}
+
+.est-new {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: "Outfit", sans-serif;
+}
+
+.est-plan-card.student-plan .est-new { color: #ffb237; }
+.est-plan-card.starter .est-new      { color: #3ecf8e; }
+.est-plan-card.pro .est-new          { color: #3a7cff; }
+.est-plan-card.premium .est-new      { color: #a35bff; }
+
+.est-plan-why {
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+.est-features {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.est-feat {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.est-feat::before {
+  content: "✓";
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(62, 207, 142, 0.1);
+  color: #3ecf8e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.est-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-decoration: none;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-top: 4px;
+  font-family: "Outfit", sans-serif;
+}
+
+.est-plan-card.student-plan .est-cta { background: linear-gradient(135deg, #ffb237, #e09000); color: #1a0d00; }
+.est-plan-card.starter .est-cta      { background: linear-gradient(135deg, #3ecf8e, #2bb573); color: #042714; }
+.est-plan-card.pro .est-cta          { background: linear-gradient(135deg, #3a7cff, #5b52f5); }
+.est-plan-card.premium .est-cta      { background: linear-gradient(135deg, #a35bff, #7c3aed); }
+
+.est-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3);
+}
+
+.est-cta::after {
+  content: "→";
+  transition: transform 0.2s;
+}
+
+.est-cta:hover::after { transform: translateX(3px); }
+
+.est-ai-note {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  color: #1e293b;
+  letter-spacing: 0.3px;
+  text-align: center;
+  padding-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.est-ai-note::before {
+  content: "⬡";
+  color: #3a7cff;
+  font-size: 0.75rem;
+}
+
+/* ============================================================
+   ESTIMATOR RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .estimator-section { padding: 64px 20px; }
+  .estimator-card    { padding: 24px 20px; }
+  .estimator-grid    { grid-template-columns: 1fr; }
 }

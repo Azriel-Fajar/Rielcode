@@ -49,7 +49,8 @@ $isLocalhost = in_array($host, ['localhost', '127.0.0.1']);
 
 // --- Read user message ---
 $input = json_decode(file_get_contents("php://input"), true);
-$userMessage     = trim($input['message'] ?? '');
+$userMessage      = trim($input['message'] ?? '');
+$messageSource    = trim($input['source']  ?? '');   // 'chatbot' | '' (checkout/admin)
 // BUG FIX: declare $userMessageLower immediately after $userMessage so all checks below can use it
 $userMessageLower = strtolower($userMessage);
 
@@ -380,8 +381,11 @@ if (file_exists($configPath)) {
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $stmt = $pdo->prepare("INSERT INTO chat_logs (user_message, bot_reply, tag) VALUES (?, ?, ?)");
-    $stmt->execute([$userMessage, $reply, 'chat']);
+    // Only log messages from the chatbot widget, not from checkout/admin AI calls
+    if ($messageSource === 'chatbot') {
+        $stmt = $pdo->prepare("INSERT INTO chat_logs (user_message, bot_reply, tag) VALUES (?, ?, ?)");
+        $stmt->execute([$userMessage, $reply, 'chat']);
+    }
 } catch (Exception $e) {
     error_log("RielBot DB Error: " . $e->getMessage());
     // Non-fatal — continue and return reply even if DB logging fails

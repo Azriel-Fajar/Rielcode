@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   const promoCheckbox = document.getElementById("free_promo");
   const domainHostingSection = document.getElementById(
-    "domain-hosting-section"
+    "domainHostingWrap"
   );
 
   const domainYes = document.getElementById("domain-yes");
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const promoLabel = document.querySelector(".promo-check label");
 
   // Teks versi desktop & mobile
-  const fullText = "🎉 Claim Free Hosting & .COM Domain (Year-End Promo)";
+  const fullText = "🎉 Claim Free Hosting & .COM Domain (Promo)";
   const shortText = "🎉 Claim Free Hosting + .COM";
 
   function updatePromoText() {
