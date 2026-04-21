@@ -288,9 +288,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const scrollTop   = window.scrollY;
     const scrollingDown = scrollTop > lastScrollTop;
 
-    if (promo) promo.style.bottom = scrollingDown ? "-80px" : "25px";
+    if (promo) promo.style.bottom = scrollingDown ? "-100px" : "25px";
     if (window.innerWidth <= 768) {
       chatIcon.style.bottom = scrollingDown ? "25px" : "100px";
+      greeting.style.bottom = scrollingDown ? "92px" : "167px";
     }
     lastScrollTop = scrollTop;
   });
@@ -728,7 +729,7 @@ style.textContent = `
   opacity: 0;
   transform: translateY(10px) scale(0.95);
   pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16,1,0.3,1);
+  transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.16,1,0.3,1);
 }
 
 .chatbot-greeting.visible {
