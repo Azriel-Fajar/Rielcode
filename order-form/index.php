@@ -407,6 +407,12 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
             });
 
             document.getElementById('addonsTotalDisplay').textContent = formatRp(total);
+
+            // Hide domain/hosting buttons when total >= 1,000,000 IDR
+            const domainHostingWrap = document.getElementById('domainHostingWrap');
+            if (domainHostingWrap) {
+                domainHostingWrap.style.display = total >= 1000000 ? 'none' : 'block';
+            }
         }
     </script>
 

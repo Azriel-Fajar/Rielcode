@@ -326,11 +326,12 @@ $summaryData = json_encode([
             <div class="purchase-info">
                 <h3>Purchase Information</h3>
                 <div class="package-price">
-                    <p>Package price (before discount)</p>
-                    <span>Rp<?= number_format($price, 0, ',', '.') ?></span>
+                    <p>Package price<?= $plan !== 'Custom Plan' ? ' (before discount)' : '' ?></p>
+                    <span>Rp<?= number_format($plan === 'Custom Plan' ? $package_price : $price, 0, ',', '.') ?></span>
                 </div>
             </div>
 
+            <?php if ($plan !== 'Custom Plan'): ?>
             <div class="discount-info">
                 <h3>Discount</h3>
                 <div class="discount-price">
@@ -338,6 +339,7 @@ $summaryData = json_encode([
                     <span>-Rp<?= number_format($discount_price, 0, ',', '.') ?></span>
                 </div>
             </div>
+            <?php endif; ?>
 
             <?php if (!empty($selectedAddons)): ?>
                 <div class="addons-info">
