@@ -33,10 +33,9 @@ include 'connection.php';
     <!-- Third-party CSS -->
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-          crossorigin="anonymous">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- defer main JS -->
     <script defer src="JS/main.js"></script>
@@ -55,12 +54,12 @@ include 'connection.php';
 <!-- Strip query string from URL bar (no reload) -->
 <script>
     (function () {
-        var clean = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        var clean = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash;
         window.history.replaceState({}, document.title, clean);
     })();
 </script>
 
-<body class="w-100 m-0 p-0">
+<body class="w-full m-0 p-0">
 
     <!-- Navbar -->
     <?php include 'navbar.php'; ?>
@@ -69,7 +68,7 @@ include 'connection.php';
     <section class="hero" id="hero" data-bg-image="IMG/bg.jpg">
         <div class="hero-container">
             <div class="text-container text-center">
-                <h1 class="fs-1 fw-bold">Real Code. Real Results.</h1>
+                <h1 class="text-4xl lg:text-5xl font-bold">Real Code. Real Results.</h1>
                 <p>Clean design, smart code, and real results — that's the Rielcode way.</p>
             </div>
             <div class="cta-container text-center">
@@ -174,9 +173,6 @@ include 'connection.php';
     </div>
 
     <!-- Third-party JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-            crossorigin="anonymous"></script>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script src="JS/chatbot.js"></script>
 

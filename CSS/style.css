@@ -98,7 +98,7 @@ body {
 
 .hero .text-container h1 {
   font-family: "Syne", sans-serif;
-  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  font-size: clamp(1.8rem, 4vw, 3rem);
   font-weight: 800;
   color: #fff;
   line-height: 1.05;
@@ -197,7 +197,7 @@ body {
    .estimator-section {
   position: relative;
   z-index: 1;
-  padding: 96px 24px;
+  padding: 96px 2rem;
   background-color: #060a10;
 }
 
@@ -530,7 +530,7 @@ body {
    ESTIMATOR RESPONSIVE
    ============================================================ */
 @media (max-width: 768px) {
-  .estimator-section { padding: 64px 20px; }
+  .estimator-section { padding: 64px 2rem; }
   .estimator-card    { padding: 24px 20px; }
   .estimator-grid    { grid-template-columns: 1fr; }
 }

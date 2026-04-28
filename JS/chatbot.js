@@ -287,9 +287,10 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("scroll", () => {
     const scrollTop   = window.scrollY;
     const scrollingDown = scrollTop > lastScrollTop;
+    const chatOpen = !chatContainer.classList.contains("hidden");
 
-    if (promo) promo.style.bottom = scrollingDown ? "-100px" : "25px";
-    if (window.innerWidth <= 768) {
+    if (!chatOpen && promo) promo.style.bottom = scrollingDown ? "-100px" : "25px";
+    if (!chatOpen && window.innerWidth <= 768) {
       chatIcon.style.bottom = scrollingDown ? "25px" : "100px";
       greeting.style.bottom = scrollingDown ? "92px" : "167px";
     }

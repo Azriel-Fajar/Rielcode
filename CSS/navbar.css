@@ -8,6 +8,7 @@ nav.navbar {
   height: 72px;
   background: transparent;
   z-index: var(--z-nav);
+  border: 1px solid transparent;
   /* Explicitly set all transitioning properties so browser interpolates correctly */
   transition:
     width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
@@ -81,6 +82,8 @@ nav .navbar-container .navbar-menu {
   list-style: none;
   margin: 0;
   padding: 0;
+  flex: 1;
+  justify-content: center;
 }
 
 nav .navbar-container .navbar-menu li a {
@@ -136,6 +139,7 @@ nav .button-container {
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 nav .button-container .cta-navbar {
@@ -255,6 +259,18 @@ nav .navbar-mobile-container .menu-mobile li a:hover {
   background: rgba(58, 124, 255, 0.08);
   border-left-color: #3a7cff;
   padding-left: 36px;
+}
+
+/* ============================================================
+   RESPONSIVE DISPLAY (replaces Bootstrap d-none / d-lg-flex)
+   ============================================================ */
+@media (max-width: 991px) {
+  nav .navbar-container .navbar-menu { display: none; }
+  nav .button-container .cta-navbar   { display: none; }
+}
+
+@media (min-width: 992px) {
+  nav .button-container img#burger { display: none; }
 }
 
 /* ============================================================

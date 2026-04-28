@@ -18,12 +18,12 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
 </head>
 
 <section class="requirements-section section-padding" id="requirements">
-    <div class="container">
+    <div class="container mx-auto">
 
         <!-- Section header -->
-        <div class="text-center mb-5">
-            <h2 class="fw-bold display-5 text-white">Client Requirements</h2>
-            <p class="lead text-white-50">
+        <div class="text-center mb-12">
+            <h2 class="font-bold text-5xl text-white">Client Requirements</h2>
+            <p class="lead text-white/50">
                 Everything you need to prepare before placing your order — so we can start building right away.
             </p>
         </div>
@@ -138,11 +138,11 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
         </div><!-- /.req-grid -->
 
         <!-- CTA -->
-        <div class="text-center mt-5">
-            <p class="text-white-50 mb-4">
+        <div class="text-center mt-12">
+            <p class="text-white/50 mb-6">
                 Got everything ready? Great — let's build something amazing together.
             </p>
-            <a href="order-form/" class="btn btn-glow px-5 fw-semibold">Start Your Project 🚀</a>
+            <a href="order-form/" class="btn btn-glow px-12 font-semibold">Start Your Project 🚀</a>
         </div>
 
     </div>

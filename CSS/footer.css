@@ -71,7 +71,7 @@ footer#contact .container::before {
 
 footer#contact .container h2 {
   font-family: "Syne", sans-serif;
-  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 800;
   color: #fff;
   letter-spacing: -1px;

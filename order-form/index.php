@@ -128,12 +128,11 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
     <script defer src="../JS/order.js"></script>
     <link rel="icon" type="image/png" sizes="32x32" href="../IMG/Rielcode Logo Square Transparent Icon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 
-<body class="w-100">
+<body class="w-full">
     <script>
         (function() {
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
@@ -141,7 +140,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
         })();
     </script>
 
-    <div class="background w-100">
+    <div class="background w-full">
 
         <?php if ($incompleteOrder): ?>
             <!-- ── Incomplete Order Popup ── -->
@@ -173,7 +172,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
             <form method="post" id="orderForm">
 
                 <!-- ── Title ── -->
-                <div class="title d-flex justify-content-center align-items-center">
+                <div class="title flex justify-center items-center">
                     <h1 class="text-white">Order Form</h1>
                     <p>Fill out the form below to confirm your purchase</p>
                 </div>
@@ -329,7 +328,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                 </div>
 
                 <!-- ── Submit ── -->
-                <div class="submit-container d-flex justify-content-center align-items-center">
+                <div class="submit-container flex justify-center items-center">
                     <button type="submit" name="submit" class="btn btn-glow">Checkout</button>
                 </div>
 
@@ -396,9 +395,6 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
         }
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
 </body>
 
 </html>

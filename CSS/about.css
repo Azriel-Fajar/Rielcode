@@ -128,7 +128,7 @@ section.about .container .row .col-lg-8 p {
   color: #64748b;
   line-height: 1.75;
   margin-bottom: 14px;
-  text-align: left;
+  text-align: justify;
   width: 100%;
 }
 
@@ -190,7 +190,7 @@ section.about .container .row .col-lg-8 p b {
 @media (max-width: 991px) {
   section#about .container .row .col-lg-8,
   section.about .container .row .col-lg-8 {
-    padding: 32px 20px 20px;
+    padding: 32px 2rem 20px;
   }
 
   section#about .container .row .col-lg-4 img,

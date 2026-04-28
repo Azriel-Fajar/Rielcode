@@ -196,7 +196,7 @@
    RESPONSIVE
    ============================================================ */
 @media (max-width: 768px) {
-  #projects { padding: 64px 0; }
+  #projects { padding: 64px 2rem; }
 
   #projects .text-center {
     margin-bottom: 40px !important;

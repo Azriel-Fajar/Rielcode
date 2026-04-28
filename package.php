@@ -17,15 +17,14 @@ include 'inc/seo.php';
     <h1 class="pricing-title">Website Development Packages</h1>
     <p class="pricing-subtitle">// choose your plan — 50% OFF all packages</p>
 
-    <div class="container">
-        <div class="row justify-content-center align-items-stretch">
+    <div class="container mx-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
 
             <!-- ===================== STUDENT PLAN ===================== -->
-            <div class="col-md-6 col-lg-6 mb-4 mb-lg-4">
-                <div class="pricing-card h-100 d-flex flex-column landing">
-                    <div class="affordable-badge">For Students</div>
-                    <div class="flex-grow-1">
-                        <div class="discount-badge">50% OFF</div>
+            <div>
+                <div class="pricing-card h-full flex flex-col landing">
+                    <span class="discount-ribbon">50% OFF</span>
+                    <div class="flex-1">
                         <h3>Student Plan</h3>
                         <div class="pricing-price">
                             <span class="old-price">$60 / IDR 998k</span>
@@ -45,15 +44,15 @@ include 'inc/seo.php';
                         </div>
                     </div>
                     <p><strong>Delivery:</strong> 2–3 days</p>
-                    <a href="order-form?aksi=landing" class="btn btn-glow mt-3 landing-btn">Choose Plan</a>
+                    <a href="order-form?aksi=landing" class="btn btn-glow mt-4 landing-btn">Choose Plan</a>
                 </div>
             </div>
 
             <!-- ===================== STARTER ===================== -->
-            <div class="col-md-6 col-lg-6 mb-4 mb-lg-4">
-                <div class="pricing-card h-100 d-flex flex-column starter">
-                    <div class="flex-grow-1">
-                        <div class="discount-badge">50% OFF</div>
+            <div>
+                <div class="pricing-card h-full flex flex-col starter">
+                    <span class="discount-ribbon">50% OFF</span>
+                    <div class="flex-1">
                         <h3>Starter Plan</h3>
                         <div class="pricing-price">
                             <span class="old-price">$120 / IDR 2jt</span>
@@ -70,16 +69,18 @@ include 'inc/seo.php';
                         </ul>
                     </div>
                     <p><strong>Delivery:</strong> 3–5 days</p>
-                    <a href="order-form?aksi=starter" class="btn btn-glow mt-3 starter-btn">Choose Plan</a>
+                    <a href="order-form?aksi=starter" class="btn btn-glow mt-4 starter-btn">Choose Plan</a>
                 </div>
             </div>
 
             <!-- ===================== PRO ===================== -->
-            <div class="col-md-6 col-lg-6 mb-4 mb-lg-4">
-                <div class="pricing-card h-100 d-flex flex-column pro popular-plan">
-                    <div class="popular-badge">Most Popular</div>
-                    <div class="flex-grow-1">
-                        <div class="discount-badge">50% OFF</div>
+            <div>
+                <div class="pricing-card h-full flex flex-col pro popular-plan">
+                    <span class="discount-ribbon">50% OFF</span>
+                    <div class="card-badges">
+                        <span class="popular-badge">Most Popular</span>
+                    </div>
+                    <div class="flex-1">
                         <h3>Pro Plan</h3>
                         <div class="pricing-price">
                             <span class="old-price">$240 / IDR 4jt</span>
@@ -98,15 +99,15 @@ include 'inc/seo.php';
                         </ul>
                     </div>
                     <p><strong>Delivery:</strong> 7–10 days</p>
-                    <a href="order-form?aksi=pro" class="btn btn-glow mt-3 pro-btn">Choose Plan</a>
+                    <a href="order-form?aksi=pro" class="btn btn-glow mt-4 pro-btn">Choose Plan</a>
                 </div>
             </div>
 
             <!-- ===================== PREMIUM PLAN ===================== -->
-            <div class="col-md-6 col-lg-6 mb-4 mb-lg-4">
-                <div class="pricing-card h-100 d-flex flex-column business">
-                    <div class="flex-grow-1">
-                        <div class="discount-badge">50% OFF</div>
+            <div>
+                <div class="pricing-card h-full flex flex-col business">
+                    <span class="discount-ribbon">50% OFF</span>
+                    <div class="flex-1">
                         <h3>Premium Plan</h3>
                         <div class="pricing-price">
                             <span class="old-price">$480 / IDR 8jt</span>
@@ -126,11 +127,11 @@ include 'inc/seo.php';
                         </ul>
                     </div>
                     <p><strong>Delivery:</strong> 10–14 days</p>
-                    <a href="order-form?aksi=business" class="btn btn-glow mt-3 business-btn">Choose Plan</a>
+                    <a href="order-form?aksi=business" class="btn btn-glow mt-4 business-btn">Choose Plan</a>
                 </div>
             </div>
 
-        </div><!-- /row -->
+        </div><!-- /grid -->
 
         <!-- ===================== COMPARISON TABLE ===================== -->
         <div class="comparison-section">
@@ -163,5 +164,5 @@ include 'inc/seo.php';
             </div>
         </div>
 
-    </div><!-- /container -->
+    </div><!-- /container mx-auto -->
 </section>
