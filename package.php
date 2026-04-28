@@ -1,26 +1,10 @@
-<?php
-/* ----------  SEO – PACKAGE PAGE  ---------- */
-$meta_title       = 'Website Development Packages 2025 – 50% OFF | Rielcode';
-$meta_description = 'Pick your perfect site: Student Plan ($29.99), Starter ($59.99), Pro ($119.99) or Premium ($239.99). Responsive design, SEO & 3-14 day delivery.';
-$meta_keywords    = 'website development packages, jasa pembuatan website, paket website murah, web design pricing, Rielcode';
-$meta_image       = 'https://rielcode.com/IMG/packages-og.png';
-$meta_url         = 'https://rielcode.com/#packages';
-$meta_robots      = 'index, follow';
-$canonical        = 'https://rielcode.com/#packages';
-$og_type          = 'website';
-$twitter_card     = 'summary_large_image';
-
-include 'inc/seo.php';
-?>
-
 <section class="pricing-section" id="packages">
     <h1 class="pricing-title">Website Development Packages</h1>
     <p class="pricing-subtitle">// choose your plan — 50% OFF all packages</p>
 
     <div class="container mx-auto">
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
 
-            <!-- ===================== STUDENT PLAN ===================== -->
             <div>
                 <div class="pricing-card h-full flex flex-col landing">
                     <span class="discount-ribbon">50% OFF</span>
@@ -48,7 +32,6 @@ include 'inc/seo.php';
                 </div>
             </div>
 
-            <!-- ===================== STARTER ===================== -->
             <div>
                 <div class="pricing-card h-full flex flex-col starter">
                     <span class="discount-ribbon">50% OFF</span>
@@ -65,7 +48,7 @@ include 'inc/seo.php';
                             <li>Modern &amp; clean design</li>
                             <li>Social media links integration</li>
                             <li><b>Basic</b>&nbsp;SEO setup</li>
-                            <li><b>2</b>&nbsp;Design revisions</li>
+                            <li><b>1</b>&nbsp;Design revision</li>
                         </ul>
                     </div>
                     <p><strong>Delivery:</strong> 3–5 days</p>
@@ -73,7 +56,6 @@ include 'inc/seo.php';
                 </div>
             </div>
 
-            <!-- ===================== PRO ===================== -->
             <div>
                 <div class="pricing-card h-full flex flex-col pro popular-plan">
                     <span class="discount-ribbon">50% OFF</span>
@@ -83,9 +65,9 @@ include 'inc/seo.php';
                     <div class="flex-1">
                         <h3>Pro Plan</h3>
                         <div class="pricing-price">
-                            <span class="old-price">$240 / IDR 4jt</span>
-                            <span class="new-price">$119.99 / IDR 1.999jt</span>
-                            <span class="savings-pill">Save $120 / IDR 2jt</span>
+                            <span class="old-price">$299.99 / IDR 4.998jt</span>
+                            <span class="new-price">$149.99 / IDR 2.499jt</span>
+                            <span class="savings-pill">Save $150 / IDR 2.499jt</span>
                         </div>
                         <ul class="pricing-list">
                             <li><b>All in Starter</b>,&nbsp;plus:</li>
@@ -94,8 +76,8 @@ include 'inc/seo.php';
                             <li><b>Custom UI/UX</b>&nbsp;design request</li>
                             <li>Content Management System (CMS)</li>
                             <li><b>Advance</b>&nbsp;SEO setup</li>
-                            <li><b>5</b>&nbsp;Design revisions</li>
-                            <li><b>3 months</b>&nbsp;of technical support</li>
+                            <li><b>2</b>&nbsp;Design revisions</li>
+                            <li><b>1 month</b>&nbsp;of technical support</li>
                         </ul>
                     </div>
                     <p><strong>Delivery:</strong> 7–10 days</p>
@@ -103,16 +85,15 @@ include 'inc/seo.php';
                 </div>
             </div>
 
-            <!-- ===================== PREMIUM PLAN ===================== -->
             <div>
                 <div class="pricing-card h-full flex flex-col business">
                     <span class="discount-ribbon">50% OFF</span>
                     <div class="flex-1">
                         <h3>Premium Plan</h3>
                         <div class="pricing-price">
-                            <span class="old-price">$480 / IDR 8jt</span>
-                            <span class="new-price">$239.99 / IDR 3.999jt</span>
-                            <span class="savings-pill">Save $240 / IDR 4jt</span>
+                            <span class="old-price">$599.99 / IDR 9.998jt</span>
+                            <span class="new-price">$299.99 / IDR 4.999jt</span>
+                            <span class="savings-pill">Save $300 / IDR 4.999jt</span>
                         </div>
                         <ul class="pricing-list">
                             <li><b>All in Pro</b>,&nbsp;plus:</li>
@@ -121,8 +102,8 @@ include 'inc/seo.php';
                             <li><b>Custom UI/UX</b>&nbsp;design request</li>
                             <li>Advanced custom-coded Admin Panel</li>
                             <li><b>Complete</b>&nbsp;SEO setup</li>
-                            <li><b>Unlimited</b>&nbsp;design revisions</li>
-                            <li><b>6 months</b>&nbsp;of technical support</li>
+                            <li><b>5</b>&nbsp;design revisions</li>
+                            <li><b>2 months</b>&nbsp;of technical support</li>
                             <li>Performance optimization</li>
                         </ul>
                     </div>
@@ -131,9 +112,35 @@ include 'inc/seo.php';
                 </div>
             </div>
 
-        </div><!-- /grid -->
+            <div>
+                <div class="pricing-card h-full flex flex-col custom">
+                    <div class="flex-1">
+                        <h3>Custom Plan</h3>
+                        <div class="pricing-price">
+                            <span class="new-price">from IDR 1jt</span>
+                            <span class="custom-note-pill">You choose what you need</span>
+                        </div>
+                        <ul class="pricing-list">
+                            <li>Any number of pages</li>
+                            <li>Chatbot integration</li>
+                            <li>Login / member system</li>
+                            <li>CMS / Admin Panel</li>
+                            <li>E-Commerce</li>
+                            <li>Maintenance (per month)</li>
+                            <li>Priority delivery</li>
+                            <li>Free hosting &amp; domain <b>from IDR 2jt</b></li>
+                        </ul>
+                        <div class="package-note custom-plan-note">
+                            Build your own plan — only pay for what you actually need.
+                        </div>
+                    </div>
+                    <p><strong>Delivery:</strong> Depends on scope</p>
+                    <a href="custom-plan/" class="btn btn-glow mt-4 custom-btn">Build Your Plan</a>
+                </div>
+            </div>
 
-        <!-- ===================== COMPARISON TABLE ===================== -->
+        </div>
+
         <div class="comparison-section">
             <h2>Compare Plans</h2>
             <div style="overflow-x:auto; border-radius:16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06);">
@@ -144,25 +151,29 @@ include 'inc/seo.php';
                             <th style="text-align:left;color:#475569;font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:1px;text-transform:uppercase;">Feature</th>
                             <th class="col-landing">Student Plan<br><span style="font-size:0.7rem;font-weight:400;">$29.99</span></th>
                             <th class="col-starter">Starter<br><span style="font-size:0.7rem;font-weight:400;">$59.99</span></th>
-                            <th class="col-pro">Pro<br><span style="font-size:0.7rem;font-weight:400;">$119.99</span></th>
-                            <th class="col-business">Premium<br><span style="font-size:0.7rem;font-weight:400;">$239.99</span></th>
+                            <th class="col-pro">Pro<br><span style="font-size:0.7rem;font-weight:400;">$149.99</span></th>
+                            <th class="col-business">Premium<br><span style="font-size:0.7rem;font-weight:400;">$299.99</span></th>
+                            <th class="col-custom">Custom<br><span style="font-size:0.7rem;font-weight:400;">from IDR 1jt</span></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>Number of Pages</td><td class="val">1</td><td class="val">1</td><td class="val">Up to 5</td><td class="val">Up to 10</td></tr>
-                        <tr><td>Responsive Design</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-                        <tr><td>Custom UI Design</td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-                        <tr><td>CMS (Admin Panel)</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-                        <tr><td>E-Commerce</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td></tr>
-                        <tr><td>SEO Setup</td><td class="val">Basic</td><td class="val">Basic</td><td class="val">Advanced</td><td class="val">Complete</td></tr>
-                        <tr><td>Design Revisions</td><td class="val">1x</td><td class="val">2x</td><td class="val">5x</td><td class="val">Unlimited</td></tr>
-                        <tr><td>Technical Support</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="val">3 months</td><td class="val">6 months</td></tr>
-                        <tr><td>Free Hosting &amp; Domain</td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-                        <tr><td>Delivery Time</td><td class="val">2–3 days</td><td class="val">3–5 days</td><td class="val">7–10 days</td><td class="val">10–14 days</td></tr>
+                        <tr><td>Number of Pages</td><td class="val">1</td><td class="val">1</td><td class="val">Up to 5</td><td class="val">Up to 10</td><td class="val">Any</td></tr>
+                        <tr><td>Responsive Design</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+                        <tr><td>Custom UI Design</td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td class="val">Optional</td></tr>
+                        <tr><td>CMS (Admin Panel)</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td class="val">Optional</td></tr>
+                        <tr><td>E-Commerce</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td class="val">Optional</td></tr>
+                        <tr><td>Chatbot</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="val">Optional</td></tr>
+                        <tr><td>Login / Member System</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="val">Optional</td></tr>
+                        <tr><td>SEO Setup</td><td class="val">Basic</td><td class="val">Basic</td><td class="val">Advanced</td><td class="val">Complete</td><td class="val">Optional</td></tr>
+                        <tr><td>Design Revisions</td><td class="val">1x</td><td class="val">1x</td><td class="val">2x</td><td class="val">5x</td><td class="val">Custom</td></tr>
+                        <tr><td>Technical Support</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="val">1 month</td><td class="val">2 months</td><td class="val">Optional</td></tr>
+                        <tr><td>Free Hosting &amp; Domain</td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td class="val">from IDR 2jt</td></tr>
+                        <tr><td>Priority Delivery</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="val">Optional</td></tr>
+                        <tr><td>Delivery Time</td><td class="val">2–3 days</td><td class="val">3–5 days</td><td class="val">7–10 days</td><td class="val">10–14 days</td><td class="val">Varies</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-    </div><!-- /container mx-auto -->
+    </div>
 </section>

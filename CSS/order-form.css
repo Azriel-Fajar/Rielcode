@@ -874,6 +874,11 @@ form .additional-contaianer textarea:focus {
   color: #a35bff;
 }
 
+.badge-custom {
+  background: rgba(244, 114, 182, 0.12);
+  color: #f472b6;
+}
+
 /* ── Landing page note ──────────────────────────── */
 .landing-notice {
   display: none;

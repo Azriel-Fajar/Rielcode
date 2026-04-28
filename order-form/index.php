@@ -8,10 +8,14 @@ $aksiMap = [
     'starter'  => 'Starter Plan',
     'pro'      => 'Pro Plan',
     'business' => 'Premium Plan',
+    'custom'   => 'Custom Plan',
 ];
 $aksi         = $_GET['aksi'] ?? '';
 $defaultPlan  = $aksiMap[$aksi] ?? '';
 $isLanding    = ($defaultPlan === 'Student Plan');
+$isCustom     = ($defaultPlan === 'Custom Plan');
+$customTotal  = $isCustom ? (int)($_GET['total'] ?? 1000000) : 0;
+$customDesc   = $isCustom ? htmlspecialchars($_GET['desc'] ?? '') : '';
 
 // --- Load add-ons from DB ---
 $addonsResult   = $conn->query("SELECT * FROM package_addons ORDER BY id ASC");
@@ -90,6 +94,13 @@ if (isset($_POST['submit'])) {
     $_SESSION['transaction'] = $conn->insert_id;
     $stmt->close();
 
+    // For Custom Plan, store the configured total in session so checkout can use it
+    if ($package === 'Custom Plan') {
+        $_SESSION['custom_total'] = max(1000000, (int)($_POST['custom_total'] ?? 1000000));
+    } else {
+        unset($_SESSION['custom_total']);
+    }
+
     // Save selected add-ons to session
     $selectedAddonIds = [];
     $addonQty         = [];
@@ -124,6 +135,14 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Form | Rielcode</title>
+    <meta name="description" content="Fill out the order form to get started with your Rielcode web development project. Choose a plan, add-ons, and submit your requirements.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="https://rielcode.com/order-form/">
+    <meta property="og:title" content="Order Form | Rielcode">
+    <meta property="og:description" content="Start your web development project with Rielcode.">
+    <meta property="og:url" content="https://rielcode.com/order-form/">
+    <meta property="og:image" content="https://rielcode.com/IMG/Rielcode Logo Square.png">
+    <meta property="og:site_name" content="Rielcode">
     <link rel="stylesheet" href="../CSS/order-form.css">
     <script defer src="../JS/order.js"></script>
     <link rel="icon" type="image/png" sizes="32x32" href="../IMG/Rielcode Logo Square Transparent Icon.png">
@@ -143,7 +162,6 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
     <div class="background w-full">
 
         <?php if ($incompleteOrder): ?>
-            <!-- ── Incomplete Order Popup ── -->
             <div class="popup-background">
                 <div class="popup-container">
                     <h3>Incomplete Order</h3>
@@ -171,13 +189,11 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
         <div class="form-container">
             <form method="post" id="orderForm">
 
-                <!-- ── Title ── -->
                 <div class="title flex justify-center items-center">
                     <h1 class="text-white">Order Form</h1>
                     <p>Fill out the form below to confirm your purchase</p>
                 </div>
 
-                <!-- ── Customer Information ── -->
                 <div class="customer-info-container">
                     <h2>Customer Information</h2>
                     <input type="text" name="nama" id="nama" placeholder="Name" required>
@@ -185,14 +201,11 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                     <input type="number" name="phone" id="phone" placeholder="ex. 081289328493" maxlength="13" required>
                 </div>
 
-                <!-- ── Package Detail ── -->
                 <div class="package-details-container">
                     <h2>Package Detail</h2>
 
-                    <!-- 2×2 plan grid -->
                     <div class="plan-container">
 
-                        <!-- Student Plan -->
                         <input type="radio" name="package" id="landing" value="Student Plan"
                             <?= $defaultPlan === 'Student Plan' ? 'checked' : '' ?> required>
                         <label for="landing">
@@ -201,7 +214,6 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <span class="plan-label-badge badge-landing">For Students</span>
                         </label>
 
-                        <!-- Starter -->
                         <input type="radio" name="package" id="starter" value="Starter Plan"
                             <?= $defaultPlan === 'Starter Plan' ? 'checked' : '' ?> required>
                         <label for="starter">
@@ -210,39 +222,42 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <span class="plan-label-badge badge-starter">Landing + Hosting</span>
                         </label>
 
-                        <!-- Pro -->
                         <input type="radio" name="package" id="pro" value="Pro Plan"
                             <?= $defaultPlan === 'Pro Plan' ? 'checked' : '' ?> required>
                         <label for="pro">
                             <h3 class="plan-label-name">Pro Plan</h3>
-                            <span class="plan-label-price">$119.99 / Rp1.999.000</span>
+                            <span class="plan-label-price">$149.99 / Rp2.499.000</span>
                             <span class="plan-label-badge badge-pro">Most Popular</span>
                         </label>
 
-                        <!-- Business -->
                         <input type="radio" name="package" id="business" value="Premium Plan"
                             <?= $defaultPlan === 'Premium Plan' ? 'checked' : '' ?> required>
                         <label for="business">
                             <h3 class="plan-label-name">Premium Plan</h3>
-                            <span class="plan-label-price">$239.99 / Rp3.999.000</span>
+                            <span class="plan-label-price">$299.99 / Rp4.999.000</span>
                             <span class="plan-label-badge badge-business">Best Value</span>
+                        </label>
+
+                        <input type="radio" name="package" id="custom" value="Custom Plan"
+                            <?= $defaultPlan === 'Custom Plan' ? 'checked' : '' ?> required>
+                        <label for="custom">
+                            <h3 class="plan-label-name">Custom Plan</h3>
+                            <span class="plan-label-price"><?= $isCustom ? 'Rp' . number_format($customTotal, 0, ',', '.') : 'from Rp1.000.000' ?></span>
+                            <span class="plan-label-badge badge-custom">Build Your Own</span>
                         </label>
 
                     </div>
 
-                    <!-- Student Plan note -->
                     <div class="landing-notice" id="landingNotice">
                         ⚠ Note: The Student Plan does not include free hosting or domain.
                         This package covers website design only. Perfect for students &amp; personal projects.
                     </div>
 
-                    <!-- Promo checkbox -->
                     <div class="promo-check mt-3" id="promoCheckWrap">
                         <input type="checkbox" id="free_promo" name="free_promo" value="1">
                         <label for="free_promo">🎉 Claim Free Hosting &amp; .COM Domain</label>
                     </div>
 
-                    <!-- Domain / Hosting -->
                     <div class="domain-hosting-wrap" id="domainHostingWrap">
                         <h4>Do you have a domain?</h4>
                         <div class="domain-container">
@@ -261,9 +276,8 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                         </div>
                     </div>
 
-                </div><!-- /package-details-container -->
+                </div>
 
-                <!-- ── Add-ons ── -->
                 <?php if (!empty($availableAddons)): ?>
                     <div class="addons-section" id="addonsSection">
                         <h2>Add-ons <small style="font-size:0.7rem;color:#475569;font-family:'JetBrains Mono',monospace;font-weight:400;">(Optional)</small></h2>
@@ -320,11 +334,14 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                     </div>
                 <?php endif; ?>
 
-                <!-- ── Additional Information ── -->
+                <?php if ($isCustom): ?>
+                    <input type="hidden" name="custom_total" id="custom_total_input" value="<?= $customTotal ?>">
+                <?php endif; ?>
+
                 <div class="additional-contaianer">
                     <h2>Additional Information</h2>
                     <textarea name="additional" id="additional" rows="5"
-                        placeholder="Anything else you want to tell us? (Optional)"></textarea>
+                        placeholder="Anything else you want to tell us? (Optional)"><?= $isCustom && $customDesc ? $customDesc : '' ?></textarea>
                 </div>
 
                 <!-- ── Submit ── -->
@@ -337,7 +354,6 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
     </div>
 
     <script>
-        // ── Landing page UI toggle ─────────────────────────────────
         const plans = document.querySelectorAll('input[name="package"]');
         const landingNotice = document.getElementById('landingNotice');
         const promoWrap = document.getElementById('promoCheckWrap');
@@ -349,9 +365,10 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
             const selected = document.querySelector('input[name="package"]:checked');
             if (!selected) return;
             const isLanding = selected.value === 'Student Plan';
+            const isCustom  = selected.value === 'Custom Plan';
 
             landingNotice.style.display = isLanding ? 'block' : 'none';
-            promoWrap.style.display = isLanding ? 'none' : '';
+            promoWrap.style.display = (isLanding || isCustom) ? 'none' : '';
             domainHostingWrap.classList.toggle('hidden', isLanding);
 
             if (isLanding) {
@@ -364,15 +381,13 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
         }
 
         plans.forEach(p => p.addEventListener('change', updateLandingUI));
-        updateLandingUI(); // run on page load
+        updateLandingUI();
 
-        // ── Add-ons dynamic total ──────────────────────────────────
         function formatRp(n) {
             return 'Rp' + n.toLocaleString('id-ID');
         }
 
         function updateAddonTotal(changedCheckbox) {
-            // Toggle .selected class and qty row
             if (changedCheckbox) {
                 const item = document.getElementById('addon-item-' + changedCheckbox.dataset.id);
                 const qtyRow = document.getElementById('qty-row-' + changedCheckbox.dataset.id);

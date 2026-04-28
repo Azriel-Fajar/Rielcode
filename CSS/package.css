@@ -691,6 +691,67 @@ a.btn-glow.landing-btn:hover {
 .comparison-table th.col-starter { color: #3ecf8e; }
 .comparison-table th.col-pro     { color: #3a7cff; }
 .comparison-table th.col-business{ color: #a35bff; }
+.comparison-table th.col-custom  { color: #f472b6; }
+
+/* ============================================================
+   CUSTOM PLAN (PINK / ROSE)
+   ============================================================ */
+.pricing-card.custom {
+  border-color: rgba(244, 114, 182, 0.2);
+  background: rgba(244, 114, 182, 0.03);
+}
+
+.pricing-card.custom::before {
+  background: linear-gradient(90deg, transparent, #f472b6, transparent);
+}
+
+.pricing-card.custom:hover {
+  border-color: rgba(244, 114, 182, 0.45);
+  box-shadow: 0 20px 60px rgba(244, 114, 182, 0.1), 0 0 0 1px rgba(244, 114, 182, 0.18);
+}
+
+.pricing-card.custom h3 { color: #f472b6; }
+
+.custom .new-price {
+  background: linear-gradient(135deg, #f472b6, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.custom-note-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(244, 114, 182, 0.1);
+  border: 1px solid rgba(244, 114, 182, 0.25);
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #f472b6;
+  letter-spacing: 0.3px;
+  margin-top: 8px;
+  margin-bottom: 18px;
+}
+
+.package-note.custom-plan-note {
+  background: rgba(244, 114, 182, 0.05);
+  border-color: rgba(244, 114, 182, 0.2);
+  color: #f472b6;
+}
+
+a.btn-glow.custom-btn {
+  background: linear-gradient(135deg, #f472b6 0%, #db2777 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(244, 114, 182, 0.35);
+}
+
+a.btn-glow.custom-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(244, 114, 182, 0.5);
+  color: #fff;
+}
 
 .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
 

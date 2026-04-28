@@ -1,13 +1,3 @@
-<?php
-$meta_title = "Our Projects | Rielcode - Web Development Projects";
-$meta_description = "Explore Rielcode's portfolio of web projects — from elegant landing pages to advanced web systems crafted for businesses and creators.";
-$meta_keywords = "Rielcode projects, web portfolio, website development, web design, Rielcode work, case studies";
-$meta_image = "https://rielcode.com/IMG/projects_og.png";
-$meta_url = "https://rielcode.com/#projects";
-$meta_type = "website";
-include 'inc/seo.php';
-?>
-
 <section
     id="projects"
     class="section-padding w-full">
@@ -21,7 +11,6 @@ include 'inc/seo.php';
 
         <div class="projects row grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <!-- Parallaxnet -->
             <div class="card h-full">
                 <img
                     src="IMG/parallaxnet.jpg"
@@ -47,7 +36,6 @@ include 'inc/seo.php';
                 </div>
             </div>
 
-            <!-- DAAM -->
             <div class="card h-full">
                 <img
                     src="IMG/Logo DAAM.png"
@@ -71,7 +59,6 @@ include 'inc/seo.php';
                 </div>
             </div>
 
-            <!-- 3s-Tech -->
             <div class="card h-full">
                 <img
                     src="IMG/3s-tech.png"

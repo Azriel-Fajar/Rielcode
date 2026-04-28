@@ -18,7 +18,6 @@ if (!isset($_SESSION['transaction'])) {
 
 $id = (int)$_SESSION['transaction'];
 
-// --- Load order ---
 $stmt = $conn->prepare("SELECT * FROM orders WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -34,7 +33,6 @@ $plan       = htmlspecialchars($orderRow['package']);
 $owns_domain   = htmlspecialchars($orderRow['owns_domain'] ?? 'No');
 $owns_hosting  = htmlspecialchars($orderRow['owns_hosting'] ?? 'No');
 
-// --- Load package price ---
 $stmt = $conn->prepare("SELECT idr_price, orders FROM packages WHERE package_name = ?");
 $stmt->bind_param("s", $plan);
 $stmt->execute();
@@ -45,18 +43,22 @@ if (!$priceRow) die("Package not found.");
 
 $price          = (int)$priceRow['idr_price'];
 $currentOrders  = (int)$priceRow['orders'];
-$discount_pct   = 0.5;
-$discount_price = $price * $discount_pct;
-$package_price  = $price - $discount_price;
 
-// --- Load available add-ons ---
+if ($plan === 'Custom Plan' && isset($_SESSION['custom_total'])) {
+    $package_price  = (int)$_SESSION['custom_total'];
+    $discount_price = 0;
+} else {
+    $discount_pct   = 0.5;
+    $discount_price = $price * $discount_pct;
+    $package_price  = $price - $discount_price;
+}
+
 $addonsResult = $conn->query("SELECT * FROM package_addons ORDER BY id ASC");
 $availableAddons = [];
 while ($row = $addonsResult->fetch_assoc()) {
     $availableAddons[] = $row;
 }
 
-// --- Load selected add-ons from session ---
 $selectedAddonIds = $_SESSION['selected_addons'] ?? [];
 $selectedAddons   = [];
 $addons_total     = 0;
@@ -84,11 +86,9 @@ foreach ($availableAddons as $addon) {
 $final_price = $package_price + $addons_total;
 $isStudentPlan = ($plan === 'Student Plan');
 
-// Detect if user claimed free hosting & domain promo
 $claimedFreePromo = (strpos($orderRow['description'] ?? '', '🎁 Claimed') !== false) ||
                     (strpos($orderRow['description'] ?? '', 'Free Hosting') !== false && strpos($orderRow['description'] ?? '', 'Promo') !== false);
 
-// Determine if hosting/domain warnings should show
 $needsDomainWarning  = false;
 $needsHostingWarning = false;
 if (!$isStudentPlan && !$claimedFreePromo) {
@@ -96,7 +96,6 @@ if (!$isStudentPlan && !$claimedFreePromo) {
     $needsHostingWarning = ($owns_hosting === 'No');
 }
 
-// --- Handle Confirm submission ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progress') {
 
     $orders_after = $currentOrders + 1;
@@ -261,7 +260,6 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
     exit;
 }
 
-// Build JS-safe data for AI summary
 $summaryData = json_encode([
     'name'    => $orderRow['order_name'],
     'package' => $plan,
@@ -277,6 +275,7 @@ $summaryData = json_encode([
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout | Rielcode</title>
+    <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="../CSS/checkout.css">
     <link rel="icon" type="image/png" sizes="32x32" href="../IMG/Rielcode Logo Square Transparent Icon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -294,7 +293,6 @@ $summaryData = json_encode([
                 <img src="../IMG/Rielcode Logo Transparent.png" alt="Rielcode Logo">
             </div>
 
-            <!-- Personal Info -->
             <div class="personal-info">
                 <div class="order-name">
                     <p>Billed to: <b><?= strtoupper($order_name) ?></b></p>
@@ -306,7 +304,6 @@ $summaryData = json_encode([
                 </div>
             </div>
 
-            <!-- Package-specific notes -->
             <?php if ($isStudentPlan): ?>
                 <div class="landing-note">
                     ⚠ Note: Student Plan does not include free hosting or domain. Website design only.
@@ -326,7 +323,6 @@ $summaryData = json_encode([
                 </div>
             <?php endif; ?>
 
-            <!-- Purchase Info -->
             <div class="purchase-info">
                 <h3>Purchase Information</h3>
                 <div class="package-price">
@@ -335,7 +331,6 @@ $summaryData = json_encode([
                 </div>
             </div>
 
-            <!-- Discount -->
             <div class="discount-info">
                 <h3>Discount</h3>
                 <div class="discount-price">
@@ -344,7 +339,6 @@ $summaryData = json_encode([
                 </div>
             </div>
 
-            <!-- Add-ons -->
             <?php if (!empty($selectedAddons)): ?>
                 <div class="addons-info">
                     <h3>Add-ons</h3>
@@ -364,7 +358,6 @@ $summaryData = json_encode([
                 </div>
             <?php endif; ?>
 
-            <!-- Total -->
             <div class="total-info">
                 <h3>Total</h3>
                 <div class="total-price">
@@ -373,9 +366,6 @@ $summaryData = json_encode([
                 </div>
             </div>
 
-            <!-- ═══════════════════════════════════════════
-                 FEATURE 2 — AI Order Summary Card
-            ════════════════════════════════════════════ -->
             <div class="ai-summary-card">
                 <div class="ai-summary-header">RielBot Analysis</div>
                 <div class="ai-summary-text loading" id="ai-summary-text">
@@ -403,7 +393,6 @@ $summaryData = json_encode([
 
     <script src="../JS/checkout.js"></script>
 
-    <!-- Feature 2 — AI Order Summary Script -->
     <script>
         (function() {
             const PROXY_URL = window.location.hostname === 'localhost' ?

@@ -1,12 +1,3 @@
-<?php
-$meta_title = "About | Rielcode - Mission & Commitment";
-$meta_description = "Pelajari lebih lanjut tentang Rielcode — studio pengembangan web yang berfokus pada desain bersih, performa tinggi, dan strategi digital modern.";
-$meta_keywords = "tentang Rielcode, web development team, digital studio, Surakarta";
-$meta_image = "https://rielcode.com/IMG/about_og.png";
-$meta_url = "https://rielcode.com/#about";
-include 'inc/seo.php';
-?>
-
 <section class="about px-2 lg:px-6 pb-12" id="about">
     <div class="container mx-auto">
         <div class="row flex flex-wrap">

@@ -1,3 +1,15 @@
 User-agent: *
 Allow: /
+Disallow: /admin.php
+Disallow: /admin_login.php
+Disallow: /admin_logout.php
+Disallow: /admin_edit.php
+Disallow: /checkout/
+Disallow: /order-form/
+Disallow: /invoices/
+Disallow: /config.php
+Disallow: /connection.php
+Disallow: /smtp_config.php
+Disallow: /proxy.php
+
 Sitemap: https://rielcode.com/sitemap.xml

@@ -1,26 +1,6 @@
-<?php
-/* ----------  SEO – REQUIREMENT PAGE  ---------- */
-$meta_title       = 'Client Requirements | What to Prepare Before Ordering – Rielcode';
-$meta_description = 'Before ordering a website from Rielcode, make sure you have your brand logo, product photos, business description, and preferred site structure ready. Here is the full checklist.';
-$meta_keywords    = 'persyaratan klien, requirement website, persiapan pembuatan website, checklist order website, Rielcode';
-$meta_image       = 'https://rielcode.com/IMG/requirement-og.png';
-$meta_url         = 'https://rielcode.com/#requirements';
-$meta_robots      = 'index, follow';
-$canonical        = 'https://rielcode.com/#requirements';
-$og_type          = 'website';
-$twitter_card     = 'summary_large_image';
-
-if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
-?>
-
-<head>
-    <link rel="stylesheet" href="CSS/requirement.css">
-</head>
-
 <section class="requirements-section section-padding" id="requirements">
     <div class="container mx-auto">
 
-        <!-- Section header -->
         <div class="text-center mb-12">
             <h2 class="font-bold text-5xl text-white">Client Requirements</h2>
             <p class="lead text-white/50">
@@ -28,7 +8,6 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
             </p>
         </div>
 
-        <!-- Intro card -->
         <div class="req-intro-card mb-5">
             <div class="req-intro-icon">📋</div>
             <div>
@@ -41,10 +20,8 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
             </div>
         </div>
 
-        <!-- Requirements grid -->
         <div class="req-grid">
 
-            <!-- 1. Brand Logo -->
             <div class="req-card">
                 <div class="req-card-icon">🎨</div>
                 <h4 class="req-card-title">Brand Logo</h4>
@@ -55,7 +32,6 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
                 <div class="req-tag">Required</div>
             </div>
 
-            <!-- 2. Product / Visual Content -->
             <div class="req-card">
                 <div class="req-card-icon">📸</div>
                 <h4 class="req-card-title">Product Photos &amp; Visuals</h4>
@@ -67,7 +43,6 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
                 <div class="req-tag">Recommended</div>
             </div>
 
-            <!-- 3. Business Description -->
             <div class="req-card">
                 <div class="req-card-icon">📝</div>
                 <h4 class="req-card-title">Business Description</h4>
@@ -78,7 +53,6 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
                 <div class="req-tag">Required</div>
             </div>
 
-            <!-- 4. Site Structure -->
             <div class="req-card">
                 <div class="req-card-icon">🗂️</div>
                 <h4 class="req-card-title">Desired Page Structure</h4>
@@ -89,7 +63,6 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
                 <div class="req-tag">Required</div>
             </div>
 
-            <!-- 5. Contact Info -->
             <div class="req-card">
                 <div class="req-card-icon">📞</div>
                 <h4 class="req-card-title">Contact Information</h4>
@@ -100,7 +73,6 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
                 <div class="req-tag">Required</div>
             </div>
 
-            <!-- 6. Color Palette & Style -->
             <div class="req-card">
                 <div class="req-card-icon">🖌️</div>
                 <h4 class="req-card-title">Brand Colors &amp; Style Preference</h4>
@@ -112,7 +84,6 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
                 <div class="req-tag">Recommended</div>
             </div>
 
-            <!-- 7. Domain & Hosting -->
             <div class="req-card">
                 <div class="req-card-icon">🌐</div>
                 <h4 class="req-card-title">Domain &amp; Hosting Status</h4>
@@ -123,7 +94,6 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
                 <div class="req-tag">Required</div>
             </div>
 
-            <!-- 8. Additional Content -->
             <div class="req-card">
                 <div class="req-card-icon">➕</div>
                 <h4 class="req-card-title">Additional Content</h4>
@@ -135,9 +105,8 @@ if (file_exists(__DIR__ . '/inc/seo.php')) include 'inc/seo.php';
                 <div class="req-tag">Optional</div>
             </div>
 
-        </div><!-- /.req-grid -->
+        </div>
 
-        <!-- CTA -->
         <div class="text-center mt-12">
             <p class="text-white/50 mb-6">
                 Got everything ready? Great — let's build something amazing together.
