@@ -88,15 +88,25 @@
   color: #1a0a00;
 }
 
-.promo-bar a.promo-btn:hover::before { opacity: 1; }
-.promo-bar a.promo-btn:active { transform: scale(0.98); }
+.promo-bar a.promo-btn:hover::before {
+  opacity: 1;
+}
+.promo-bar a.promo-btn:active {
+  transform: scale(0.98);
+}
 
 /* ============================================================
    ANIMATION
    ============================================================ */
 @keyframes promoSlideUp {
-  from { transform: translateX(-50%) translateY(80px); opacity: 0; }
-  to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+  from {
+    transform: translateX(-50%) translateY(80px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
 }
 
 /* ============================================================
@@ -116,8 +126,6 @@
     left: 12px;
     right: 12px;
     width: auto;
-    max-width: none;
-    transform: none;
     height: 52px;
     padding: 0;
     border-radius: 16px;
@@ -153,7 +161,7 @@
     padding: 0 20px;
     text-decoration: none;
     box-shadow: none;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition: 0.25s ease;
   }
 
   .promo-bar.mobile a.promo-btn::before {
@@ -168,7 +176,13 @@
   }
 
   @keyframes promoSlideUpMobile {
-    from { transform: translateY(80px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
+    from {
+      transform: translateY(80px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 }

@@ -65,15 +65,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.body.insertAdjacentHTML("beforeend", chatbotHTML);
 
-  const promo        = document.querySelector(".promo-bar.mobile");
-  const chatIcon     = document.getElementById("chatbot-icon");
+  const promo = document.querySelector(".promo-bar.mobile");
+  const chatIcon = document.getElementById("chatbot-icon");
   const chatContainer = document.getElementById("chatbot-container");
-  const closeBtn     = document.getElementById("close-chat");
-  const sendBtn      = document.getElementById("send-btn");
-  const input        = document.getElementById("user-input");
-  const messages     = document.getElementById("chat-messages");
-  const badge        = document.getElementById("chatbot-badge");
-  const greeting     = document.getElementById("chatbot-greeting");
+  const closeBtn = document.getElementById("close-chat");
+  const sendBtn = document.getElementById("send-btn");
+  const input = document.getElementById("user-input");
+  const messages = document.getElementById("chat-messages");
+  const badge = document.getElementById("chatbot-badge");
+  const greeting = document.getElementById("chatbot-greeting");
   const greetingClose = document.getElementById("chatbot-greeting-close");
   const quickReplies = document.getElementById("quick-replies");
 
@@ -101,8 +101,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     // Localhost: .htaccess rewrites don't fire reliably in subdirectories.
     // Derive the app root from the current pathname so we can call proxy.php directly.
-    const path    = window.location.pathname;          // e.g. "/Rielcode/" or "/Rielcode/index.php"
-    const parts   = path.split("/").filter(Boolean);   // ["Rielcode"] or ["Rielcode", "index.php"]
+    const path = window.location.pathname; // e.g. "/Rielcode/" or "/Rielcode/index.php"
+    const parts = path.split("/").filter(Boolean); // ["Rielcode"] or ["Rielcode", "index.php"]
     // Keep only the first segment (the project folder) — drop any filename
     const appRoot = parts.length > 0 ? "/" + parts[0] : "";
     return window.location.origin + appRoot + "/proxy.php";
@@ -144,7 +144,8 @@ document.addEventListener("DOMContentLoaded", function () {
           typingDiv.innerHTML = "<span></span><span></span><span></span>";
           setTimeout(() => {
             typingDiv.classList.remove("typing");
-            typingDiv.innerHTML = "👋 Halo! Saya <strong>RielBot</strong>, asisten virtual Rielcode.<br><br>Mau tanya soal paket, harga, atau cara order? Langsung tanya aja — atau klik salah satu tombol di bawah! 😊";
+            typingDiv.innerHTML =
+              "👋 Halo! Saya <strong>RielBot</strong>, asisten virtual Rielcode.<br><br>Mau tanya soal paket, harga, atau cara order? Langsung tanya aja — atau klik salah satu tombol di bawah! 😊";
             messages.scrollTop = messages.scrollHeight;
           }, 1200);
         }, 300);
@@ -153,14 +154,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (typeof gtag === "function") {
-      gtag("event", "chat_open", { event_category: "Chatbot", event_label: "User opened chatbot" });
+      gtag("event", "chat_open", {
+        event_category: "Chatbot",
+        event_label: "User opened chatbot",
+      });
     }
   });
 
   closeBtn.addEventListener("click", () => {
     chatContainer.classList.add("hidden");
     if (typeof gtag === "function") {
-      gtag("event", "chat_close", { event_category: "Chatbot", event_label: "User closed chatbot" });
+      gtag("event", "chat_close", {
+        event_category: "Chatbot",
+        event_label: "User closed chatbot",
+      });
     }
   });
 
@@ -174,7 +181,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ─── Quick reply dropup ────────────────────────────────────────────────────
   const quickToggle = document.getElementById("quick-toggle");
-  const quickMenu   = document.getElementById("quick-menu");
+  const quickMenu = document.getElementById("quick-menu");
 
   quickToggle.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -193,7 +200,9 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   sendBtn.addEventListener("click", sendMessage);
-  input.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") sendMessage();
+  });
 
   // ─── Message rendering ────────────────────────────────────────────────────
   function addMessage(sender, text) {
@@ -204,10 +213,12 @@ document.addEventListener("DOMContentLoaded", function () {
     messages.scrollTop = messages.scrollHeight;
 
     // Resize container to fit content (capped at max dimensions)
-    const maxWidth  = window.innerWidth > 768 ? 500 : window.innerWidth * 0.9;
+    const maxWidth = window.innerWidth > 768 ? 500 : window.innerWidth * 0.9;
     const maxHeight = window.innerWidth > 768 ? 600 : 400;
-    chatContainer.style.height = Math.min(messages.scrollHeight + 120, maxHeight) + "px";
-    chatContainer.style.width  = Math.min(messages.scrollWidth  + 40,  maxWidth)  + "px";
+    chatContainer.style.height =
+      Math.min(messages.scrollHeight + 120, maxHeight) + "px";
+    chatContainer.style.width =
+      Math.min(messages.scrollWidth + 40, maxWidth) + "px";
 
     return div;
   }
@@ -215,9 +226,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // ─── Markdown parser ──────────────────────────────────────────────────────
   function parseMarkdown(text) {
     return text
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
       .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.+?)\*/g,     "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<strong>$1</strong>")
       .replace(/\n/g, "<br>");
   }
 
@@ -228,12 +241,18 @@ document.addEventListener("DOMContentLoaded", function () {
     input.value = "";
 
     if (typeof gtag === "function") {
-      gtag("event", "chat_message", { event_category: "Chatbot", event_label: text });
+      gtag("event", "chat_message", {
+        event_category: "Chatbot",
+        event_label: text,
+      });
     }
 
     // Local identity shortcut (no API call needed)
     if (text.toLowerCase().includes("rielbot")) {
-      addMessage("bot", "Halo! Saya RielBot, asisten virtual dari Rielcode. Ada yang bisa saya bantu?");
+      addMessage(
+        "bot",
+        "Halo! Saya RielBot, asisten virtual dari Rielcode. Ada yang bisa saya bantu?",
+      );
       return;
     }
 
@@ -244,19 +263,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       const controller = new AbortController();
-      const timeoutId  = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       const res = await fetch(PROXY_URL, {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ message: text, source: "chatbot" }),
-        signal:  controller.signal,
+        body: JSON.stringify({ message: text, source: "chatbot" }),
+        signal: controller.signal,
       });
       clearTimeout(timeoutId);
 
       if (!res.ok) {
         // Surface the HTTP status to make debugging easier
-        throw new Error(`Server error (HTTP ${res.status}). URL tried: ${PROXY_URL}`);
+        throw new Error(
+          `Server error (HTTP ${res.status}). URL tried: ${PROXY_URL}`,
+        );
       }
 
       const data = await res.json();
@@ -277,7 +298,12 @@ document.addEventListener("DOMContentLoaded", function () {
       } else {
         botMsgDiv.textContent = "⚠️ " + err.message;
         // Show URL in console to aid localhost debugging
-        console.warn("[RielBot] Proxy URL used:", PROXY_URL, "\nError:", err.message);
+        console.warn(
+          "[RielBot] Proxy URL used:",
+          PROXY_URL,
+          "\nError:",
+          err.message,
+        );
       }
     }
   }
@@ -285,12 +311,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // ─── Scroll-based promo / icon behaviour ─────────────────────────────────
   let lastScrollTop = 0;
   window.addEventListener("scroll", () => {
-    const scrollTop   = window.scrollY;
+    const scrollTop = window.scrollY;
     const scrollingDown = scrollTop > lastScrollTop;
     const chatOpen = !chatContainer.classList.contains("hidden");
 
-    if (!chatOpen && promo) promo.style.bottom = scrollingDown ? "-100px" : "25px";
-    if (!chatOpen && window.innerWidth <= 768) {
+    if (promo) promo.style.bottom = scrollingDown ? "-100px" : "25px";
+    if (window.innerWidth <= 768) {
       chatIcon.style.bottom = scrollingDown ? "25px" : "100px";
       greeting.style.bottom = scrollingDown ? "92px" : "167px";
     }
