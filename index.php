@@ -21,7 +21,6 @@ include 'connection.php';
     <link rel="stylesheet" href="CSS/redesign.css">
     <link rel="stylesheet" href="CSS/package.css">
     <link rel="stylesheet" href="CSS/promo.css">
-    <link rel="stylesheet" href="CSS/requirement.css">
     <link rel="stylesheet" href="CSS/testimonials.css">
 
     <link rel="icon" type="image/png" sizes="32x32" href="IMG/Rielcode Logo Square Transparent Icon.png">

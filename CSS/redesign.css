@@ -730,3 +730,178 @@ body.rc-redesign > * { position: relative; z-index: 1; }
   text-transform: uppercase;
   color: var(--color-text-faint);
 }
+
+/* ============================================================
+   Requirements section (Part 2a continuation)
+   8-card client checklist with status pills
+   ============================================================ */
+.rc-req { padding: 120px 0; position: relative; }
+
+.rc-req__head {
+  text-align: center;
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.rc-req__head .rc-h2 { margin: 0; }
+.rc-req__sub { max-width: 580px; margin: 0; }
+
+.rc-req__intro {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rc-req__intro-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-primary);
+  letter-spacing: 0.04em;
+}
+.rc-req__intro p { margin: 0; }
+
+.rc-req__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.rc-req__card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+.rc-req__card:hover {
+  border-color: var(--color-border-hover);
+  transform: translateY(-2px);
+}
+
+.rc-req__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rc-req__icon {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+}
+.rc-req__icon svg { width: 18px; height: 18px; }
+.rc-req__num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-faint);
+  letter-spacing: 0.08em;
+}
+
+.rc-req__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rc-req__title {
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+.rc-req__pill {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.rc-req__pill.is-required {
+  background: rgba(255, 75, 75, 0.12);
+  color: #ff8a8a;
+  border-color: rgba(255, 75, 75, 0.25);
+}
+.rc-req__pill.is-recommended {
+  background: rgba(58, 123, 255, 0.12);
+  color: #6da0ff;
+  border-color: rgba(58, 123, 255, 0.25);
+}
+.rc-req__pill.is-optional {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-dimmed);
+  border-color: var(--color-border);
+}
+
+.rc-req__desc {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-dimmed);
+  margin: 0;
+}
+
+.rc-req__cta {
+  margin-top: 48px;
+  padding: 40px;
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.rc-req__cta::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: var(--gradient-promo, linear-gradient(135deg, var(--color-primary), var(--color-purple-light)));
+  opacity: 0.06;
+  pointer-events: none;
+}
+.rc-req__cta > * { position: relative; }
+.rc-req__cta-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 32px;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.rc-req__cta p { margin: 0; }
+.rc-req__cta-btn { margin-top: 12px; }
+
+@media (max-width: 1024px) {
+  .rc-req__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .rc-req { padding: 64px 0; }
+  .rc-req__grid { grid-template-columns: 1fr; }
+  .rc-req__cta { padding: 28px 22px; }
+  .rc-req__cta-title { font-size: 24px; }
+}
