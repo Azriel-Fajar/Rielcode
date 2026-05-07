@@ -1,54 +1,54 @@
-// ===== Navbar =====
-const navbar         = document.querySelector(".navbar");
-const burger         = document.querySelector("#burger");
-const navMenuMobile  = document.querySelector(".navbar-mobile-container");
-const ctaNavbar      = document.querySelector(".cta-navbar");
-const navLinks       = document.querySelectorAll(".navbar-link");
+// ===== Navbar (rc- design contract) =====
+const rcNav      = document.getElementById("rc-nav");
+const rcBurger   = document.getElementById("rc-burger");
+const rcMnav     = document.getElementById("rc-mnav");
+const rcMnavScrim= document.getElementById("rc-mnav-scrim");
+const rcMnavClose= document.getElementById("rc-mnav-close");
+const rcNavLinks = document.querySelectorAll(".rc-nav__link, .rc-mnav__list a");
 
-burger.addEventListener("click", () => {
-    navMenuMobile.classList.toggle("active");
-});
+const openMnav  = () => { rcMnav.classList.add("is-open"); rcMnavScrim.classList.add("is-open"); rcMnav.setAttribute("aria-hidden","false"); document.body.style.overflow = "hidden"; };
+const closeMnav = () => { rcMnav.classList.remove("is-open"); rcMnavScrim.classList.remove("is-open"); rcMnav.setAttribute("aria-hidden","true"); document.body.style.overflow = ""; };
 
-// Close mobile menu when clicking outside
-document.addEventListener("click", (e) => {
-    if (!burger.contains(e.target) && !navMenuMobile.contains(e.target)) {
-        navMenuMobile.classList.remove("active");
-    }
-});
+if (rcBurger)    rcBurger.addEventListener("click", openMnav);
+if (rcMnavClose) rcMnavClose.addEventListener("click", closeMnav);
+if (rcMnavScrim) rcMnavScrim.addEventListener("click", closeMnav);
+rcNavLinks.forEach(a => a.addEventListener("click", closeMnav));
 
-// Close mobile menu when a nav link is clicked
-navLinks.forEach((link) => {
-    link.addEventListener("click", () => {
-        navMenuMobile.classList.remove("active");
-    });
-});
-
-// Sticky navbar on scroll
+// Scrolled state
 window.addEventListener("scroll", () => {
-    const scrolled = window.pageYOffset > 80;
-    navbar.classList.toggle("active", scrolled);
-});
+    if (rcNav) rcNav.classList.toggle("rc-nav--scrolled", window.scrollY > 8);
+}, { passive: true });
+
+// Scroll-spy active link
+const rcSections = ["hero","packages","about","projects","requirements","contact"]
+    .map(id => document.getElementById(id)).filter(Boolean);
+const rcDesktopLinks = document.querySelectorAll(".rc-nav__link");
+window.addEventListener("scroll", () => {
+    let current = "hero";
+    const y = window.scrollY + 120;
+    rcSections.forEach(s => { if (s.offsetTop <= y) current = s.id; });
+    rcDesktopLinks.forEach(l => l.classList.toggle("is-active", l.dataset.target === current));
+}, { passive: true });
 
 // ===== ScrollReveal animations =====
 ScrollReveal({ distance: "50px", duration: 1000, delay: 100 });
 
 // Hero
-ScrollReveal().reveal("#hero .text-container", { origin: "top" });
-ScrollReveal().reveal("#hero .cta-container",  { delay: 300, origin: "top" });
+ScrollReveal().reveal(".rc-hero__copy",  { origin: "left" });
+ScrollReveal().reveal(".rc-hero__art",   { delay: 200, origin: "right" });
 
 // Packages
 ScrollReveal().reveal(".pricing-section h1",          { origin: "top" });
 ScrollReveal().reveal(".pricing-section .pricing-card",{ origin: "top" });
 
 // About
-ScrollReveal().reveal(".about img", { origin: "top" });
-ScrollReveal().reveal(".about h2",  { origin: "top" });
-ScrollReveal().reveal(".about p",   { origin: "top" });
+ScrollReveal().reveal(".rc-about__head",  { origin: "left" });
+ScrollReveal().reveal(".rc-about__body p",{ interval: 80, origin: "right" });
 
 // Projects
-ScrollReveal().reveal("#projects h2",   { origin: "top" });
-ScrollReveal().reveal("#projects .lead",{ origin: "top" });
-ScrollReveal().reveal("#projects .row", { origin: "top" });
+ScrollReveal().reveal(".rc-prj__head",  { origin: "top" });
+ScrollReveal().reveal(".rc-prj__feat",  { origin: "left" });
+ScrollReveal().reveal(".rc-prj__tile",  { interval: 100, origin: "right" });
 
 // Requirements (new section)
 ScrollReveal().reveal("#requirements h2",           { origin: "top" });
