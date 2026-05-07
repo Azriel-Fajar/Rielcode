@@ -109,3 +109,29 @@
   setTimeout(() => startTypingLine(0), 400);
   window.addEventListener("beforeunload", () => { cancelled = true; });
 })();
+
+// Promo banner — mount delay, dismiss, session persistence
+(function () {
+  const promo = document.getElementById("rc-promo");
+  if (!promo) return;
+
+  const STORAGE_KEY = "rc-promo-dismissed";
+  try {
+    if (sessionStorage.getItem(STORAGE_KEY) === "1") {
+      promo.remove();
+      return;
+    }
+  } catch (e) { /* sessionStorage may be blocked */ }
+
+  setTimeout(() => promo.classList.add("is-mounted"), 600);
+
+  const closeBtn = document.getElementById("rc-promo-close");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      promo.classList.remove("is-mounted");
+      promo.classList.add("is-dismissed");
+      try { sessionStorage.setItem(STORAGE_KEY, "1"); } catch (e) {}
+      setTimeout(() => promo.remove(), 500);
+    });
+  }
+})();

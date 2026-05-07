@@ -905,3 +905,109 @@ body.rc-redesign > * { position: relative; z-index: 1; }
   .rc-req__cta { padding: 28px 22px; }
   .rc-req__cta-title { font-size: 24px; }
 }
+
+/* ============================================================
+   Promo Banner — dismissible bottom bar
+   ============================================================ */
+.rc-promo {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  padding: 12px 16px;
+  background: var(--gradient-promo);
+  color: #fff;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.rc-promo.is-mounted {
+  opacity: 1;
+  pointer-events: auto;
+}
+.rc-promo.is-dismissed {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(100%);
+}
+
+.rc-promo--bottom-bar {
+  bottom: 0;
+  transform: translateY(100%);
+}
+.rc-promo--bottom-bar.is-mounted { transform: translateY(0); }
+
+.rc-promo__inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.rc-promo__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.rc-promo__copy {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rc-promo__copy strong { font-weight: 700; }
+.rc-promo__compact { display: none; }
+
+.rc-promo__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.rc-promo__cta:hover {
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+.rc-promo__close {
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.85);
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.rc-promo__close:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+@media (max-width: 720px) {
+  .rc-promo__full { display: none; }
+  .rc-promo__compact { display: inline; }
+  .rc-promo__copy { white-space: normal; font-size: 13px; }
+}
