@@ -143,6 +143,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
     <meta property="og:url" content="https://rielcode.com/order-form/">
     <meta property="og:image" content="https://rielcode.com/IMG/Rielcode Logo Square.png">
     <meta property="og:site_name" content="Rielcode">
+    <link rel="stylesheet" href="../CSS/redesign.css">
     <link rel="stylesheet" href="../CSS/order-form.css">
     <script defer src="../JS/order.js"></script>
     <link rel="icon" type="image/png" sizes="32x32" href="../IMG/Rielcode Logo Square Transparent Icon.png">
@@ -151,7 +152,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 
-<body class="w-full">
+<body class="rc-redesign w-full">
     <script>
         (function() {
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
