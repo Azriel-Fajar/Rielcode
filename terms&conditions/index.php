@@ -21,10 +21,10 @@
         <a href="javascript:history.back()" class="btn">Back</a>
         <div class="terms-container">
             <div class="title">
-                <h1>Terms & Conditions</h1>
+                <h1 class="rc-h1">Terms & Conditions</h1>
             </div>
             <div class="desc">
-                <p>Welcome to Rielcode. By accessing or using our website located at www.rielcode.com, you agree to comply with and be bound by the following Terms and Conditions. Please read them carefully before using our services.</p>
+                <p class="rc-body">Welcome to Rielcode. By accessing or using our website located at www.rielcode.com, you agree to comply with and be bound by the following Terms and Conditions. Please read them carefully before using our services.</p>
             </div>
             <div class="content-container">
                 <ol>
