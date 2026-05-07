@@ -36,6 +36,13 @@ $action = $_GET['action'] ?? '';
 $errors = [];
 $success = '';
 
+// --- Flash helper (shared with admin.php) ---
+if (!function_exists('rc_flash')) {
+    function rc_flash($msg, $variant = 'success') {
+        $_SESSION['rc_flash'] = ['msg' => $msg, 'variant' => $variant];
+    }
+}
+
 // --- Handle Delete from edit view ---
 if ($action === 'delete' && $id) {
     if ($table === 'orders') {
@@ -60,6 +67,7 @@ if ($action === 'delete' && $id) {
         }
     }
     if (empty($errors)) {
+        rc_flash($table === 'orders' ? 'Order deleted.' : 'Package deleted.');
         header("Location: admin.php?table=$table");
         exit;
     }
@@ -131,6 +139,18 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
     <meta name="robots" content="noindex,nofollow">
 </head>
 <body>
+    <?php
+    if (!empty($_SESSION['rc_flash'])):
+        $flash = $_SESSION['rc_flash'];
+        unset($_SESSION['rc_flash']);
+    ?>
+        <div class="rc-toast rc-toast--<?= htmlspecialchars($flash['variant']) ?>"
+             data-auto-dismiss="3000"
+             style="position:fixed;top:24px;right:24px;z-index:9600;">
+            <span class="rc-toast__icon" aria-hidden="true"></span>
+            <span class="rc-toast__msg"><?= htmlspecialchars($flash['msg']) ?></span>
+        </div>
+    <?php endif; ?>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar-toggle" id="sidebarToggle">☰ Menu</div>
 
@@ -160,8 +180,11 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
             <?php endif; ?>
 
             <?php if ($success): ?>
-                <div class="errors" style="background: rgba(62,207,142,0.08); border-color: rgba(62,207,142,0.25); color: #3ecf8e;">
-                    <?= htmlspecialchars($success) ?>
+                <div class="rc-toast rc-toast--success"
+                     data-auto-dismiss="3000"
+                     style="position:fixed;top:24px;right:24px;z-index:9600;">
+                    <span class="rc-toast__icon" aria-hidden="true"></span>
+                    <span class="rc-toast__msg"><?= htmlspecialchars($success) ?></span>
                 </div>
             <?php endif; ?>
 
@@ -294,7 +317,10 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
                             </button>
                             <a href="admin.php?table=orders" class="button edit">Cancel</a>
                             <a href="admin_edit.php?table=orders&id=<?= $data['id'] ?>&action=delete"
-                               onclick="return confirm('Are you sure you want to delete this order? This action cannot be undone.');"
+                               data-confirm="Are you sure you want to delete this order? This action cannot be undone."
+                               data-confirm-variant="danger"
+                               data-confirm-title="Delete order"
+                               data-confirm-label="Delete"
                                class="button delete" style="margin-left: auto;">
                                 Delete Order
                             </a>
@@ -507,5 +533,6 @@ Balas HANYA dengan JSON valid:
     }
     <?php endif; ?>
     </script>
+    <script src="JS/admin-ui.js" defer></script>
 </body>
 </html>

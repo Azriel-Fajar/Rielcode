@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <!-- Greeting bubble above chatbot icon -->
 <div id="chatbot-greeting" class="chatbot-greeting">
-  👋 Halo! Ada yang bisa saya bantu?
+  👋 Hi! Anything I can help with?
   <button id="chatbot-greeting-close" class="chatbot-greeting-close">×</button>
 </div>
 
@@ -38,10 +38,10 @@ document.addEventListener("DOMContentLoaded", function () {
   <!-- Quick Reply Dropup -->
   <div id="quick-replies" class="quick-replies-dropup">
     <div id="quick-menu" class="quick-menu">
-      <button class="quick-chip" data-msg="Apa saja paket yang tersedia?">📦 Lihat Paket</button>
-      <button class="quick-chip" data-msg="Berapa harga paket Rielcode?">💰 Cek Harga</button>
-      <button class="quick-chip" data-msg="Berapa lama waktu pengerjaan website?">⏱ Lama Pengerjaan</button>
-      <button class="quick-chip" data-msg="Bagaimana cara memesan website?">🚀 Cara Order</button>
+      <button class="quick-chip" data-msg="What packages do you offer?">📦 View Packages</button>
+      <button class="quick-chip" data-msg="How much does a Rielcode package cost?">💰 Check Pricing</button>
+      <button class="quick-chip" data-msg="How long does it take to build a website?">⏱ Turnaround Time</button>
+      <button class="quick-chip" data-msg="How do I order a website?">🚀 How to Order</button>
     </div>
     <button id="quick-toggle" class="quick-toggle" title="Quick questions">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
           setTimeout(() => {
             typingDiv.classList.remove("typing");
             typingDiv.innerHTML =
-              "👋 Halo! Saya <strong>RielBot</strong>, asisten virtual Rielcode.<br><br>Mau tanya soal paket, harga, atau cara order? Langsung tanya aja — atau klik salah satu tombol di bawah! 😊";
+              "👋 Hi! I'm <strong>RielBot</strong>, Rielcode's virtual assistant.<br><br>Want to ask about packages, pricing, or how to order? Just ask — or click one of the buttons below! 😊";
             messages.scrollTop = messages.scrollHeight;
           }, 1200);
         }, 300);
@@ -251,7 +251,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (text.toLowerCase().includes("rielbot")) {
       addMessage(
         "bot",
-        "Halo! Saya RielBot, asisten virtual dari Rielcode. Ada yang bisa saya bantu?",
+        "Hi! I'm RielBot, Rielcode's virtual assistant. How can I help?",
       );
       return;
     }
@@ -284,7 +284,7 @@ document.addEventListener("DOMContentLoaded", function () {
       let replyText = data.reply || "⚠️ No response.";
 
       // Highlight any active discount mention in pricing replies
-      const priceKeywords = ["harga", "paket", "biaya", "berapa", "tarif"];
+      const priceKeywords = ["price", "pricing", "cost", "package", "plan", "how much"];
       if (priceKeywords.some((kw) => text.toLowerCase().includes(kw))) {
         replyText = replyText.replace(/(Grand Opening.*?OFF)/gi, "🔥 $1 🔥");
       }

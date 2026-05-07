@@ -27,12 +27,59 @@ try {
     die("DB Connection failed: " . htmlspecialchars($e->getMessage()));
 }
 
-// BUG FIX: whitelist $table to prevent SQL injection via GET parameter
-$allowedTables = ['chat_logs', 'orders', 'packages'];
+// Whitelist $table to prevent SQL injection via GET parameter
+$allowedTables = ['chat_logs', 'orders', 'packages', 'testimonials'];
 $table = in_array($_GET['table'] ?? '', $allowedTables) ? $_GET['table'] : 'chat_logs';
 
 $action = $_GET['action'] ?? '';
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
+
+// --- Flash helper ---
+function rc_flash($msg, $variant = 'success') {
+    $_SESSION['rc_flash'] = ['msg' => $msg, 'variant' => $variant];
+}
+
+// --- Testimonials: delete invite token ---
+if ($table === 'testimonials' && $action === 'del_token') {
+    $tid = isset($_GET['token_id']) ? (int)$_GET['token_id'] : 0;
+    if ($tid) {
+        $pdo->prepare("DELETE FROM testimonial_invites WHERE id=? AND used_at IS NULL")->execute([$tid]);
+        rc_flash('Token deleted.');
+    }
+    header("Location: admin.php?table=testimonials");
+    exit;
+}
+
+// --- Testimonials: approve / reject / delete ---
+if ($table === 'testimonials' && $action !== '' && $id) {
+    if ($action === 'approve') {
+        $stmt = $pdo->prepare("UPDATE testimonials SET status='approved', reviewed_at=NOW() WHERE id=?");
+        $stmt->execute([$id]);
+        rc_flash('Testimonial approved.');
+    } elseif ($action === 'reject') {
+        $stmt = $pdo->prepare("UPDATE testimonials SET status='rejected', reviewed_at=NOW() WHERE id=?");
+        $stmt->execute([$id]);
+        rc_flash('Testimonial rejected.');
+    } elseif ($action === 'delete') {
+        // Unlink any invite that referenced this testimonial
+        $pdo->prepare("UPDATE testimonial_invites SET testimonial_id=NULL WHERE testimonial_id=?")->execute([$id]);
+        $pdo->prepare("DELETE FROM testimonials WHERE id=?")->execute([$id]);
+        rc_flash('Testimonial deleted.');
+    }
+    header("Location: admin.php?table=testimonials");
+    exit;
+}
+
+// --- Testimonials: generate invite token ---
+if ($table === 'testimonials' && $action === 'gen_token') {
+    $label = trim($_POST['label'] ?? '');
+    $token = bin2hex(random_bytes(32));
+    $stmt  = $pdo->prepare("INSERT INTO testimonial_invites (token, label) VALUES (?, ?)");
+    $stmt->execute([$token, $label === '' ? null : $label]);
+    rc_flash('Invite link generated.');
+    header("Location: admin.php?table=testimonials&new_token=" . urlencode($token));
+    exit;
+}
 
 // --- Handle Delete (orders & packages only) ---
 if ($action === 'delete' && $id && $table !== 'chat_logs') {
@@ -51,16 +98,21 @@ if ($action === 'delete' && $id && $table !== 'chat_logs') {
         $stmt->execute([$id]);
         // Recalculate order counts
         $pdo->exec("UPDATE packages p SET orders = (SELECT COUNT(*) FROM orders o WHERE o.package_id = p.id)");
+        rc_flash('Order deleted.');
     } elseif ($table === 'packages') {
         $stmt = $pdo->prepare("SELECT COUNT(*) as cnt FROM orders WHERE package_id = ?");
         $stmt->execute([$id]);
         if ((int)$stmt->fetchColumn() === 0) {
             $stmt = $pdo->prepare("DELETE FROM packages WHERE id = ?");
             $stmt->execute([$id]);
+            rc_flash('Package deleted.');
+        } else {
+            rc_flash('Cannot delete package — has existing orders.', 'error');
         }
     } elseif ($table === 'chat_logs') {
         $stmt = $pdo->prepare("DELETE FROM chat_logs WHERE id = ?");
         $stmt->execute([$id]);
+        rc_flash('Chat log deleted.');
     }
     header("Location: admin.php?table=$table");
     exit;
@@ -85,6 +137,18 @@ switch ($table) {
         $stmt = $pdo->prepare("SELECT * FROM packages ORDER BY id ASC LIMIT :limit OFFSET :offset");
         $columns = ['id', 'package_name', 'idr_price', 'us_price', 'orders'];
         break;
+    case 'testimonials':
+        // pending first, then by submitted_at desc
+        $stmt = $pdo->prepare(
+            "SELECT id, client_name, business_name, role_title, rating, project_url,
+                    problem_before, solution_after, recommendation, headline,
+                    client_email, consent_given, status, submitted_at, reviewed_at, ip_address
+             FROM testimonials
+             ORDER BY FIELD(status,'pending','approved','rejected'), submitted_at DESC
+             LIMIT :limit OFFSET :offset"
+        );
+        $columns = ['id', 'client_name', 'business_name', 'rating', 'status', 'submitted_at'];
+        break;
     case 'chat_logs':
     default:
         $stmt = $pdo->prepare("SELECT id, LEFT(user_message, 120) AS user_message, LEFT(bot_reply, 120) AS bot_reply, tag, created_at FROM chat_logs ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
@@ -95,6 +159,29 @@ $stmt->bindValue(':limit',  $items_per_page, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset,         PDO::PARAM_INT);
 $stmt->execute();
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch invite tokens for testimonials tab
+$invites = [];
+$newToken = null;
+if ($table === 'testimonials') {
+    $invites = $pdo->query(
+        "SELECT id, token, label, created_at, used_at, testimonial_id
+         FROM testimonial_invites
+         ORDER BY created_at DESC
+         LIMIT 50"
+    )->fetchAll(PDO::FETCH_ASSOC);
+
+    // Pick up newly generated token from redirect param
+    if (!empty($_GET['new_token'])) {
+        $newToken = $_GET['new_token'];
+    }
+}
+
+// Build testimonial base URL — localhost in dev, production domain otherwise
+$isLocalhost = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1']);
+$testimonialBaseUrl = $isLocalhost
+    ? 'http://localhost/rielcode-testimonials'
+    : 'https://testimonials.rielcode.com';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -109,6 +196,18 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body>
+    <?php
+    if (!empty($_SESSION['rc_flash'])):
+        $flash = $_SESSION['rc_flash'];
+        unset($_SESSION['rc_flash']);
+    ?>
+        <div class="rc-toast rc-toast--<?= htmlspecialchars($flash['variant']) ?>"
+             data-auto-dismiss="3000"
+             style="position:fixed;top:24px;right:24px;z-index:9600;">
+            <span class="rc-toast__icon" aria-hidden="true"></span>
+            <span class="rc-toast__msg"><?= htmlspecialchars($flash['msg']) ?></span>
+        </div>
+    <?php endif; ?>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar-toggle" id="sidebarToggle">☰ Menu</div>
 
@@ -118,19 +217,224 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <img src="IMG/Rielcode Logo Square Transparent Icon.png" alt="Rielcode" class="sidebar-logo">
                 RielBot Admin
             </h2>
-            <a href="admin.php?table=chat_logs" class="<?= $table === 'chat_logs' ? 'active' : '' ?>">Chat Logs</a>
-            <a href="admin.php?table=orders" class="<?= $table === 'orders'    ? 'active' : '' ?>">Orders</a>
-            <a href="admin.php?table=packages" class="<?= $table === 'packages'  ? 'active' : '' ?>">Packages</a>
+            <a href="admin.php?table=chat_logs" class="<?= $table === 'chat_logs'    ? 'active' : '' ?>">Chat Logs</a>
+            <a href="admin.php?table=orders" class="<?= $table === 'orders'        ? 'active' : '' ?>">Orders</a>
+            <a href="admin.php?table=packages" class="<?= $table === 'packages'    ? 'active' : '' ?>">Packages</a>
+            <a href="admin.php?table=testimonials" class="<?= $table === 'testimonials' ? 'active' : '' ?>">Testimonials</a>
             <a href="admin_logout.php">Logout</a>
         </div>
 
         <div class="main-content">
-            <h1><?= ucfirst(str_replace('_', ' ', $table)) ?></h1>
+            <h1><?= $table === 'testimonials' ? 'Testimonials' : ucfirst(str_replace('_', ' ', $table)) ?></h1>
 
             <?php if ($table === 'packages'): ?>
                 <a href="admin_edit.php?table=packages" class="button add">Add Package</a>
             <?php endif; ?>
 
+            <?php if ($table === 'testimonials'): ?>
+
+                <!-- ====== TESTIMONIALS TABLE ====== -->
+                <?php if (empty($logs)): ?>
+                    <p style="color:#475569;font-family:'JetBrains Mono',monospace;font-size:0.8rem;">No testimonials yet.</p>
+                <?php else: ?>
+                <div class="table-container" style="margin-bottom:32px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Client</th>
+                                <th>Business</th>
+                                <th>Rating</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $no = $total_items - $offset; foreach ($logs as $row): ?>
+                            <tr>
+                                <td><?= $no-- ?></td>
+                                <td style="white-space:normal;">
+                                    <div style="font-weight:600;color:#e2e8f0;"><?= htmlspecialchars($row['client_name']) ?></div>
+                                    <div style="font-size:0.75rem;color:#475569;"><?= htmlspecialchars($row['role_title']) ?></div>
+                                </td>
+                                <td><?= htmlspecialchars($row['business_name']) ?></td>
+                                <td>
+                                    <span style="color:#ffc73a;letter-spacing:1px;"><?= str_repeat('★', (int)$row['rating']) . str_repeat('☆', 5 - (int)$row['rating']) ?></span>
+                                    <span style="color:#475569;font-size:0.75rem;margin-left:4px;"><?= (int)$row['rating'] ?>/5</span>
+                                </td>
+                                <td>
+                                    <?php
+                                    $statusColors = [
+                                        'pending'  => 'background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;',
+                                        'approved' => 'background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;',
+                                        'rejected' => 'background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.30);color:#f87171;',
+                                    ];
+                                    $s = $row['status'];
+                                    $style = $statusColors[$s] ?? '';
+                                    ?>
+                                    <span style="<?= $style ?>padding:3px 10px;border-radius:20px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:0.5px;">
+                                        <?= ucfirst($s) ?>
+                                    </span>
+                                </td>
+                                <td style="font-size:0.78rem;color:#475569;white-space:nowrap;"><?= htmlspecialchars(substr($row['submitted_at'], 0, 16)) ?></td>
+                                <td>
+                                    <div class="table-actions" style="flex-wrap:wrap;gap:5px;">
+                                        <button class="button edit" style="font-size:0.72rem;padding:5px 10px;"
+                                            onclick="toggleTestimonial(<?= $row['id'] ?>)">Full</button>
+                                        <?php if ($row['status'] !== 'approved'): ?>
+                                            <a href="?table=testimonials&action=approve&id=<?= $row['id'] ?>"
+                                               data-confirm="Approve this testimonial?"
+                                               data-confirm-title="Approve testimonial"
+                                               data-confirm-label="Approve"
+                                               class="button"
+                                               style="font-size:0.72rem;padding:5px 10px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;">Approve</a>
+                                        <?php endif; ?>
+                                        <?php if ($row['status'] !== 'rejected'): ?>
+                                            <a href="?table=testimonials&action=reject&id=<?= $row['id'] ?>"
+                                               data-confirm="Reject this testimonial?"
+                                               data-confirm-title="Reject testimonial"
+                                               data-confirm-label="Reject"
+                                               class="button"
+                                               style="font-size:0.72rem;padding:5px 10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#f87171;">Reject</a>
+                                        <?php endif; ?>
+                                        <a href="?table=testimonials&action=delete&id=<?= $row['id'] ?>"
+                                           data-confirm="Permanently delete this testimonial? This cannot be undone."
+                                           data-confirm-variant="danger"
+                                           data-confirm-title="Delete testimonial"
+                                           data-confirm-label="Delete"
+                                           class="button delete"
+                                           style="font-size:0.72rem;padding:5px 10px;">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Expandable full detail row -->
+                            <tr class="testi-detail" id="testi-detail-<?= $row['id'] ?>" style="display:none;">
+                                <td colspan="7" style="background:rgba(255,255,255,0.02);padding:20px 24px;white-space:normal;">
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;max-width:860px;">
+                                        <div>
+                                            <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:#3a7cff;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Problem Before</div>
+                                            <p style="color:#94a3b8;font-size:0.82rem;line-height:1.6;margin:0;"><?= nl2br(htmlspecialchars($row['problem_before'])) ?></p>
+                                        </div>
+                                        <div>
+                                            <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:#3a7cff;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Solution / What Was Built</div>
+                                            <p style="color:#94a3b8;font-size:0.82rem;line-height:1.6;margin:0;"><?= nl2br(htmlspecialchars($row['solution_after'])) ?></p>
+                                        </div>
+                                        <div>
+                                            <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:#3a7cff;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Recommendation</div>
+                                            <p style="color:#94a3b8;font-size:0.82rem;line-height:1.6;margin:0;"><?= nl2br(htmlspecialchars($row['recommendation'])) ?></p>
+                                        </div>
+                                        <div>
+                                            <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:#3a7cff;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Meta</div>
+                                            <div style="font-size:0.78rem;color:#475569;line-height:1.8;">
+                                                <div>Project: <a href="<?= htmlspecialchars($row['project_url']) ?>" target="_blank" style="color:#60a5fa;"><?= htmlspecialchars($row['project_url']) ?></a></div>
+                                                <?php if ($row['headline']): ?>
+                                                <div>Headline: <em style="color:#94a3b8;">"<?= htmlspecialchars($row['headline']) ?>"</em></div>
+                                                <?php endif; ?>
+                                                <?php if ($row['client_email']): ?>
+                                                <div>Email: <?= htmlspecialchars($row['client_email']) ?></div>
+                                                <?php endif; ?>
+                                                <div>Consent: <?= $row['consent_given'] ? '<span style="color:#4ade80;">Yes</span>' : '<span style="color:#f87171;">No</span>' ?></div>
+                                                <?php if ($row['reviewed_at']): ?>
+                                                <div>Reviewed: <?= htmlspecialchars(substr($row['reviewed_at'], 0, 16)) ?></div>
+                                                <?php endif; ?>
+                                                <div>IP: <?= htmlspecialchars($row['ip_address'] ?? 'unknown') ?></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php endif; ?>
+
+                <!-- Pagination -->
+                <div class="pagination" style="margin-bottom:48px;">
+                    <?php if ($page > 1): ?>
+                        <a href="?table=testimonials&page=<?= $page - 1 ?>">&laquo; Prev</a>
+                    <?php endif; ?>
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <a href="?table=testimonials&page=<?= $i ?>" class="<?= $i === $page ? 'active' : '' ?>"><?= $i ?></a>
+                    <?php endfor; ?>
+                    <?php if ($page < $total_pages): ?>
+                        <a href="?table=testimonials&page=<?= $page + 1 ?>">Next &raquo;</a>
+                    <?php endif; ?>
+                </div>
+
+                <!-- ====== INVITE TOKEN GENERATOR ====== -->
+                <div style="margin-bottom:16px;">
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:#3a7cff;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">Invite Token Generator</div>
+                    <form method="POST" action="admin.php?table=testimonials&action=gen_token"
+                          style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px;">
+                        <div>
+                            <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:#475569;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;">Label (optional)</label>
+                            <input type="text" name="label" maxlength="200"
+                                   placeholder="e.g. Azriel - Rielcode CEO"
+                                   style="padding:10px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:10px;color:#e2e8f0;font-family:'Outfit',sans-serif;font-size:0.85rem;outline:none;width:280px;">
+                        </div>
+                        <button type="submit" class="button add" style="margin-bottom:0;height:40px;">Generate Link</button>
+                    </form>
+
+                    <?php if (!empty($newToken)): ?>
+                    <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:#4ade80;letter-spacing:0.5px;">New link generated:</span>
+                        <code id="newTokenUrl" style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:#e2e8f0;background:rgba(255,255,255,0.05);padding:4px 10px;border-radius:6px;word-break:break-all;"><?= htmlspecialchars($testimonialBaseUrl) ?>/?t=<?= htmlspecialchars($newToken) ?></code>
+                        <button onclick="copyToken()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:0.72rem;font-family:'Outfit',sans-serif;" id="copyTokenBtn">Copy</button>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Invite token list -->
+                <?php if (!empty($invites)): ?>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Label</th>
+                                <th>Token (partial)</th>
+                                <th>Created</th>
+                                <th>Status</th>
+                                <th>Link</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($invites as $inv): ?>
+                            <tr>
+                                <td style="color:#e2e8f0;"><?= htmlspecialchars($inv['label'] ?? '—') ?></td>
+                                <td style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;"><?= htmlspecialchars(substr($inv['token'], 0, 12)) ?>…</td>
+                                <td style="font-size:0.78rem;color:#475569;"><?= htmlspecialchars(substr($inv['created_at'], 0, 16)) ?></td>
+                                <td>
+                                    <?php if ($inv['used_at']): ?>
+                                        <span style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-family:'JetBrains Mono',monospace;">Used</span>
+                                    <?php else: ?>
+                                        <span style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-family:'JetBrains Mono',monospace;">Unused</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="display:flex;gap:6px;align-items:center;">
+                                    <?php if (!$inv['used_at']): ?>
+                                    <button onclick="copyInvite('<?= htmlspecialchars($testimonialBaseUrl) ?>/?t=<?= htmlspecialchars($inv['token']) ?>', this)"
+                                            style="background:rgba(58,124,255,0.1);border:1px solid rgba(58,124,255,0.3);color:#60a5fa;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:0.72rem;font-family:'Outfit',sans-serif;font-weight:600;">Copy Link</button>
+                                    <a href="admin.php?table=testimonials&action=del_token&token_id=<?= (int)$inv['id'] ?>"
+                                       data-confirm="Delete this unused token?"
+                                       data-confirm-variant="danger"
+                                       data-confirm-title="Delete token"
+                                       data-confirm-label="Delete"
+                                       style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:0.72rem;font-family:'Outfit',sans-serif;font-weight:600;text-decoration:none;">Delete</a>
+                                    <?php else: ?>
+                                        <span style="color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:0.75rem;">—</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php endif; ?>
+
+            <?php else: ?>
+            <!-- ====== ORIGINAL TABLES (chat_logs / orders / packages) ====== -->
             <div class="table-container">
                 <table>
                     <thead>
@@ -144,8 +448,8 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <tbody>
                         <?php
                         $no = in_array($table, ['chat_logs', 'orders'])
-                            ? $total_items - $offset   // descending numbering
-                            : $offset + 1;             // ascending numbering
+                            ? $total_items - $offset
+                            : $offset + 1;
 
                         foreach ($logs as $row):
                         ?>
@@ -194,7 +498,10 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <a href="admin_edit.php?table=<?= $table ?>&id=<?= $row['id'] ?>" class="button edit">Edit</a>
                                             <?php if ($table === 'packages'): ?>
                                                 <a href="?table=<?= $table ?>&action=delete&id=<?= $row['id'] ?>"
-                                                    onclick="return confirm('Are you sure you want to delete this record?');"
+                                                    data-confirm="Are you sure you want to delete this record?"
+                                                    data-confirm-variant="danger"
+                                                    data-confirm-title="Delete record"
+                                                    data-confirm-label="Delete"
                                                     class="button delete">Delete</a>
                                             <?php endif; ?>
                                         </div>
@@ -220,6 +527,7 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <a href="?table=<?= $table ?>&page=<?= $page + 1 ?>">Next &raquo;</a>
                 <?php endif; ?>
             </div>
+            <?php endif; ?>
         </div>
     </div>
     <script>
@@ -252,6 +560,32 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
             preview.style.display = isOpen ? 'inline' : 'none';
             full.style.display = isOpen ? 'none' : 'inline';
             btn.textContent = isOpen ? '▼ More' : '▲ Less';
+        }
+
+        function toggleTestimonial(id) {
+            const row = document.getElementById('testi-detail-' + id);
+            if (!row) return;
+            const isOpen = row.style.display !== 'none';
+            row.style.display = isOpen ? 'none' : 'table-row';
+            const btn = row.previousElementSibling.querySelector('button.button.edit');
+            if (btn) btn.textContent = isOpen ? 'Full' : 'Hide';
+        }
+
+        function copyToken() {
+            const el = document.getElementById('newTokenUrl');
+            if (!el) return;
+            navigator.clipboard.writeText(el.textContent.trim()).then(() => {
+                const btn = document.getElementById('copyTokenBtn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy', 2000);
+            });
+        }
+
+        function copyInvite(url, btn) {
+            navigator.clipboard.writeText(url).then(() => {
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy Link', 2000);
+            });
         }
     </script>
     <style>
@@ -307,6 +641,7 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
             font-size: 0.8rem;
         }
     </style>
+    <script src="JS/admin-ui.js" defer></script>
 </body>
 
 </html>
