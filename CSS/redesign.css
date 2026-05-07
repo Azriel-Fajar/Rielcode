@@ -29,7 +29,7 @@ body.rc-redesign::before {
   z-index: 0;
 }
 
-body.rc-redesign > * { position: relative; z-index: 1; }
+body.rc-redesign > *:not(.rc-promo):not(#chatbot-icon):not(#chatbot-container):not(#chatbot-greeting) { position: relative; z-index: 1; }
 
 /* ── Container ── */
 .rc-container {
