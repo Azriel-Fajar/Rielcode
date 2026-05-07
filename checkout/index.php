@@ -276,13 +276,14 @@ $summaryData = json_encode([
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout | Rielcode</title>
     <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="../CSS/redesign.css">
     <link rel="stylesheet" href="../CSS/checkout.css">
     <link rel="icon" type="image/png" sizes="32x32" href="../IMG/Rielcode Logo Square Transparent Icon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
+<body class="rc-redesign">
     <div class="checkout-container p-6">
         <h1 class="text-white font-bold flex flex-col justify-start items-center">
             Checkout Confirmation

@@ -21,12 +21,13 @@ session_destroy();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout Successful | Rielcode</title>
 
+    <link rel="stylesheet" href="../../CSS/redesign.css">
     <link rel="stylesheet" href="../../CSS/success.css">
     <link rel="icon" type="image/png" sizes="32x32" href="../../IMG/Rielcode Logo Square Transparent Icon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="rc-redesign">
     <div class="popup">
         <div class="circle">
             <div class="checkmark"></div>

@@ -8,6 +8,7 @@
     <meta name="description" content="Read the Terms and Conditions for using Rielcode web development services. Covers payments, intellectual property, user responsibilities, and governing law.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://rielcode.com/terms&conditions/">
+    <link rel="stylesheet" href="../CSS/redesign.css">
     <link rel="stylesheet" href="../CSS/terms.css">
     <link rel="icon" type="image/png" sizes="32x32" href="../IMG/Rielcode Logo Square Transparent.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../IMG/Rielcode Logo Square Transparent.png">
@@ -15,7 +16,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
+<body class="rc-redesign">
     <div class="page-container">
         <a href="javascript:history.back()" class="btn">Back</a>
         <div class="terms-container">
