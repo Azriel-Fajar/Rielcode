@@ -20,7 +20,6 @@ include 'connection.php';
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/redesign.css">
     <link rel="stylesheet" href="CSS/package.css">
-    <link rel="stylesheet" href="CSS/promo.css">
     <link rel="stylesheet" href="CSS/testimonials.css">
 
     <link rel="icon" type="image/png" sizes="32x32" href="IMG/Rielcode Logo Square Transparent Icon.png">
@@ -101,12 +100,24 @@ include 'connection.php';
 
     <?php include 'footer.php'; ?>
 
-    <div class="promo-bar">
-        🎉 <span>Rielcode</span>| Get FREE hosting &amp; .COM domain for your brand!
-        <a href="order-form/" class="promo-btn">Claim Your Free Bonus 🚀</a>
-    </div>
-    <div class="promo-bar mobile">
-        <a href="order-form/" class="promo-btn">🎉 Free Hosting &amp; .COM 🚀</a>
+    <div class="rc-promo rc-promo--bottom-bar" id="rc-promo" role="region" aria-label="Promotional offer">
+        <div class="rc-promo__inner">
+            <span class="rc-promo__icon" aria-hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            </span>
+            <div class="rc-promo__copy">
+                <span class="rc-promo__full"><strong>Rielcode</strong> &mdash; Get FREE hosting &amp; .COM domain for your brand</span>
+                <span class="rc-promo__compact"><strong>Free Hosting &amp; .COM</strong></span>
+            </div>
+            <a class="rc-promo__cta" href="order-form/">
+                <span class="rc-promo__full">Claim Your Free Bonus</span>
+                <span class="rc-promo__compact">Claim</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+            <button class="rc-promo__close" id="rc-promo-close" aria-label="Dismiss promotion" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+            </button>
+        </div>
     </div>
 
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
