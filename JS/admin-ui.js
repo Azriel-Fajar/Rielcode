@@ -40,7 +40,7 @@
       const okBtn = modal.querySelector(".rc-modal__btn--confirm");
       cancelBtn.textContent = cancelLabel;
       okBtn.textContent = confirmLabel;
-      document.body.appendChild(modal);
+      document.documentElement.appendChild(modal);
 
       requestAnimationFrame(function () {
         modal.classList.add("is-open");
@@ -107,7 +107,7 @@
       host = document.createElement("div");
       host.id = "rc-toast-host";
       host.className = "rc-toast-host";
-      document.body.appendChild(host);
+      document.documentElement.appendChild(host);
     }
     return host;
   }
