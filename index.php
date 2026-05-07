@@ -18,13 +18,11 @@ include 'connection.php';
     <?php include 'inc/seo.php'; ?>
 
     <link rel="stylesheet" href="CSS/style.css">
-    <link rel="stylesheet" href="CSS/navbar.css">
+    <link rel="stylesheet" href="CSS/redesign.css">
     <link rel="stylesheet" href="CSS/package.css">
-    <link rel="stylesheet" href="CSS/about.css">
-    <link rel="stylesheet" href="CSS/footer.css">
-    <link rel="stylesheet" href="CSS/projects.css">
     <link rel="stylesheet" href="CSS/promo.css">
     <link rel="stylesheet" href="CSS/requirement.css">
+    <link rel="stylesheet" href="CSS/testimonials.css">
 
     <link rel="icon" type="image/png" sizes="32x32" href="IMG/Rielcode Logo Square Transparent Icon.png">
     <link rel="icon" type="image/png" sizes="16x16" href="IMG/Rielcode Logo Square Transparent Icon.png">
@@ -49,21 +47,45 @@ include 'connection.php';
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="JS/main.js"></script>
+    <script defer src="JS/redesign.js"></script>
     <script src="https://unpkg.com/scrollreveal"></script>
 </head>
 
-<body class="w-full m-0 p-0">
+<body class="w-full m-0 p-0 rc-redesign">
 
     <?php include 'navbar.php'; ?>
 
-    <section class="hero" id="hero" data-bg-image="IMG/bg.jpg">
-        <div class="hero-container">
-            <div class="text-container text-center">
-                <h1 class="text-4xl lg:text-5xl font-bold">Real Code. Real Results.</h1>
-                <p>Clean design, smart code, and real results — that's the Rielcode way.</p>
+    <section class="rc-hero" id="hero">
+        <div class="rc-container rc-hero__grid">
+            <div class="rc-hero__copy">
+                <span class="rc-eyebrow">real code, real results</span>
+                <h1 class="rc-hero__title">
+                    Real Code.<br>
+                    <span class="rc-hero__accent">Real Results.</span>
+                </h1>
+                <p class="rc-hero__sub">
+                    Clean design, smart code, and real results — that's the Rielcode way.
+                    We build websites for businesses, startups, and creators who want craftsmanship, not templates.
+                </p>
+                <div class="rc-hero__ctas">
+                    <a class="rc-btn" href="order-form/">
+                        Get Started
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </a>
+                    <a class="rc-btn rc-btn-outline" href="#packages">View Packages</a>
+                </div>
             </div>
-            <div class="cta-container text-center">
-                <a href="order-form/" class="btn btn-glow m-2">Get Started</a>
+            <div class="rc-hero__art">
+                <div class="rc-window rc-hero__art-inner">
+                    <div class="rc-window__bar">
+                        <span class="rc-window__dot" style="background:#ff5f56"></span>
+                        <span class="rc-window__dot" style="background:#ffbd2e"></span>
+                        <span class="rc-window__dot" style="background:#27c93f"></span>
+                        <span class="rc-window__title">~/rielcode/your-brand</span>
+                    </div>
+                    <pre class="rc-window__body"><code id="rc-term-code"></code></pre>
+                </div>
+                <div class="rc-hero__glow"></div>
             </div>
         </div>
     </section>
@@ -73,6 +95,8 @@ include 'connection.php';
     <?php include 'about.php'; ?>
 
     <?php include 'projects.php'; ?>
+
+    <?php include 'testimonials.php'; ?>
 
     <?php include 'requirement.php'; ?>
 
