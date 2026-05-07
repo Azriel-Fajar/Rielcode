@@ -126,9 +126,9 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
         <div class="cp-wrapper">
 
             <div class="cp-header">
-                <div class="cp-tag">// Custom Plan</div>
-                <h1>Build Your Own Website</h1>
-                <p>Pick exactly what you need — your price updates live as you configure.</p>
+                <div><span class="rc-eyebrow">custom plan</span></div>
+                <h1 class="rc-h1">Build Your Own Website</h1>
+                <p class="rc-body-lg">Pick exactly what you need — your price updates live as you configure.</p>
             </div>
 
             <div class="cp-layout">

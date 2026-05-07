@@ -191,8 +191,9 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
             <form method="post" id="orderForm">
 
                 <div class="title flex justify-center items-center">
-                    <h1 class="text-white">Order Form</h1>
-                    <p>Fill out the form below to confirm your purchase</p>
+                    <span class="rc-eyebrow">checkout step 01</span>
+                    <h1 class="rc-h1 text-white">Order Form</h1>
+                    <p class="rc-body">Fill out the form below to confirm your purchase</p>
                 </div>
 
                 <div class="customer-info-container">

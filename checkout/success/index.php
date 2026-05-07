@@ -32,8 +32,9 @@ session_destroy();
         <div class="circle">
             <div class="checkmark"></div>
         </div>
-        <h2>Order Completed!</h2>
-        <p>Thank you for your purchase. Your order has been successfully processed.</p>
+        <span class="rc-eyebrow" style="margin-bottom:8px;">checkout complete</span>
+        <h2 class="rc-h2">Order Completed!</h2>
+        <p class="rc-body">Thank you for your purchase. Your order has been successfully processed.</p>
         <a href="/" class="btn">Back to Home</a>
     </div>
 

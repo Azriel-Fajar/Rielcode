@@ -285,9 +285,11 @@ $summaryData = json_encode([
 
 <body class="rc-redesign">
     <div class="checkout-container p-6">
-        <h1 class="text-white font-bold flex flex-col justify-start items-center">
-            Checkout Confirmation
-        </h1>
+        <div class="checkout-heading flex flex-col items-center" style="gap:10px; margin-bottom:24px;">
+            <span class="rc-eyebrow">checkout step 02</span>
+            <h1 class="rc-h1 text-white font-bold">Checkout Confirmation</h1>
+            <p class="rc-body" style="margin:0;">Review your order before confirming.</p>
+        </div>
 
         <div class="info-container">
             <div class="img-container">
