@@ -13,6 +13,7 @@ body.rc-redesign {
   font-family: var(--font-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  padding-top: 72px !important;
 }
 
 body.rc-redesign::before {
@@ -227,8 +228,8 @@ body.rc-redesign > *:not(.rc-promo):not(#chatbot-icon):not(#chatbot-container):n
    NAV — sticky blur navbar (design contract: Nav.jsx)
    ============================================================ */
 .rc-nav {
-  position: sticky; top: 0; left: 0; right: 0;
-  z-index: var(--z-nav);
+  position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important;
+  z-index: 1050 !important;
   border-bottom: 1px solid transparent;
   transition: var(--transition-base);
 }
@@ -280,82 +281,97 @@ body.rc-redesign > *:not(.rc-promo):not(#chatbot-icon):not(#chatbot-container):n
 
 /* ── Mobile slide-in panel ── */
 .rc-mnav__scrim {
-  position: fixed; inset: 0; z-index: 1048;
-  background: rgba(0,0,0,0.65);
+  position: fixed !important; inset: 0; z-index: 1048 !important;
+  background: rgba(0,0,0,0.7);
   opacity: 0; pointer-events: none; border: 0;
-  transition: opacity var(--transition-base);
+  transition: opacity 0.35s ease;
   cursor: pointer;
 }
 .rc-mnav__scrim.is-open { opacity: 1; pointer-events: auto; }
 .rc-mnav {
-  position: fixed; top: 0; right: 0; bottom: 0;
-  width: min(420px, 92vw);
-  background: #111315;
-  border-left: 1px solid rgba(255,255,255,0.12);
-  z-index: 1049;
+  position: fixed !important; top: 0 !important; right: 0 !important; bottom: 0 !important;
+  width: min(400px, 100vw);
+  background: linear-gradient(160deg, #0d1018 0%, #111420 100%);
+  border-left: 1px solid rgba(255,255,255,0.09);
+  z-index: 1049 !important;
   transform: translateX(100%);
   visibility: hidden;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.4s;
-  display: flex; flex-direction: column;
+  display: flex !important; flex-direction: column;
   overflow-y: auto;
 }
 .rc-mnav.is-open { transform: translateX(0); visibility: visible; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0s; }
 .rc-mnav__head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 24px;
-  border-bottom: 1px solid rgba(255,255,255,0.10);
+  padding: 20px 28px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   flex-shrink: 0;
 }
 .rc-mnav__close {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.14);
-  color: #fff;
-  width: 40px; height: 40px;
-  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.8);
+  width: 38px; height: 38px;
+  border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 .rc-mnav__close:hover {
-  background: rgba(255,255,255,0.10);
-  border-color: rgba(255,255,255,0.25);
+  background: rgba(58,123,255,0.15);
+  border-color: rgba(58,123,255,0.4);
+  color: #fff;
 }
 .rc-mnav__list {
-  list-style: none; padding: 24px; margin: 0;
+  list-style: none; padding: 16px 0; margin: 0;
   display: flex; flex-direction: column;
   flex: 1;
 }
 .rc-mnav__list li {
-  display: flex; align-items: baseline; gap: 14px;
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  opacity: 0; transform: translateX(20px);
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 28px;
+  opacity: 0; transform: translateX(24px);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
+.rc-mnav__list li a {
+  display: block;
+  padding: 16px 0;
+  flex: 1;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.rc-mnav__list li:last-child a { border-bottom: none; }
 .rc-mnav.is-open .rc-mnav__list li { opacity: 1; transform: translateX(0); }
-.rc-mnav.is-open .rc-mnav__list li:nth-child(1) { transition-delay: 80ms; }
-.rc-mnav.is-open .rc-mnav__list li:nth-child(2) { transition-delay: 120ms; }
-.rc-mnav.is-open .rc-mnav__list li:nth-child(3) { transition-delay: 160ms; }
-.rc-mnav.is-open .rc-mnav__list li:nth-child(4) { transition-delay: 200ms; }
-.rc-mnav.is-open .rc-mnav__list li:nth-child(5) { transition-delay: 240ms; }
-.rc-mnav.is-open .rc-mnav__list li:nth-child(6) { transition-delay: 280ms; }
+.rc-mnav.is-open .rc-mnav__list li:nth-child(1) { transition-delay: 60ms; }
+.rc-mnav.is-open .rc-mnav__list li:nth-child(2) { transition-delay: 100ms; }
+.rc-mnav.is-open .rc-mnav__list li:nth-child(3) { transition-delay: 140ms; }
+.rc-mnav.is-open .rc-mnav__list li:nth-child(4) { transition-delay: 180ms; }
+.rc-mnav.is-open .rc-mnav__list li:nth-child(5) { transition-delay: 220ms; }
+.rc-mnav.is-open .rc-mnav__list li:nth-child(6) { transition-delay: 260ms; }
 .rc-mnav__num {
-  font-family: var(--font-mono); font-size: 11px;
-  color: rgba(255,255,255,0.45); letter-spacing: 0.08em;
-  min-width: 24px;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--color-primary); letter-spacing: 0.1em;
+  min-width: 20px; flex-shrink: 0;
+  opacity: 0.6;
 }
 .rc-mnav__list a {
   font-family: var(--font-display); font-weight: 700;
-  font-size: 28px; color: #fff;
+  font-size: 24px; color: rgba(255,255,255,0.85);
   text-decoration: none;
-  transition: color var(--transition-fast);
+  transition: color var(--transition-fast), padding-left var(--transition-fast);
 }
-.rc-mnav__list a:hover { color: var(--color-primary); }
+.rc-mnav__list li:hover .rc-mnav__num { opacity: 1; }
+.rc-mnav__list a:hover { color: #fff; padding-left: 4px; }
 .rc-mnav__foot {
-  padding: 24px;
-  border-top: 1px solid rgba(255,255,255,0.10);
-  display: flex; flex-direction: column; gap: 16px;
+  padding: 24px 28px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex; flex-direction: column; gap: 14px;
   flex-shrink: 0;
+}
+.rc-mnav__foot .rc-btn { width: 100%; justify-content: center; }
+.rc-mnav__foot-meta {
+  font-family: var(--font-mono); font-size: 11px;
+  color: rgba(255,255,255,0.35); letter-spacing: 0.06em;
+  text-align: center;
 }
 
 @media (max-width: 880px) {
