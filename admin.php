@@ -28,7 +28,7 @@ try {
 }
 
 // Whitelist $table to prevent SQL injection via GET parameter
-$allowedTables = ['chat_logs', 'orders', 'packages', 'testimonials'];
+$allowedTables = ['chat_logs', 'orders', 'packages', 'testimonials', 'projects', 'invoices'];
 $table = in_array($_GET['table'] ?? '', $allowedTables) ? $_GET['table'] : 'chat_logs';
 
 $action = $_GET['action'] ?? '';
@@ -118,14 +118,71 @@ if ($action === 'delete' && $id && $table !== 'chat_logs') {
     exit;
 }
 
+// --- Projects: add / update / delete ---
+if ($table === 'projects' && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, ['add','update'], true)) {
+    $title       = trim($_POST['title']       ?? '');
+    $description = trim($_POST['description'] ?? '');
+    $url         = trim($_POST['url']         ?? '');
+    $tags        = trim($_POST['tags']        ?? '');
+    $layout      = $_POST['layout']           ?? 'side';
+    $sort_order  = (int)($_POST['sort_order'] ?? 0);
+    $is_visible  = isset($_POST['is_visible']) ? 1 : 0;
+    if (!in_array($layout, ['featured','side'], true)) $layout = 'side';
+
+    $imagePath = $_POST['existing_image'] ?? '';
+    if (!empty($_FILES['image']['name']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = __DIR__ . '/IMG/projects';
+        if (!is_dir($uploadDir)) @mkdir($uploadDir, 0775, true);
+        $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        if (in_array($ext, ['jpg','jpeg','png','webp','gif'], true)) {
+            $safe = preg_replace('/[^a-z0-9_-]/i', '_', pathinfo($_FILES['image']['name'], PATHINFO_FILENAME));
+            $filename = $safe . '_' . time() . '.' . $ext;
+            $target = $uploadDir . '/' . $filename;
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+                $imagePath = 'IMG/projects/' . $filename;
+            }
+        }
+    }
+
+    if ($action === 'add') {
+        $stmt = $pdo->prepare("INSERT INTO projects (title, description, image_path, url, tags, layout, sort_order, is_visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$title, $description, $imagePath, $url, $tags, $layout, $sort_order, $is_visible]);
+        rc_flash('Project added.');
+    } else {
+        $stmt = $pdo->prepare("UPDATE projects SET title=?, description=?, image_path=?, url=?, tags=?, layout=?, sort_order=?, is_visible=? WHERE id=?");
+        $stmt->execute([$title, $description, $imagePath, $url, $tags, $layout, $sort_order, $is_visible, $id]);
+        rc_flash('Project updated.');
+    }
+    header("Location: admin.php?table=projects");
+    exit;
+}
+if ($table === 'projects' && $action === 'delete' && $id) {
+    $stmt = $pdo->prepare("DELETE FROM projects WHERE id = ?");
+    $stmt->execute([$id]);
+    rc_flash('Project deleted.');
+    header("Location: admin.php?table=projects");
+    exit;
+}
+
+// --- Invoices: handled below (CRUD via dedicated routes in invoices admin block) ---
+
 // --- Pagination ---
 $items_per_page = 20;
 $page           = max(1, (int)($_GET['page'] ?? 1));
 $offset         = ($page - 1) * $items_per_page;
 
-// BUG FIX: table name is now whitelisted above, safe to interpolate
-$total_items = (int)$pdo->query("SELECT COUNT(*) FROM `$table`")->fetchColumn();
+// `invoices` is a virtual view over `orders`
+$countTable = ($table === 'invoices') ? 'orders' : $table;
+$total_items = (int)$pdo->query("SELECT COUNT(*) FROM `$countTable`")->fetchColumn();
 $total_pages = max(1, (int)ceil($total_items / $items_per_page));
+
+// Projects edit-mode preload
+$editProject = null;
+if ($table === 'projects' && $action === 'edit' && $id) {
+    $stmt = $pdo->prepare("SELECT * FROM projects WHERE id = ?");
+    $stmt->execute([$id]);
+    $editProject = $stmt->fetch(PDO::FETCH_ASSOC);
+}
 
 // --- Fetch paged data ---
 switch ($table) {
@@ -148,6 +205,14 @@ switch ($table) {
              LIMIT :limit OFFSET :offset"
         );
         $columns = ['id', 'client_name', 'business_name', 'rating', 'status', 'submitted_at'];
+        break;
+    case 'projects':
+        $stmt = $pdo->prepare("SELECT * FROM projects ORDER BY layout DESC, sort_order ASC, id DESC LIMIT :limit OFFSET :offset");
+        $columns = ['id','title','layout','sort_order','is_visible'];
+        break;
+    case 'invoices':
+        $stmt = $pdo->prepare("SELECT id, order_name, email, package, final_price, invoice_number, invoice_status, invoice_amount, invoice_currency, invoice_sent, invoice_file, created_at FROM orders ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
+        $columns = ['id','order_name','package','invoice_number','invoice_status','invoice_amount'];
         break;
     case 'chat_logs':
     default:
@@ -219,7 +284,9 @@ $testimonialBaseUrl = $isLocalhost
             </h2>
             <a href="admin.php?table=chat_logs" class="<?= $table === 'chat_logs'    ? 'active' : '' ?>">Chat Logs</a>
             <a href="admin.php?table=orders" class="<?= $table === 'orders'        ? 'active' : '' ?>">Orders</a>
+            <a href="admin.php?table=invoices" class="<?= $table === 'invoices'    ? 'active' : '' ?>">Invoices</a>
             <a href="admin.php?table=packages" class="<?= $table === 'packages'    ? 'active' : '' ?>">Packages</a>
+            <a href="admin.php?table=projects" class="<?= $table === 'projects'    ? 'active' : '' ?>">Projects</a>
             <a href="admin.php?table=testimonials" class="<?= $table === 'testimonials' ? 'active' : '' ?>">Testimonials</a>
             <a href="admin_logout.php">Logout</a>
         </div>
@@ -431,6 +498,222 @@ $testimonialBaseUrl = $isLocalhost
                         </tbody>
                     </table>
                 </div>
+                <?php endif; ?>
+
+            <?php elseif ($table === 'projects'): ?>
+
+                <!-- ====== PROJECTS CRUD ====== -->
+                <div style="margin-bottom:28px;padding:20px;background:rgba(58,124,255,0.05);border:1px solid rgba(58,124,255,0.2);border-radius:12px;">
+                    <h3 style="margin:0 0 14px;color:#e2e8f0;font-size:1.05rem;"><?= $editProject ? 'Edit Project' : 'Add New Project' ?></h3>
+                    <form method="POST" enctype="multipart/form-data"
+                          action="admin.php?table=projects&action=<?= $editProject ? 'update&id=' . (int)$editProject['id'] : 'add' ?>"
+                          class="projects-form"
+                          style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                        <input type="hidden" name="existing_image" value="<?= htmlspecialchars($editProject['image_path'] ?? '') ?>">
+
+                        <div style="grid-column:span 2;">
+                            <label>Title</label>
+                            <input type="text" name="title" required maxlength="150"
+                                   value="<?= htmlspecialchars($editProject['title'] ?? '') ?>">
+                        </div>
+
+                        <div style="grid-column:span 2;">
+                            <label>Description</label>
+                            <textarea name="description" rows="4" required><?= htmlspecialchars($editProject['description'] ?? '') ?></textarea>
+                        </div>
+
+                        <div>
+                            <label>Project URL</label>
+                            <input type="url" name="url"
+                                   value="<?= htmlspecialchars($editProject['url'] ?? '') ?>"
+                                   placeholder="https://example.com">
+                        </div>
+
+                        <div>
+                            <label>Tags (comma-separated)</label>
+                            <input type="text" name="tags"
+                                   value="<?= htmlspecialchars($editProject['tags'] ?? '') ?>"
+                                   placeholder="Enterprise, Construction">
+                        </div>
+
+                        <div>
+                            <label>Layout</label>
+                            <select name="layout">
+                                <option value="featured" <?= ($editProject['layout'] ?? '') === 'featured' ? 'selected' : '' ?>>Featured (large hero, 1 slot)</option>
+                                <option value="side"     <?= ($editProject['layout'] ?? 'side') === 'side' ? 'selected' : '' ?>>Side tile (2 slots)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Sort Order</label>
+                            <input type="number" name="sort_order" value="<?= (int)($editProject['sort_order'] ?? 0) ?>">
+                        </div>
+
+                        <div style="grid-column:span 2;">
+                            <label>Project Image</label>
+                            <input type="file" name="image" accept="image/*">
+                            <?php if (!empty($editProject['image_path'])): ?>
+                                <div style="margin-top:8px;font-size:0.75rem;color:#475569;">
+                                    Current: <code style="color:#94a3b8;"><?= htmlspecialchars($editProject['image_path']) ?></code>
+                                    <img src="<?= htmlspecialchars($editProject['image_path']) ?>" alt="" style="max-width:120px;max-height:80px;display:block;margin-top:6px;border-radius:6px;">
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div style="grid-column:span 2;display:flex;align-items:center;gap:10px;">
+                            <input type="checkbox" name="is_visible" id="is_visible" value="1"
+                                   style="width:auto;accent-color:#3a7cff;cursor:pointer;"
+                                   <?= ($editProject === null || (int)($editProject['is_visible'] ?? 1) === 1) ? 'checked' : '' ?>>
+                            <label for="is_visible" style="text-transform:none;font-size:0.875rem;color:#e2e8f0;letter-spacing:0;cursor:pointer;">Visible on public site</label>
+                        </div>
+
+                        <div style="grid-column:span 2;display:flex;gap:10px;align-items:center;">
+                            <button type="submit" class="button add" style="margin-bottom:0;"><?= $editProject ? 'Save Changes' : 'Add Project' ?></button>
+                            <?php if ($editProject): ?>
+                                <a href="admin.php?table=projects" class="button edit">Cancel</a>
+                            <?php endif; ?>
+                        </div>
+                    </form>
+                </div>
+
+                <?php if (empty($logs)): ?>
+                    <p style="color:#475569;font-family:'JetBrains Mono',monospace;font-size:0.8rem;">No projects yet — add one above.</p>
+                <?php else: ?>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Image</th>
+                                    <th>Title</th>
+                                    <th>Layout</th>
+                                    <th>Order</th>
+                                    <th>Visible</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $no = $offset + 1; foreach ($logs as $row): ?>
+                                    <tr>
+                                        <td><?= $no++ ?></td>
+                                        <td>
+                                            <?php if (!empty($row['image_path'])): ?>
+                                                <img src="<?= htmlspecialchars($row['image_path']) ?>" alt="" style="width:60px;height:42px;object-fit:cover;border-radius:6px;">
+                                            <?php else: ?>
+                                                <span style="color:#475569;font-size:0.75rem;">—</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="white-space:normal;color:#e2e8f0;font-weight:600;"><?= htmlspecialchars($row['title']) ?></td>
+                                        <td>
+                                            <span style="<?= $row['layout'] === 'featured' ? 'background:rgba(58,124,255,0.15);color:#60a5fa;border:1px solid rgba(58,124,255,0.35);' : 'background:rgba(62,207,142,0.12);color:#4ade80;border:1px solid rgba(62,207,142,0.35);' ?>padding:3px 10px;border-radius:20px;font-size:0.7rem;font-family:'JetBrains Mono',monospace;">
+                                                <?= htmlspecialchars($row['layout']) ?>
+                                            </span>
+                                        </td>
+                                        <td><?= (int)$row['sort_order'] ?></td>
+                                        <td><?= (int)$row['is_visible'] ? '<span style="color:#4ade80;">●</span> Yes' : '<span style="color:#f87171;">●</span> No' ?></td>
+                                        <td>
+                                            <div class="table-actions">
+                                                <a href="?table=projects&action=edit&id=<?= $row['id'] ?>" class="button edit">Edit</a>
+                                                <a href="?table=projects&action=delete&id=<?= $row['id'] ?>"
+                                                   data-confirm="Delete this project permanently?"
+                                                   data-confirm-variant="danger"
+                                                   data-confirm-title="Delete project"
+                                                   data-confirm-label="Delete"
+                                                   class="button delete">Delete</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                            <a href="?table=projects&page=<?= $i ?>" class="<?= $i === $page ? 'active' : '' ?>"><?= $i ?></a>
+                        <?php endfor; ?>
+                    </div>
+                <?php endif; ?>
+
+            <?php elseif ($table === 'invoices'): ?>
+
+                <!-- ====== INVOICES MANAGEMENT ====== -->
+                <p style="color:#94a3b8;margin-bottom:20px;">Generate, edit, download, and send invoices for orders. Click an order to manage its invoice.</p>
+                <?php if (empty($logs)): ?>
+                    <p style="color:#475569;font-family:'JetBrains Mono',monospace;font-size:0.8rem;">No orders yet.</p>
+                <?php else: ?>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Order</th>
+                                    <th>Package</th>
+                                    <th>Invoice #</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $no = $total_items - $offset; foreach ($logs as $row): ?>
+                                    <?php
+                                    $invStatus = $row['invoice_status'] ?? 'draft';
+                                    $statusStyles = [
+                                        'draft' => 'background:rgba(148,163,184,0.15);color:#94a3b8;border:1px solid rgba(148,163,184,0.35);',
+                                        'sent'  => 'background:rgba(58,124,255,0.15);color:#60a5fa;border:1px solid rgba(58,124,255,0.35);',
+                                        'paid'  => 'background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.35);',
+                                        'void'  => 'background:rgba(239,68,68,0.10);color:#f87171;border:1px solid rgba(239,68,68,0.30);',
+                                    ];
+                                    $amount = $row['invoice_amount'] !== null ? (float)$row['invoice_amount'] : (float)$row['final_price'];
+                                    $cur = $row['invoice_currency'] ?? 'IDR';
+                                    $amtStr = $cur === 'USD' ? '$' . number_format($amount, 2) : 'Rp' . number_format($amount, 0, ',', '.');
+                                    ?>
+                                    <tr>
+                                        <td><?= $no-- ?></td>
+                                        <td style="white-space:normal;">
+                                            <div style="font-weight:600;color:#e2e8f0;"><?= htmlspecialchars($row['order_name']) ?></div>
+                                            <div style="font-size:0.75rem;color:#475569;"><?= htmlspecialchars($row['email']) ?></div>
+                                        </td>
+                                        <td><?= htmlspecialchars($row['package']) ?></td>
+                                        <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:#94a3b8;"><?= htmlspecialchars($row['invoice_number'] ?: '—') ?></td>
+                                        <td>
+                                            <span style="<?= $statusStyles[$invStatus] ?? '' ?>padding:3px 10px;border-radius:20px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;font-weight:600;text-transform:uppercase;">
+                                                <?= htmlspecialchars($invStatus) ?>
+                                            </span>
+                                        </td>
+                                        <td style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:#e2e8f0;"><?= $amtStr ?></td>
+                                        <td style="font-size:0.78rem;color:#475569;white-space:nowrap;"><?= htmlspecialchars(substr($row['created_at'], 0, 16)) ?></td>
+                                        <td>
+                                            <div class="table-actions" style="flex-wrap:wrap;gap:5px;">
+                                                <a href="admin_invoice_edit.php?id=<?= $row['id'] ?>" class="button edit" style="font-size:0.72rem;padding:5px 10px;">Edit Invoice</a>
+                                                <?php if (!empty($row['invoice_file'])): ?>
+                                                    <a href="<?= htmlspecialchars(ltrim(str_replace('../','', $row['invoice_file']), '/')) ?>"
+                                                       download class="button" style="font-size:0.72rem;padding:5px 10px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;">Download</a>
+                                                <?php endif; ?>
+                                                <a href="admin_invoice_edit.php?id=<?= $row['id'] ?>&send=1"
+                                                   data-confirm="Regenerate PDF and send invoice email?"
+                                                   data-confirm-title="Send invoice"
+                                                   data-confirm-label="Send"
+                                                   class="button" style="font-size:0.72rem;padding:5px 10px;background:rgba(58,124,255,0.12);border:1px solid rgba(58,124,255,0.35);color:#60a5fa;">Send</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <?php if ($page > 1): ?>
+                            <a href="?table=invoices&page=<?= $page - 1 ?>">&laquo; Prev</a>
+                        <?php endif; ?>
+                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                            <a href="?table=invoices&page=<?= $i ?>" class="<?= $i === $page ? 'active' : '' ?>"><?= $i ?></a>
+                        <?php endfor; ?>
+                        <?php if ($page < $total_pages): ?>
+                            <a href="?table=invoices&page=<?= $page + 1 ?>">Next &raquo;</a>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
 
             <?php else: ?>

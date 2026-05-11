@@ -1,3 +1,0 @@
-user : rier5192_rielcode_user
-pw : CAqpph]]SsdTkVjM
-db : rier5192_rielcode

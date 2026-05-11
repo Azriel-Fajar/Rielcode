@@ -22,15 +22,15 @@
 
                     <div class="rc-pkg__price-block">
                         <div class="rc-pkg__price-row rc-pkg__price-row--strike">
-                            <span class="rc-pkg__strike">$60</span>
+                            <span class="rc-pkg__strike">$59</span>
                             <span class="rc-pkg__strike-idr">IDR 998k</span>
                         </div>
                         <div class="rc-pkg__price-row">
-                            <span class="rc-pkg__amount">$29.99</span>
+                            <span class="rc-pkg__amount">$30</span>
                             <span class="rc-pkg__cycle">one-time</span>
                         </div>
                         <div class="rc-pkg__idr">IDR 499k</div>
-                        <div class="rc-pkg__save">Save $30 / IDR 499k</div>
+                        <div class="rc-pkg__save">Save $29 / IDR 499k</div>
                     </div>
 
                     <ul class="rc-pkg__features">
@@ -64,15 +64,15 @@
 
                     <div class="rc-pkg__price-block">
                         <div class="rc-pkg__price-row rc-pkg__price-row--strike">
-                            <span class="rc-pkg__strike">$120</span>
-                            <span class="rc-pkg__strike-idr">IDR 2jt</span>
+                            <span class="rc-pkg__strike">$118</span>
+                            <span class="rc-pkg__strike-idr">IDR 1.998jt</span>
                         </div>
                         <div class="rc-pkg__price-row">
-                            <span class="rc-pkg__amount">$59.99</span>
+                            <span class="rc-pkg__amount">$59</span>
                             <span class="rc-pkg__cycle">one-time</span>
                         </div>
                         <div class="rc-pkg__idr">IDR 999k</div>
-                        <div class="rc-pkg__save">Save $60 / IDR 1jt</div>
+                        <div class="rc-pkg__save">Save $59 / IDR 999k</div>
                     </div>
 
                     <ul class="rc-pkg__features">
@@ -108,15 +108,15 @@
 
                     <div class="rc-pkg__price-block">
                         <div class="rc-pkg__price-row rc-pkg__price-row--strike">
-                            <span class="rc-pkg__strike">$299.99</span>
+                            <span class="rc-pkg__strike">$296</span>
                             <span class="rc-pkg__strike-idr">IDR 4.998jt</span>
                         </div>
                         <div class="rc-pkg__price-row">
-                            <span class="rc-pkg__amount">$149.99</span>
+                            <span class="rc-pkg__amount">$148</span>
                             <span class="rc-pkg__cycle">one-time</span>
                         </div>
                         <div class="rc-pkg__idr">IDR 2.499jt</div>
-                        <div class="rc-pkg__save">Save $150 / IDR 2.499jt</div>
+                        <div class="rc-pkg__save">Save $148 / IDR 2.499jt</div>
                     </div>
 
                     <ul class="rc-pkg__features">
@@ -151,20 +151,21 @@
 
                     <div class="rc-pkg__price-block">
                         <div class="rc-pkg__price-row rc-pkg__price-row--strike">
-                            <span class="rc-pkg__strike">$599.99</span>
+                            <span class="rc-pkg__strike">$589</span>
                             <span class="rc-pkg__strike-idr">IDR 9.998jt</span>
                         </div>
                         <div class="rc-pkg__price-row">
-                            <span class="rc-pkg__amount">$299.99</span>
+                            <span class="rc-pkg__amount">$295</span>
                             <span class="rc-pkg__cycle">one-time</span>
                         </div>
                         <div class="rc-pkg__idr">IDR 4.999jt</div>
-                        <div class="rc-pkg__save">Save $300 / IDR 4.999jt</div>
+                        <div class="rc-pkg__save">Save $295 / IDR 4.999jt</div>
                     </div>
 
                     <ul class="rc-pkg__features">
                         <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span><strong>All in Pro</strong>, plus:</span></li>
-                        <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Up to 10 pages or basic E-commerce</span></li>
+                        <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Up to 10 custom pages</span></li>
+                        <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>AI Chatbot Integration</span></li>
                         <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span><strong>Custom UI/UX</strong> design request</span></li>
                         <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Advanced custom-coded Admin Panel</span></li>
                         <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span><strong>Complete</strong> SEO setup</span></li>
@@ -196,7 +197,7 @@
                     <div class="rc-pkg__price-block">
                         <div class="rc-pkg__price-row">
                             <span class="rc-pkg__amount">from</span>
-                            <span class="rc-pkg__cycle">IDR 1jt</span>
+                            <span class="rc-pkg__cycle">IDR 500k</span>
                         </div>
                         <div class="rc-pkg__idr">You choose what you need</div>
                     </div>
@@ -209,7 +210,7 @@
                         <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>E-Commerce</span></li>
                         <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Maintenance (per month)</span></li>
                         <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Priority delivery</span></li>
-                        <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Free hosting &amp; domain <strong>from IDR 2jt</strong></span></li>
+                        <li><span class="rc-pkg__check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Free hosting &amp; domain <strong>from IDR 1jt</strong></span></li>
                     </ul>
 
                     <div class="rc-pkg__delivery">
@@ -255,24 +256,24 @@
                         <th class="rc-cmp__feature-h">Feature</th>
                         <th class="rc-cmp__plan-h">
                             <div class="rc-cmp__plan-name">Student</div>
-                            <div class="rc-cmp__plan-price">$29.99</div>
+                            <div class="rc-cmp__plan-price">$30</div>
                         </th>
                         <th class="rc-cmp__plan-h">
                             <div class="rc-cmp__plan-name">Starter</div>
-                            <div class="rc-cmp__plan-price">$59.99</div>
+                            <div class="rc-cmp__plan-price">$59</div>
                         </th>
                         <th class="rc-cmp__plan-h is-popular">
                             <div class="rc-cmp__plan-name">Pro</div>
-                            <div class="rc-cmp__plan-price">$149.99</div>
+                            <div class="rc-cmp__plan-price">$148</div>
                             <div class="rc-cmp__pop">Most Popular</div>
                         </th>
                         <th class="rc-cmp__plan-h">
                             <div class="rc-cmp__plan-name">Premium</div>
-                            <div class="rc-cmp__plan-price">$299.99</div>
+                            <div class="rc-cmp__plan-price">$295</div>
                         </th>
                         <th class="rc-cmp__plan-h">
                             <div class="rc-cmp__plan-name">Custom</div>
-                            <div class="rc-cmp__plan-price">from IDR 1jt</div>
+                            <div class="rc-cmp__plan-price">from IDR 500k</div>
                         </th>
                     </tr>
                 </thead>
@@ -363,7 +364,7 @@
                         <td><span class="rc-cmp__check rc-cmp__check--blue"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></td>
                         <td class="is-popular"><span class="rc-cmp__check rc-cmp__check--blue"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></td>
                         <td><span class="rc-cmp__check rc-cmp__check--purple"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></td>
-                        <td><span class="rc-cmp__text">from IDR 2jt</span></td>
+                        <td><span class="rc-cmp__text">from IDR 1jt</span></td>
                     </tr>
                     <tr>
                         <th class="rc-cmp__feature">Priority Delivery</th>

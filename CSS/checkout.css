@@ -203,7 +203,7 @@ body {
 /* ============================================================
    LINE ITEMS
    ============================================================ */
-.info-container .purchase-info div,
+.info-container .purchase-info div:not(.custom-specs),
 .info-container .discount-info div,
 .info-container .total-info div {
   width: 100%;

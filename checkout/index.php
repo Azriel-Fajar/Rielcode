@@ -2,12 +2,10 @@
 session_start();
 
 require_once '../connection.php';
-require_once '../dompdf/autoload.inc.php';
 require_once '../PHPMailer/src/PHPMailer.php';
 require_once '../PHPMailer/src/SMTP.php';
 require_once '../PHPMailer/src/Exception.php';
 
-use Dompdf\Dompdf;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as MailException;
 
@@ -33,6 +31,21 @@ $plan       = htmlspecialchars($orderRow['package']);
 $owns_domain   = htmlspecialchars($orderRow['owns_domain'] ?? 'No');
 $owns_hosting  = htmlspecialchars($orderRow['owns_hosting'] ?? 'No');
 
+$customSpecs = null;
+if ($plan === 'Custom Plan') {
+    $customPreset    = $orderRow['custom_preset'] ?? 'blank';
+    $copySourceUrl   = $orderRow['copy_source_url'] ?? '';
+    $customConfigRaw = $orderRow['custom_config'] ?? null;
+    $customCfg       = ($customConfigRaw && $customConfigRaw !== 'null') ? json_decode($customConfigRaw, true) : null;
+    $customSpecs = [
+        'preset'       => $customPreset,
+        'copy_url'     => $copySourceUrl,
+        'pages'        => $customCfg['pages']       ?? null,
+        'maintenance'  => $customCfg['maintenance'] ?? null,
+        'features'     => $customCfg['features']    ?? [],
+    ];
+}
+
 $stmt = $conn->prepare("SELECT idr_price, orders FROM packages WHERE package_name = ?");
 $stmt->bind_param("s", $plan);
 $stmt->execute();
@@ -48,9 +61,9 @@ if ($plan === 'Custom Plan' && isset($_SESSION['custom_total'])) {
     $package_price  = (int)$_SESSION['custom_total'];
     $discount_price = 0;
 } else {
-    $discount_pct   = 0.5;
-    $discount_price = $price * $discount_pct;
-    $package_price  = $price - $discount_price;
+    $display_original = $price * 2;
+    $discount_price   = $display_original * 0.5;
+    $package_price    = $display_original - $discount_price;
 }
 
 $addonsResult = $conn->query("SELECT * FROM package_addons ORDER BY id ASC");
@@ -118,98 +131,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
         $stmtAddon->close();
     }
 
+    // Reserve invoice number on order — actual PDF is generated later in admin
     $invoice_number = 'INV-' . date('Ymd') . '-' . $id;
+    $stmt = $conn->prepare("UPDATE orders SET invoice_number=?, invoice_status='draft', invoice_amount=?, invoice_currency='IDR' WHERE id=?");
+    $stmt->bind_param("sdi", $invoice_number, $final_price, $id);
+    $stmt->execute();
+    $stmt->close();
 
-    $bgPath = realpath('../IMG/invoice_bg.png');
-    if (!$bgPath || !file_exists($bgPath)) die('Invoice background image not found.');
-    $bgData = base64_encode(file_get_contents($bgPath));
-    $bgExt  = strtolower(pathinfo($bgPath, PATHINFO_EXTENSION));
+    // Generate access token for client progress portal (one per order, persists until delivered)
+    $progress_token = bin2hex(random_bytes(32));
+    $stmt = $conn->prepare("INSERT INTO order_access_tokens (order_id, token) VALUES (?, ?)");
+    $stmt->bind_param("is", $id, $progress_token);
+    $stmt->execute();
+    $stmt->close();
+    $_SESSION['progress_token']    = $progress_token;
+    $_SESSION['progress_order_id'] = $id;
+    $progress_url = 'https://progress.rielcode.com/?t=' . $progress_token;
 
-    $addonRowsHtml = '';
-    foreach ($selectedAddons as $sa) {
-        $addonLabel = htmlspecialchars($sa['addon']['name']);
-        if ($sa['addon']['type'] === 'per_page') $addonLabel .= ' x' . $sa['qty'] . ' pages';
-        if ($sa['addon']['type'] === 'monthly')  $addonLabel .= ' x' . $sa['qty'] . ' months';
-        $addonRowsHtml .= '
-            <tr>
-                <td class="col-package" style="font-size:0.85rem; color:#555;">' . $addonLabel . '</td>
-                <td class="col-price">Rp' . number_format($sa['addon']['price_idr'] * $sa['qty'], 0, ',', '.') . '</td>
-                <td class="col-discount">—</td>
-                <td class="col-total">Rp' . number_format($sa['line_total'], 0, ',', '.') . '</td>
-            </tr>';
-    }
-
-    $totalRowHtml = '';
-    if (!empty($selectedAddons)) {
-        $totalRowHtml = '
-            <tr style="border-top: 2px solid #333;">
-                <td class="col-package" style="font-weight:900;">GRAND TOTAL</td>
-                <td class="col-price"></td>
-                <td class="col-discount"></td>
-                <td class="col-total" style="font-weight:900;">Rp' . number_format($final_price, 0, ',', '.') . '</td>
-            </tr>';
-    }
-
-    $invoiceHTML = '
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<style>
-@page { margin: 0; padding: 0; }
-body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; color: #1c1f22; }
-.page {
-    width: 210mm; height: 297mm; position: relative;
-    background-image: url("data:image/' . $bgExt . ';base64,' . $bgData . '");
-    background-size: cover; background-repeat: no-repeat; background-position: center; overflow: hidden;
-}
-#invoice-details { position: absolute; top: 300px; left: 68px; font-size: 16px; font-weight: bold; }
-#billing-details { position: absolute; top: 196px; left: 366px; font-size: 1.1rem; font-weight: bold; line-height: 1.4; }
-#table-row { position: absolute; top: 408px; left: 70px; width: 658px; font-size: 1.05rem; font-weight: bold; }
-#table-row table { width: 100%; border-collapse: collapse; text-align: center; }
-#table-row td { padding: 6px 4px; vertical-align: middle; }
-.col-package  { width: 150px; text-align: left; }
-.col-price    { width: 140px; }
-.col-discount { width: 85px; }
-.col-total    { width: 130px; }
-</style>
-</head>
-<body>
-<div class="page">
-    <div id="invoice-details">
-        <b>' . htmlspecialchars($invoice_number) . '</b><br/>
-        Date : ' . date("d F Y") . '
-    </div>
-    <div id="billing-details">
-        BILLING TO: <b>' . strtoupper($order_name) . '</b><br/><br/>
-        ' . $email . '<br/>
-        ' . $phone . '
-    </div>
-    <div id="table-row">
-        <table>
-            <tr>
-                <td class="col-package">' . $plan . '</td>
-                <td class="col-price">Rp' . number_format($price, 0, ',', '.') . '</td>
-                <td class="col-discount">50%</td>
-                <td class="col-total">Rp' . number_format($package_price, 0, ',', '.') . '</td>
-            </tr>
-            ' . $addonRowsHtml . $totalRowHtml . '
-        </table>
-    </div>
-</div>
-</body>
-</html>';
-
-    $dompdf = new Dompdf();
-    $dompdf->loadHtml($invoiceHTML);
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
-
-    $invoiceDir = realpath(__DIR__ . '/..') . '/invoices';
-    if (!is_dir($invoiceDir)) mkdir($invoiceDir, 0755, true);
-    $invoice_file = $invoiceDir . '/' . $invoice_number . '.pdf';
-    file_put_contents($invoice_file, $dompdf->output());
-
+    // Send thank-you email only (no invoice attachment).
     include_once '../smtp_config.php';
     $mail = new PHPMailer(true);
     try {
@@ -223,12 +162,15 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
         $mail->setFrom($SMTP_USER, 'Rielcode Team');
         $mail->addAddress($email, $order_name);
         $mail->isHTML(true);
-        $mail->Subject = "Your Rielcode Invoice - Thank you, " . $order_name . "!";
+        $mail->Subject = "Thank you for your order, " . $order_name . "!";
         $mail->Body    = '
-<div style="font-family:Poppins,Arial,sans-serif;color:#333;line-height:1.6;">
+<div style="font-family:Poppins,Arial,sans-serif;color:#333;line-height:1.6;max-width:560px;">
     <p>Hi <b>' . htmlspecialchars($order_name) . '</b>,</p>
-    <p>Thank you for trusting <b>Rielcode</b> with your project.<br>
-    Please find your invoice attached as confirmation of your order.</p>
+    <p>Thank you for choosing <b>Rielcode</b> for your <b>' . htmlspecialchars($plan) . '</b> project.</p>
+    <p>We have received your order. Our team will reach out to you within <b>24 hours</b> to confirm the project details and send your invoice separately.</p>
+    <p>You can <b>track your project progress</b> anytime via your private link:<br>
+    <a href="' . htmlspecialchars($progress_url) . '" style="color:#3a7bff;font-weight:600;">' . htmlspecialchars($progress_url) . '</a></p>
+    <p>In the meantime, feel free to reply to this email or message us on WhatsApp if you have any questions.</p>
     <br>
     <p>Warm regards,<br>
     <b>The Rielcode Team</b><br>
@@ -239,19 +181,13 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
         If you don\'t recognize this email, you can safely ignore it.
     </p>
 </div>';
-        $mail->addAttachment($invoice_file);
         $mail->send();
-
-        $relativeFile = '../invoices/' . $invoice_number . '.pdf';
-        $stmt = $conn->prepare("UPDATE orders SET invoice_sent='sent', invoice_number=?, invoice_file=? WHERE id=?");
-        $stmt->bind_param("ssi", $invoice_number, $relativeFile, $id);
-        $stmt->execute();
-        $stmt->close();
-    } catch (MailException $e) {
-        $stmt = $conn->prepare("UPDATE orders SET invoice_sent='failed' WHERE id=?");
+        $stmt = $conn->prepare("UPDATE orders SET invoice_sent='pending' WHERE id=?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $stmt->close();
+    } catch (MailException $e) {
+        // swallow — invoice flow is decoupled now
     }
 
     unset($_SESSION['selected_addons'], $_SESSION['addon_qty']);
@@ -260,13 +196,6 @@ body { font-family: "Poppins", sans-serif; margin: 0; background-color: #333; co
     exit;
 }
 
-$summaryData = json_encode([
-    'name'    => $orderRow['order_name'],
-    'package' => $plan,
-    'price'   => 'Rp' . number_format($final_price, 0, ',', '.'),
-    'domain'  => $owns_domain === 'Yes' ? 'Have' : 'Don\'t have',
-    'hosting' => $owns_hosting === 'Yes' ? 'Have' : 'Don\'t have',
-]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -330,8 +259,28 @@ $summaryData = json_encode([
                 <h3>Purchase Information</h3>
                 <div class="package-price">
                     <p>Package price<?= $plan !== 'Custom Plan' ? ' (before discount)' : '' ?></p>
-                    <span>Rp<?= number_format($plan === 'Custom Plan' ? $package_price : $price, 0, ',', '.') ?></span>
+                    <span>Rp<?= number_format($plan === 'Custom Plan' ? $package_price : $display_original, 0, ',', '.') ?></span>
                 </div>
+                <?php if ($customSpecs): ?>
+                <div class="custom-specs" style="margin-top:14px;padding:12px 14px;background:rgba(58,123,255,0.07);border:1px solid rgba(58,123,255,0.2);border-radius:10px;">
+                    <p style="font-size:13px;font-weight:600;color:#6fa3ff;margin:0 0 8px;">Custom Plan Specifications</p>
+                    <ul style="margin:0;padding:0 0 0 16px;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.8;">
+                        <li>Type: <b><?= ucfirst(htmlspecialchars($customSpecs['preset'])) ?> Website</b></li>
+                        <?php if ($customSpecs['preset'] === 'copy' && $customSpecs['copy_url']): ?>
+                        <li>Reference URL: <b><?= htmlspecialchars($customSpecs['copy_url']) ?></b></li>
+                        <?php endif; ?>
+                        <?php if ($customSpecs['pages']): ?>
+                        <li>Pages: <b><?= (int)$customSpecs['pages'] ?></b></li>
+                        <?php endif; ?>
+                        <?php if ($customSpecs['maintenance']): ?>
+                        <li>Maintenance: <b><?= (int)$customSpecs['maintenance'] ?> month<?= (int)$customSpecs['maintenance'] > 1 ? 's' : '' ?></b></li>
+                        <?php endif; ?>
+                        <?php if (!empty($customSpecs['features'])): ?>
+                        <li>Features: <b><?= htmlspecialchars(implode(', ', $customSpecs['features'])) ?></b></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+                <?php endif; ?>
             </div>
 
             <?php if ($plan !== 'Custom Plan'): ?>
@@ -371,18 +320,6 @@ $summaryData = json_encode([
                 </div>
             </div>
 
-            <div class="ai-summary-card">
-                <div class="ai-summary-header">RielBot Analysis</div>
-                <div class="ai-summary-text loading" id="ai-summary-text">
-                    Click the button below to generate a summary of your order…
-                </div>
-                <div class="ai-summary-warning hidden" id="ai-summary-warning"></div>
-                <button class="ai-gen-btn" id="ai-gen-btn" onclick="rielGenerateSummary()">
-                    <div class="spin"></div>
-                    <span class="btn-txt">✦ Generate AI Summary of your order</span>
-                </button>
-            </div>
-
             <form method="post" id="checkoutForm">
                 <div class="checkbox">
                     <input type="checkbox" name="terms" id="terms" required>
@@ -398,72 +335,6 @@ $summaryData = json_encode([
 
     <script src="../JS/checkout.js"></script>
 
-    <script>
-        (function() {
-            const PROXY_URL = window.location.hostname === 'localhost' ?
-                window.location.origin + '/proxy.php' :
-                window.location.origin + '/proxy';
-
-            const orderData = <?= $summaryData ?>;
-
-            window.rielGenerateSummary = async function() {
-                const btn = document.getElementById('ai-gen-btn');
-                const box = document.getElementById('ai-summary-text');
-                const warn = document.getElementById('ai-summary-warning');
-
-                btn.classList.add('loading');
-                box.classList.add('loading');
-                box.textContent = 'Menganalisis pesananmu…';
-                warn.classList.add('hidden');
-
-                const prompt = `You are a Rielcode checkout assistant. Summarize the following order in two short, clear, and friendly sentences in English. Also mention one important point to note based on the following information.
-
-Order data:
-- Name: ${orderData.name}
-- Package: ${orderData.package}
-- Total: ${orderData.price}
-- Domain: ${orderData.domain}
-- Hosting: ${orderData.hosting}
-
-Respond ONLY with valid JSON:
-{"summary":"2-sentence summary","warning":"1 important point or empty string if none"}`;
-
-                try {
-                    const res = await fetch(PROXY_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            message: prompt
-                        })
-                    });
-                    const data = await res.json();
-                    const text = (data.reply || '{}').replace(/```json|```/g, '').trim();
-                    const parsed = JSON.parse(text);
-
-                    box.classList.remove('loading');
-                    box.textContent = parsed.summary || 'Your order is ready to be confirmed.';
-
-                    if (parsed.warning && parsed.warning.trim()) {
-                        warn.textContent = parsed.warning;
-                        warn.classList.remove('hidden');
-                    }
-                } catch (e) {
-                    box.classList.remove('loading');
-                    box.textContent = orderData.name + ' ordered ' + orderData.package +
-                        ' for ' + orderData.price +
-                        ' (50% discount). This package is ready to be processed after confirmation.';
-                    if (orderData.hosting === 'Don\'t have') {
-                        warn.textContent = 'You don\'t have hosting yet — Rielcode will help set up free hosting according to the selected package.';
-                        warn.classList.remove('hidden');
-                    }
-                }
-
-                btn.classList.remove('loading');
-            };
-        })();
-    </script>
 </body>
 
 </html>

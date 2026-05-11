@@ -27,11 +27,13 @@ RewriteRule ^admin_login\.php$ admin_login.php [L,QSA]
 RewriteRule ^admin_logout\.php$ admin_logout.php [L,QSA]
 RewriteRule ^admin\.php$ admin.php [L,QSA]
 RewriteRule ^admin_edit\.php$ admin_edit.php [L,QSA]
+RewriteRule ^admin_invoice_edit\.php$ admin_invoice_edit.php [L,QSA]
 
 RewriteRule ^admin_login$ admin_login.php [L,QSA]
 RewriteRule ^admin_logout$ admin_logout.php [L,QSA]
 RewriteRule ^admin$ admin.php [L,QSA]
 RewriteRule ^admin_edit$ admin_edit.php [L,QSA]
+RewriteRule ^admin_invoice_edit$ admin_invoice_edit.php [L,QSA]
 
 # --- Redirect index.php to root (SEO) ---
 RewriteCond %{THE_REQUEST} /index\.php [NC]
@@ -44,12 +46,12 @@ RewriteCond %{THE_REQUEST} \s/([^.]+)\.php[\s?]
 # did NOT match, so proxy.php got redirected → 404.
 # New pattern !proxy$ excludes ANY path that ends with "proxy".
 RewriteCond %1 !proxy$
-RewriteCond %1 !^(admin|admin_edit|admin_login|admin_logout)
+RewriteCond %1 !^(admin|admin_edit|admin_login|admin_logout|admin_invoice_edit)
 RewriteRule ^ %1 [R=301,L]
 
 # --- Internally rewrite clean URLs back to .php ---
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_URI}      !proxy$
-RewriteCond %{REQUEST_URI}      !^/(admin|admin_edit|admin_login|admin_logout)($|/)
+RewriteCond %{REQUEST_URI}      !^/(admin|admin_edit|admin_login|admin_logout|admin_invoice_edit)($|/)
 RewriteRule ^([^/]+)$ $1.php [L]

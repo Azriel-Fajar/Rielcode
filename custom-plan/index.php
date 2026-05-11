@@ -30,7 +30,12 @@ if (isset($_POST['submit'])) {
     $hosting      = $_POST['hosting']         ?? 'No';
     $description  = trim($_POST['additional'] ?? '');
     $package      = 'Custom Plan';
-    $customTotal  = max(1000000, (int)($_POST['custom_total'] ?? 1000000));
+    $customTotal     = max(500000, (int)($_POST['custom_total']    ?? 500000));
+    $customPreset    = $_POST['custom_preset']    ?? 'blank';
+    $copySourceUrl   = trim($_POST['copy_source_url'] ?? '');
+    $customConfigRaw = trim($_POST['custom_config'] ?? '');
+    $customConfig    = ($customConfigRaw !== '' && $customConfigRaw !== 'null') ? $customConfigRaw : null;
+    if (!in_array($customPreset, ['blank','copy','ecommerce'], true)) $customPreset = 'blank';
 
     $stmtPkg = $conn->prepare("SELECT id FROM packages WHERE package_name = ?");
     $stmtPkg->bind_param("s", $package);
@@ -41,12 +46,13 @@ if (isset($_POST['submit'])) {
 
     $stmt = $conn->prepare("
         INSERT INTO orders
-            (order_name, email, package, package_id, owns_domain, owns_hosting, phone_number, description, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+            (order_name, email, package, package_id, custom_preset, copy_source_url, custom_config, owns_domain, owns_hosting, phone_number, description, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
     ");
     $stmt->bind_param(
-        "sssissss",
+        "sssisssssss",
         $order_name, $email, $package, $package_id,
+        $customPreset, $copySourceUrl, $customConfig,
         $domain, $hosting, $phone_number, $description
     );
     $stmt->execute();
@@ -57,6 +63,10 @@ if (isset($_POST['submit'])) {
     header("Location: ../checkout/");
     exit;
 }
+
+// ─── Preset detection (from URL ?preset=blank|copy|ecommerce) ────────────────
+$activePreset = $_GET['preset'] ?? 'blank';
+if (!in_array($activePreset, ['blank','copy','ecommerce'], true)) $activePreset = 'blank';
 
 // ─── Check for incomplete session ─────────────────────────────────────────────
 $incompleteOrder = null;
@@ -128,8 +138,48 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
             <div class="cp-header">
                 <div><span class="rc-eyebrow">custom plan</span></div>
                 <h1 class="rc-h1">Build Your Own Website</h1>
-                <p class="rc-body-lg">Pick exactly what you need — your price updates live as you configure.</p>
+                <p class="rc-body-lg">Pick a starting point, then customize. Your price updates live as you configure.</p>
             </div>
+
+            <!-- ── Preset picker ──────────────────────────────────────── -->
+            <div class="cp-presets">
+                <a href="?preset=blank" class="cp-preset-card <?= $activePreset === 'blank' ? 'is-active' : '' ?>" data-preset="blank">
+                    <div class="cp-preset-card__icon"><i class="bi bi-file-earmark"></i></div>
+                    <div class="cp-preset-card__name">Blank</div>
+                    <div class="cp-preset-card__price">from Rp500.000</div>
+                    <div class="cp-preset-card__desc">Start from scratch, full control.</div>
+                </a>
+                <a href="?preset=copy" class="cp-preset-card <?= $activePreset === 'copy' ? 'is-active' : '' ?>" data-preset="copy">
+                    <div class="cp-preset-card__icon"><i class="bi bi-files"></i></div>
+                    <div class="cp-preset-card__name">Copy Website</div>
+                    <div class="cp-preset-card__price">Rp1.000.000 – Rp3.000.000</div>
+                    <div class="cp-preset-card__desc">Match a reference site's layout, your brand. Final price confirmed after review.</div>
+                </a>
+                <a href="?preset=ecommerce" class="cp-preset-card <?= $activePreset === 'ecommerce' ? 'is-active' : '' ?>" data-preset="ecommerce">
+                    <div class="cp-preset-card__icon"><i class="bi bi-shop"></i></div>
+                    <div class="cp-preset-card__name">E-Commerce</div>
+                    <div class="cp-preset-card__price">from Rp1.000.000</div>
+                    <div class="cp-preset-card__desc">3 pages included. Add products, cart &amp; checkout as needed.</div>
+                </a>
+            </div>
+
+            <style>
+                .cp-presets { display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 8px 0 28px; }
+                .cp-preset-card { display:flex; flex-direction:column; gap:6px; padding: 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.03); color: inherit; text-decoration: none; transition: all .2s; }
+                .cp-preset-card:hover { border-color: rgba(58,123,255,0.45); background: rgba(58,123,255,0.06); transform: translateY(-2px); }
+                .cp-preset-card.is-active { border-color: #3a7bff; background: linear-gradient(135deg, rgba(58,123,255,0.15), rgba(163,91,255,0.10)); box-shadow: 0 0 0 1px rgba(58,123,255,0.4), 0 10px 28px rgba(58,123,255,0.18); }
+                .cp-preset-card__icon { font-size: 22px; color: #6fa3ff; }
+                .cp-preset-card__name { font-weight: 700; font-size: 16px; color: #fff; }
+                .cp-preset-card__price { font-family: var(--font-mono, monospace); font-size: 13px; color: #4ade80; }
+                .cp-preset-card__desc { font-size: 13px; color: rgba(255,255,255,0.6); }
+                @media (max-width: 640px) { .cp-presets { grid-template-columns: 1fr; } }
+
+                .cp-copy-url-row { display:none; margin: 12px 0 0; padding: 14px; border-radius: 12px; background: rgba(255,149,0,0.06); border: 1px solid rgba(255,149,0,0.20); }
+                .cp-copy-url-row.is-visible { display: block; }
+                .cp-copy-url-row label { display:block; font-size: 13px; color: #ff9500; font-weight: 600; margin-bottom: 6px; }
+                .cp-copy-url-row input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: #fff; font-size: 14px; }
+                .cp-copy-url-row .cp-copy-url-hint { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 6px; }
+            </style>
 
             <div class="cp-layout">
 
@@ -141,11 +191,8 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                         <div class="cp-section-title">
                             <i class="bi bi-box-seam"></i> Base Package — <span id="base-price-label">Rp500.000</span>
                         </div>
-                        <div class="cp-base-list">
-                            <span class="cp-base-item"><i class="bi bi-check2"></i> 1 custom-designed page</span>
-                            <span class="cp-base-item"><i class="bi bi-check2"></i> Mobile responsive layout</span>
-                            <span class="cp-base-item"><i class="bi bi-check2"></i> Contact form</span>
-                            <span class="cp-base-item"><i class="bi bi-check2"></i> Basic SEO setup</span>
+                        <div class="cp-base-list" id="base-items-list">
+                            <!-- filled by JS based on preset -->
                         </div>
                     </div>
 
@@ -214,15 +261,15 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                                 <div class="cp-toggle-body">
                                     <div class="cp-toggle-name">CMS / Admin Panel</div>
                                     <div class="cp-toggle-desc">Manage your content from a dashboard</div>
-                                    <div class="cp-toggle-price" id="cms-price-label">+ Rp600.000 – Rp2.000.000</div>
+                                    <div class="cp-toggle-price" id="cms-price-label">+ Rp800.000 – Rp1.600.000</div>
                                     <div class="cp-difficulty-row" id="cms-difficulty" style="display:none;">
                                         <span class="cp-difficulty-label">Difficulty:</span>
                                         <div class="cp-difficulty-options">
                                             <label class="cp-diff-opt">
-                                                <input type="radio" name="cms-diff" value="600000" checked onchange="cpCalc()">
+                                                <input type="radio" name="cms-diff" value="800000" checked onchange="cpCalc()">
                                                 <span class="cp-diff-name">Basic</span>
                                                 <span class="cp-diff-info">Text &amp; image content editor</span>
-                                                <span class="cp-diff-price" data-cms-price="600000">Rp600.000</span>
+                                                <span class="cp-diff-price" data-cms-price="800000">Rp800.000</span>
                                             </label>
                                             <label class="cp-diff-opt">
                                                 <input type="radio" name="cms-diff" value="1200000" onchange="cpCalc()">
@@ -231,10 +278,10 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                                                 <span class="cp-diff-price" data-cms-price="1200000">Rp1.200.000</span>
                                             </label>
                                             <label class="cp-diff-opt">
-                                                <input type="radio" name="cms-diff" value="2000000" onchange="cpCalc()">
+                                                <input type="radio" name="cms-diff" value="1600000" onchange="cpCalc()">
                                                 <span class="cp-diff-name">Advanced</span>
                                                 <span class="cp-diff-info">+ Custom modules &amp; API access</span>
-                                                <span class="cp-diff-price" data-cms-price="2000000">Rp2.000.000</span>
+                                                <span class="cp-diff-price" data-cms-price="1600000">Rp1.600.000</span>
                                             </label>
                                         </div>
                                     </div>
@@ -323,8 +370,9 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
 
                         <div class="cp-summary-total-row">
                             <span>Total</span>
-                            <span class="cp-summary-total" id="summary-total">Rp1.000.000</span>
+                            <span class="cp-summary-total" id="summary-total">Rp500.000</span>
                         </div>
+                        <div id="plan-cap-badge" style="display:none;margin-top:8px;padding:6px 10px;background:rgba(58,123,255,0.12);border:1px solid rgba(58,123,255,0.3);border-radius:6px;font-size:12px;color:#6fa3ff;line-height:1.4;"></div>
 
                         <div class="cp-hosting-unlock" id="hosting-unlock-bar">
                             <!-- shown when hosting is unlocked -->
@@ -346,7 +394,15 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
 
                 <form method="post" id="customOrderForm">
                     <input type="hidden" name="package" value="Custom Plan">
-                    <input type="hidden" name="custom_total" id="form-custom-total" value="1000000">
+                    <input type="hidden" name="custom_total" id="form-custom-total" value="500000">
+                    <input type="hidden" name="custom_preset" id="form-custom-preset" value="<?= htmlspecialchars($activePreset) ?>">
+                    <input type="hidden" name="custom_config" id="form-custom-config" value="">
+
+                    <div class="cp-copy-url-row <?= $activePreset === 'copy' ? 'is-visible' : '' ?>" id="cp-copy-url-row">
+                        <label for="cf-copy-url">Reference website URL <span style="color:#f87171">*</span></label>
+                        <input type="url" name="copy_source_url" id="cf-copy-url" placeholder="https://example.com" <?= $activePreset === 'copy' ? 'required' : '' ?>>
+                        <div class="cp-copy-url-hint">We'll match the layout of this site with your branding and content.</div>
+                    </div>
 
                     <div class="cp-form-grid">
                         <div class="cp-form-group">
@@ -391,7 +447,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
 
                     <div class="cp-form-submit-row">
                         <div class="cp-form-total-preview">
-                            Order total: <strong id="form-total-display">Rp1.000.000</strong>
+                            Order total: <strong id="form-total-display">Rp500.000</strong>
                         </div>
                         <button type="submit" name="submit" class="cp-submit-btn">Proceed to Checkout →</button>
                     </div>
@@ -404,16 +460,21 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
     <script>
     (function () {
 
-        const BASE = 500000;
+        const ACTIVE_PRESET = <?= json_encode($activePreset) ?>;
+
+        // Per-preset base price (IDR). USD computed via ceil(IDR / 17000).
+        const PRESET_BASE = { blank: 500000, copy: 1000000, ecommerce: 1000000 };
+        const BASE = PRESET_BASE[ACTIVE_PRESET];
+
         const PRICES = {
-            pages:       150000,
+            pages:       85000,
             maintenance: 300000,
             priority:    400000,
             chatbot:     1500000,
             login:       550000,
             seo:         300000,
         };
-        const USD_RATE = 17200;
+        const USD_RATE = 17000;
         let currency = 'IDR';
 
         const state = { pages: 1, maintenance: 0 };
@@ -421,7 +482,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
 
         function fmt(n) {
             if (currency === 'USD') {
-                return '$' + (n / USD_RATE).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return '$' + Math.ceil(n / USD_RATE).toLocaleString('en-US');
             }
             return 'Rp' + n.toLocaleString('id-ID');
         }
@@ -432,7 +493,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
 
         function getCmsDiff() {
             const sel = document.querySelector('input[name="cms-diff"]:checked');
-            return sel ? parseInt(sel.value) : 600000;
+            return sel ? parseInt(sel.value) : 800000;
         }
 
         function getEcomDiff() {
@@ -516,7 +577,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
             });
 
             const cmsLabel = document.getElementById('cms-price-label');
-            if (cmsLabel) cmsLabel.textContent = '+ ' + fmtRange(600000, 2000000);
+            if (cmsLabel) cmsLabel.textContent = '+ ' + fmtRange(800000, 1600000);
 
             const ecomLabel = document.getElementById('ecom-price-label');
             if (ecomLabel) ecomLabel.textContent = '+ ' + fmtRange(1000000, 3000000);
@@ -528,6 +589,34 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
             document.querySelectorAll('[data-ecom-price]').forEach(function (el) {
                 el.textContent = fmt(parseInt(el.dataset.ecomPrice));
             });
+        }
+
+        const CAP_MAX_SAVE = 300000;
+
+        function getStandardCap(rawTotal) {
+            const chatbotCb = document.getElementById('feat-chatbot');
+            const cmsCb2    = document.getElementById('feat-cms');
+            const seoCb     = document.getElementById('feat-seo');
+            const loginCb   = document.getElementById('feat-login');
+            const ecomCb2   = document.getElementById('feat-ecom');
+            const chatbot   = chatbotCb && chatbotCb.checked;
+            const cms       = cmsCb2    && cmsCb2.checked;
+            const login     = loginCb   && loginCb.checked;
+            const ecom      = ecomCb2   && ecomCb2.checked;
+
+            // Premium: 6-10 pages, chatbot, cms; no login, no ecom
+            if (state.pages >= 6 && state.pages <= 10 && chatbot && cms && !login && !ecom) {
+                const cap = { idr: 4999000, label: 'Premium Plan' };
+                if (rawTotal - cap.idr > CAP_MAX_SAVE) return null;
+                return cap;
+            }
+            // Pro: 2-5 pages, cms; no chatbot, no login, no ecom
+            if (state.pages >= 2 && state.pages <= 5 && cms && !chatbot && !login && !ecom) {
+                const cap = { idr: 2499000, label: 'Pro Plan' };
+                if (rawTotal - cap.idr > CAP_MAX_SAVE) return null;
+                return cap;
+            }
+            return null;
         }
 
         window.cpCalc = function () {
@@ -587,9 +676,27 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                      + '</div>';
             }).join('');
 
-            document.getElementById('summary-total').textContent = fmt(total);
+            const cap = getStandardCap(total);
+            const effective = cap ? Math.min(total, cap.idr) : total;
 
-            const unlocked = total >= HOSTING_MIN;
+            const capBadge = document.getElementById('plan-cap-badge');
+            const isCopyPreset = ACTIVE_PRESET === 'copy';
+
+            if (isCopyPreset) {
+                document.getElementById('summary-total').textContent = 'Rp1.000.000 – Rp3.000.000';
+                capBadge.style.display = 'block';
+                capBadge.textContent = 'Final price confirmed privately after we review your reference site.';
+            } else if (cap && effective < total) {
+                document.getElementById('summary-total').innerHTML =
+                    '<span style="text-decoration:line-through;opacity:0.45;font-size:0.8em;">' + fmt(total) + '</span> ' + fmt(effective);
+                capBadge.style.display = 'block';
+                capBadge.textContent = 'Best price applied — matches ' + cap.label + ' (save ' + fmt(total - effective) + ')';
+            } else {
+                document.getElementById('summary-total').textContent = fmt(effective);
+                capBadge.style.display = 'none';
+            }
+
+            const unlocked = isCopyPreset ? true : effective >= HOSTING_MIN;
             const badge  = document.getElementById('hosting-badge');
             const status = document.getElementById('hosting-status');
             const note   = document.getElementById('hosting-note');
@@ -604,7 +711,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                 bar.innerHTML      = '<span class="cp-unlock-pill">🎉 Free Hosting &amp; .COM Domain included</span>';
                 if (dh) dh.style.display = 'none';
             } else {
-                const needed       = HOSTING_MIN - total;
+                const needed       = HOSTING_MIN - effective;
                 badge.textContent  = 'Locked';
                 badge.className    = 'cp-hosting-badge';
                 status.textContent = 'Add ' + fmt(needed) + ' more to unlock free hosting & domain.';
@@ -627,11 +734,22 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                 + (unlocked ? ' | FREE Hosting & Domain' : '');
 
             // Sync to form hidden fields
+            const formEffective = isCopyPreset ? 1000000 : effective;
             const hiddenTotal = document.getElementById('form-custom-total');
-            if (hiddenTotal) hiddenTotal.value = total;
+            if (hiddenTotal) hiddenTotal.value = formEffective;
+
+            const configField = document.getElementById('form-custom-config');
+            if (configField) {
+                const cfg = {
+                    pages:       state.pages,
+                    maintenance: state.maintenance,
+                    features:    allFeatures,
+                };
+                configField.value = JSON.stringify(cfg);
+            }
 
             const totalDisplay = document.getElementById('form-total-display');
-            if (totalDisplay) totalDisplay.textContent = fmt(total);
+            if (totalDisplay) totalDisplay.textContent = isCopyPreset ? 'Rp1.000.000 – Rp3.000.000' : fmt(effective);
 
             const descField = document.getElementById('cf-additional');
             if (descField && !descField.dataset.userEdited) descField.placeholder = desc;
@@ -664,6 +782,49 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                 this.dataset.userEdited = '1';
             });
         }
+
+        // ─── Apply preset defaults ────────────────────────────────────
+        function applyPreset(preset) {
+            if (preset === 'copy') {
+                state.pages = 3;
+                document.getElementById('val-pages').textContent = 3;
+                updatePresetBtns();
+                // expose URL field already handled server-side
+            } else if (preset === 'ecommerce') {
+                state.pages = 3;
+                document.getElementById('val-pages').textContent = 3;
+                updatePresetBtns();
+            }
+        }
+        applyPreset(ACTIVE_PRESET);
+
+        (function renderBaseItems() {
+            const items = {
+                blank: [
+                    '1 custom-designed page',
+                    'Mobile responsive layout',
+                    'Contact form',
+                    'Basic SEO setup',
+                ],
+                copy: [
+                    'Layout matched to your reference site',
+                    'Your branding, colors &amp; content applied',
+                    'Mobile responsive layout',
+                    'Contact form &amp; basic SEO setup',
+                ],
+                ecommerce: [
+                    '3 custom-designed pages',
+                    'Mobile responsive layout',
+                    'Contact form &amp; basic SEO setup',
+                    'Ready to add products, cart &amp; checkout',
+                ],
+            };
+            const list = document.getElementById('base-items-list');
+            if (!list) return;
+            list.innerHTML = (items[ACTIVE_PRESET] || items.blank).map(function (t) {
+                return '<span class="cp-base-item"><i class="bi bi-check2"></i> ' + t + '</span>';
+            }).join('');
+        })();
 
         cpCalc();
         updatePresetBtns();

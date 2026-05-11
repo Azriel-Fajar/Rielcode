@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <div id="quick-menu" class="quick-menu">
       <button class="quick-chip" data-msg="What packages do you offer?">📦 View Packages</button>
       <button class="quick-chip" data-msg="How much does a Rielcode package cost?">💰 Check Pricing</button>
-      <button class="quick-chip" data-msg="How long does it take to build a website?">⏱ Turnaround Time</button>
+      <button class="quick-chip" data-msg="Tell me about the Custom Plan presets (Copy Website and E-Commerce)">⚡ Custom Plan</button>
       <button class="quick-chip" data-msg="How do I order a website?">🚀 How to Order</button>
     </div>
     <button id="quick-toggle" class="quick-toggle" title="Quick questions">

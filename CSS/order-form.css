@@ -278,7 +278,7 @@ form .package-details-container {
 /* Plan radio cards */
 form .package-details-container .plan-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
@@ -793,6 +793,12 @@ form .additional-contaianer textarea:focus {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-bottom: 20px;
+}
+
+/* Custom Plan card spans full row */
+form .package-details-container .plan-container input[id="custom"] + label,
+.plan-container input[id="custom"] + label {
+  grid-column: span 2;
 }
 
 .plan-container input[type="radio"] {

@@ -1,7 +1,7 @@
 <?php
 session_start();
 $meta_title       = "All Packages — Rielcode Web Development Plans";
-$meta_description = "Browse all Rielcode web development packages: Student, Starter, Pro, Premium, Landing Page, Copy Website, E-commerce, and Custom. Transparent pricing in USD and IDR.";
+$meta_description = "Browse all Rielcode web development packages: Student, Starter, Pro, Premium, and Custom (with Copy Website and E-commerce presets). Transparent pricing in USD and IDR.";
 $meta_keywords    = "web development packages Indonesia, harga website, paket website murah, Rielcode pricing";
 $meta_image       = "https://rielcode.com/IMG/Rielcode Logo.png";
 $meta_type        = "website";
@@ -72,39 +72,47 @@ include '../connection.php';
             gap: 20px;
         }
 
-        /* ── Card ── */
+        /* ── Card (color-coded variants) ── */
         .pkg-card {
             background: rgba(255,255,255,0.025);
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: var(--radius-lg);
             display: flex; flex-direction: column;
             overflow: hidden;
+            position: relative;
             transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
         }
         .pkg-card:hover {
-            border-color: rgba(255,255,255,0.18);
             transform: translateY(-3px);
             box-shadow: 0 16px 40px rgba(0,0,0,0.35);
         }
         .pkg-card.is-popular {
-            border-color: rgba(58,123,255,0.40);
-            box-shadow: 0 0 0 1px rgba(58,123,255,0.15), 0 12px 32px rgba(0,0,0,0.3);
+            box-shadow: 0 0 0 1px rgba(58,123,255,0.18), 0 12px 32px rgba(0,0,0,0.3);
         }
         .pkg-card.is-popular:hover {
-            border-color: rgba(58,123,255,0.60);
-            box-shadow: 0 0 0 1px rgba(58,123,255,0.25), 0 20px 48px rgba(0,0,0,0.4), 0 0 20px rgba(58,123,255,0.15);
+            box-shadow: 0 0 0 1px rgba(58,123,255,0.28), 0 20px 48px rgba(0,0,0,0.4), 0 0 24px rgba(58,123,255,0.18);
         }
 
-        .pkg-card__top-bar {
-            height: 3px;
-            background: rgba(255,255,255,0.06);
-        }
+        .pkg-card__top-bar { height: 4px; background: rgba(255,255,255,0.06); }
+
+        /* Per-variant: top-bar gradient + tinted bg + colored price/check */
         .pkg-card--green  .pkg-card__top-bar { background: linear-gradient(90deg, #3ecf8e, #22c55e); }
+        .pkg-card--green  { background: linear-gradient(180deg, rgba(62,207,142,0.10) 0%, rgba(62,207,142,0.02) 35%, rgba(255,255,255,0.025) 100%); border-color: rgba(62,207,142,0.22); }
+        .pkg-card--green:hover { border-color: rgba(62,207,142,0.45); }
+        .pkg-card--green  .pkg-price__amount { color: #4ade80; }
+        .pkg-card--green  .pkg-features li svg { color: #4ade80; }
+
         .pkg-card--blue   .pkg-card__top-bar { background: linear-gradient(90deg, #3a7bff, #5b52f5); }
+        .pkg-card--blue   { background: linear-gradient(180deg, rgba(58,123,255,0.10) 0%, rgba(58,123,255,0.02) 35%, rgba(255,255,255,0.025) 100%); border-color: rgba(58,123,255,0.22); }
+        .pkg-card--blue:hover { border-color: rgba(58,123,255,0.45); }
+        .pkg-card--blue   .pkg-price__amount { color: #6fa3ff; }
+        .pkg-card--blue   .pkg-features li svg { color: #6fa3ff; }
+
         .pkg-card--purple .pkg-card__top-bar { background: linear-gradient(90deg, #a35bff, #7c3de0); }
-        .pkg-card--teal   .pkg-card__top-bar { background: linear-gradient(90deg, #00d4ff, #3a7bff); }
-        .pkg-card--orange .pkg-card__top-bar { background: linear-gradient(90deg, #ff9500, #ff6b00); }
-        .pkg-card--pink   .pkg-card__top-bar { background: linear-gradient(90deg, #ff4b6e, #ff2d55); }
+        .pkg-card--purple { background: linear-gradient(180deg, rgba(163,91,255,0.10) 0%, rgba(163,91,255,0.02) 35%, rgba(255,255,255,0.025) 100%); border-color: rgba(163,91,255,0.22); }
+        .pkg-card--purple:hover { border-color: rgba(163,91,255,0.45); }
+        .pkg-card--purple .pkg-price__amount { color: #c084fc; }
+        .pkg-card--purple .pkg-features li svg { color: #c084fc; }
 
         .pkg-card__inner { padding: 24px; display: flex; flex-direction: column; gap: 20px; flex: 1; }
 
@@ -147,9 +155,40 @@ include '../connection.php';
         .pkg-cta-strip__sub { margin: 0 auto 32px; max-width: 420px; }
         .pkg-cta-strip__btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
+        /* ── Custom plan promo banner (replaces Copy/Ecom cards) ── */
+        .pkg-promo-banner {
+            display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between;
+            padding: 28px 32px;
+            background: linear-gradient(120deg, rgba(255,149,0,0.12) 0%, rgba(255,75,110,0.10) 50%, rgba(58,123,255,0.10) 100%);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: var(--radius-lg);
+        }
+        .pkg-promo-banner__txt { flex: 1; min-width: 260px; }
+        .pkg-promo-banner__title { font-family: var(--font-main); font-weight: 700; font-size: 20px; color: #fff; margin: 0 0 8px; }
+        .pkg-promo-banner__sub { font-size: 14px; color: rgba(255,255,255,0.7); margin: 0; }
+        .pkg-promo-banner__btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
         @media (max-width: 640px) {
             .pkg-hero { padding: 80px 0 48px; }
-            .pkg-grid { grid-template-columns: 1fr; }
+            .pkg-grid { grid-template-columns: 1fr; gap: 16px; }
+            .pkg-card__inner { padding: 22px; gap: 18px; }
+            .pkg-card__name { font-size: 18px; }
+            .pkg-price__amount { font-size: 28px; }
+            .pkg-features li { font-size: 13.5px; }
+            .pkg-section { padding: 56px 0 0; }
+            .pkg-promo-banner { padding: 22px; }
+        }
+        @media (max-width: 480px) {
+            .pkg-card__inner { padding: 20px; gap: 16px; }
+            .pkg-card__name { font-size: 17px; }
+            .pkg-card__blurb { font-size: 13px; }
+            .pkg-price__amount { font-size: 26px; }
+            .pkg-price__strike { font-size: 13px; }
+            .pkg-price__strike-idr { font-size: 12px; }
+            .pkg-features li { font-size: 13px; gap: 8px; }
+            .pkg-delivery { font-size: 12px; }
+            .pkg-card__badges { gap: 4px; }
+            .pkg-badge { padding: 2px 7px; font-size: 10px; }
         }
     </style>
 </head>
@@ -198,15 +237,15 @@ include '../connection.php';
                         </div>
                         <div>
                             <div class="pkg-price__strike-row">
-                                <span class="pkg-price__strike">$60</span>
+                                <span class="pkg-price__strike">$59</span>
                                 <span class="pkg-price__strike-idr">IDR 998k</span>
                             </div>
                             <div class="pkg-price__main">
-                                <span class="pkg-price__amount">$29.99</span>
+                                <span class="pkg-price__amount">$30</span>
                                 <span class="pkg-price__cycle">one-time</span>
                             </div>
                             <div class="pkg-price__idr">IDR 499k</div>
-                            <div class="pkg-price__save">Save $30 / IDR 499k</div>
+                            <div class="pkg-price__save">Save $29 / IDR 499k</div>
                         </div>
                         <ul class="pkg-features">
                             <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>1 page website (single page)</span></li>
@@ -240,15 +279,15 @@ include '../connection.php';
                         </div>
                         <div>
                             <div class="pkg-price__strike-row">
-                                <span class="pkg-price__strike">$120</span>
-                                <span class="pkg-price__strike-idr">IDR 2jt</span>
+                                <span class="pkg-price__strike">$118</span>
+                                <span class="pkg-price__strike-idr">IDR 1.998jt</span>
                             </div>
                             <div class="pkg-price__main">
-                                <span class="pkg-price__amount">$59.99</span>
+                                <span class="pkg-price__amount">$59</span>
                                 <span class="pkg-price__cycle">one-time</span>
                             </div>
                             <div class="pkg-price__idr">IDR 999k</div>
-                            <div class="pkg-price__save">Save $60 / IDR 1jt</div>
+                            <div class="pkg-price__save">Save $59 / IDR 999k</div>
                         </div>
                         <ul class="pkg-features">
                             <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Landing page website (1 page)</span></li>
@@ -284,15 +323,15 @@ include '../connection.php';
                         </div>
                         <div>
                             <div class="pkg-price__strike-row">
-                                <span class="pkg-price__strike">$299.99</span>
+                                <span class="pkg-price__strike">$296</span>
                                 <span class="pkg-price__strike-idr">IDR 4.998jt</span>
                             </div>
                             <div class="pkg-price__main">
-                                <span class="pkg-price__amount">$149.99</span>
+                                <span class="pkg-price__amount">$148</span>
                                 <span class="pkg-price__cycle">one-time</span>
                             </div>
                             <div class="pkg-price__idr">IDR 2.499jt</div>
-                            <div class="pkg-price__save">Save $150 / IDR 2.499jt</div>
+                            <div class="pkg-price__save">Save $148 / IDR 2.499jt</div>
                         </div>
                         <ul class="pkg-features">
                             <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span><strong>All in Starter</strong>, plus:</span></li>
@@ -323,23 +362,24 @@ include '../connection.php';
                         </div>
                         <div>
                             <h3 class="pkg-card__name">Premium Plan</h3>
-                            <p class="pkg-card__blurb">Full-scale platform with e-commerce and custom admin panel.</p>
+                            <p class="pkg-card__blurb">Full-scale platform with custom admin panel and AI chatbot integration.</p>
                         </div>
                         <div>
                             <div class="pkg-price__strike-row">
-                                <span class="pkg-price__strike">$599.99</span>
+                                <span class="pkg-price__strike">$589</span>
                                 <span class="pkg-price__strike-idr">IDR 9.998jt</span>
                             </div>
                             <div class="pkg-price__main">
-                                <span class="pkg-price__amount">$299.99</span>
+                                <span class="pkg-price__amount">$295</span>
                                 <span class="pkg-price__cycle">one-time</span>
                             </div>
                             <div class="pkg-price__idr">IDR 4.999jt</div>
-                            <div class="pkg-price__save">Save $300 / IDR 4.999jt</div>
+                            <div class="pkg-price__save">Save $295 / IDR 4.999jt</div>
                         </div>
                         <ul class="pkg-features">
                             <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span><strong>All in Pro</strong>, plus:</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Up to 10 pages or basic e-commerce</span></li>
+                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Up to 10 custom pages</span></li>
+                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>AI Chatbot Integration</span></li>
                             <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Advanced custom-coded Admin Panel</span></li>
                             <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Complete</strong> SEO setup</span></li>
                             <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span><strong>5</strong> design revisions</span></li>
@@ -361,129 +401,29 @@ include '../connection.php';
         </div>
     </section>
 
-    <!-- Specialty Plans -->
+    <!-- Specialty (Copy Website / E-Commerce -> moved into Custom Plan presets) -->
     <section class="pkg-section" id="specialty">
         <div class="rc-container">
             <div class="pkg-section__head">
-                <span class="pkg-section__label">02 / Specialty Plans</span>
-                <h2 class="rc-h2">Built for a Specific Goal</h2>
-                <p class="rc-body" style="margin:8px 0 0;max-width:520px">Purpose-built plans for specific use cases. Faster delivery, focused scope.</p>
+                <span class="pkg-section__label">02 / Specialty Builds</span>
+                <h2 class="rc-h2">Need a Copy Website or E-Commerce?</h2>
+                <p class="rc-body" style="margin:8px 0 0;max-width:520px">Both are now configurable presets inside the Custom Plan. Pick a starting point and customize.</p>
             </div>
 
-            <div class="pkg-grid">
-
-                <!-- Landing Page -->
-                <div class="pkg-card pkg-card--teal">
-                    <div class="pkg-card__top-bar"></div>
-                    <div class="pkg-card__inner">
-                        <div class="pkg-card__badges">
-                            <span class="pkg-badge pkg-badge--new">New</span>
-                        </div>
-                        <div>
-                            <h3 class="pkg-card__name">Landing Page</h3>
-                            <p class="pkg-card__blurb">Single-page, conversion-focused. Built to capture leads and drive action fast.</p>
-                        </div>
-                        <div>
-                            <div class="pkg-price__main">
-                                <span class="pkg-price__amount">$79.99</span>
-                                <span class="pkg-price__cycle">one-time</span>
-                            </div>
-                            <div class="pkg-price__idr">IDR 1.299jt</div>
-                        </div>
-                        <ul class="pkg-features">
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Single high-converting page</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Hero, features, pricing, CTA sections</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Lead capture form</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Mobile-first responsive design</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>SEO meta + Open Graph</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span><strong>2</strong> design revisions</span></li>
-                        </ul>
-                        <div class="pkg-delivery">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            Delivery in <strong>3&ndash;5 days</strong>
-                        </div>
-                        <a class="rc-btn pkg-card__cta" href="../order-form?aksi=landing-page">
-                            Choose Plan
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                        </a>
-                    </div>
+            <div class="pkg-promo-banner">
+                <div class="pkg-promo-banner__txt">
+                    <h3 class="pkg-promo-banner__title">Start with a preset, then make it yours</h3>
+                    <p class="pkg-promo-banner__sub">Copy an existing site (from IDR 1jt / $60) or launch an online store (from IDR 1.5jt / $90). Adjust pages, add-ons, and timeline freely.</p>
                 </div>
-
-                <!-- Copy Website -->
-                <div class="pkg-card pkg-card--orange">
-                    <div class="pkg-card__top-bar"></div>
-                    <div class="pkg-card__inner">
-                        <div class="pkg-card__badges">
-                            <span class="pkg-badge pkg-badge--new">New</span>
-                        </div>
-                        <div>
-                            <h3 class="pkg-card__name">Copy Website</h3>
-                            <p class="pkg-card__blurb">Clone the design of an existing site with your brand and new content. Same look, your identity.</p>
-                        </div>
-                        <div>
-                            <div class="pkg-price__main">
-                                <span class="pkg-price__amount">$99.99</span>
-                                <span class="pkg-price__cycle">one-time</span>
-                            </div>
-                            <div class="pkg-price__idr">IDR 1.649jt</div>
-                        </div>
-                        <ul class="pkg-features">
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Match layout of a reference site</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Replace with your branding + content</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Up to 3 pages</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Responsive &amp; mobile-ready</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Contact form integration</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span><strong>1</strong> design revision</span></li>
-                        </ul>
-                        <div class="pkg-delivery">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            Delivery in <strong>4&ndash;6 days</strong>
-                        </div>
-                        <a class="rc-btn pkg-card__cta" href="../order-form?aksi=copy-website">
-                            Choose Plan
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                        </a>
-                    </div>
+                <div class="pkg-promo-banner__btns">
+                    <a class="rc-btn" href="../custom-plan/?preset=copy">
+                        Copy Website Preset
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </a>
+                    <a class="rc-btn rc-btn-outline" href="../custom-plan/?preset=ecommerce">
+                        E-Commerce Preset
+                    </a>
                 </div>
-
-                <!-- E-commerce -->
-                <div class="pkg-card pkg-card--pink">
-                    <div class="pkg-card__top-bar"></div>
-                    <div class="pkg-card__inner">
-                        <div class="pkg-card__badges">
-                            <span class="pkg-badge pkg-badge--new">New</span>
-                        </div>
-                        <div>
-                            <h3 class="pkg-card__name">E-Commerce</h3>
-                            <p class="pkg-card__blurb">Product catalog, cart, and checkout. Sell online from day one.</p>
-                        </div>
-                        <div>
-                            <div class="pkg-price__main">
-                                <span class="pkg-price__amount">$349.99</span>
-                                <span class="pkg-price__cycle">one-time</span>
-                            </div>
-                            <div class="pkg-price__idr">IDR 5.799jt</div>
-                        </div>
-                        <ul class="pkg-features">
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Product catalog with categories</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Shopping cart + checkout flow</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Order management admin panel</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Payment gateway integration</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Mobile-first responsive design</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span><strong>3</strong> design revisions</span></li>
-                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span><strong>2 months</strong> technical support</span></li>
-                        </ul>
-                        <div class="pkg-delivery">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            Delivery in <strong>14&ndash;21 days</strong>
-                        </div>
-                        <a class="rc-btn pkg-card__cta" href="../order-form?aksi=ecommerce">
-                            Choose Plan
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                        </a>
-                    </div>
-                </div>
-
             </div>
         </div>
     </section>
@@ -511,10 +451,10 @@ include '../connection.php';
                             </div>
                             <div>
                                 <div class="pkg-price__main">
-                                    <span class="pkg-price__amount" style="font-size:24px;">from</span>
-                                    <span class="pkg-price__cycle" style="font-size:18px;">IDR 1jt</span>
+                                    <span class="pkg-price__amount" style="font-size:22px;">from</span>
+                                    <span class="pkg-price__amount" style="font-size:30px;">IDR 500k</span>
                                 </div>
-                                <div class="pkg-price__idr">Final price quoted after scope call</div>
+                                <div class="pkg-price__idr">~ USD 30 · final price quoted after scope</div>
                             </div>
                             <a class="rc-btn" href="../custom-plan/" style="align-self:flex-start;">
                                 Build Your Plan
@@ -524,14 +464,15 @@ include '../connection.php';
                         <div style="flex: 1; min-width: 240px;">
                             <p style="font-size:13px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 16px;font-family:var(--font-mono);">Available add-ons</p>
                             <ul class="pkg-features">
+                                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Copy Website preset</strong> &mdash; clone a reference site (from IDR 1jt)</span></li>
+                                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span><strong>E-Commerce preset</strong> &mdash; catalog + cart + checkout (from IDR 1.5jt)</span></li>
                                 <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Any number of pages</span></li>
                                 <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>AI chatbot integration</span></li>
                                 <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Login / member system</span></li>
                                 <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>CMS / Admin Panel</span></li>
-                                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>E-Commerce</span></li>
                                 <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Maintenance (per month)</span></li>
                                 <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Priority delivery</span></li>
-                                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Free hosting &amp; domain <strong>from IDR 2jt</strong></span></li>
+                                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Free hosting &amp; domain <strong>from IDR 1jt</strong></span></li>
                             </ul>
                         </div>
                     </div>

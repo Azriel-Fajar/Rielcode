@@ -14,7 +14,7 @@ $aksi         = $_GET['aksi'] ?? '';
 $defaultPlan  = $aksiMap[$aksi] ?? '';
 $isLanding    = ($defaultPlan === 'Student Plan');
 $isCustom     = ($defaultPlan === 'Custom Plan');
-$customTotal  = $isCustom ? (int)($_GET['total'] ?? 1000000) : 0;
+$customTotal  = $isCustom ? (int)($_GET['total'] ?? 500000) : 0;
 $customDesc   = $isCustom ? htmlspecialchars($_GET['desc'] ?? '') : '';
 
 // --- Load add-ons from DB ---
@@ -96,7 +96,7 @@ if (isset($_POST['submit'])) {
 
     // For Custom Plan, store the configured total in session so checkout can use it
     if ($package === 'Custom Plan') {
-        $_SESSION['custom_total'] = max(1000000, (int)($_POST['custom_total'] ?? 1000000));
+        $_SESSION['custom_total'] = max(500000, (int)($_POST['custom_total'] ?? 500000));
     } else {
         unset($_SESSION['custom_total']);
     }
@@ -212,7 +212,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <?= $defaultPlan === 'Student Plan' ? 'checked' : '' ?> required>
                         <label for="landing">
                             <h3 class="plan-label-name">Student Plan</h3>
-                            <span class="plan-label-price">$29.99 / Rp499.000</span>
+                            <span class="plan-label-price">$30 / Rp499.000</span>
                             <span class="plan-label-badge badge-landing">For Students</span>
                         </label>
 
@@ -220,7 +220,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <?= $defaultPlan === 'Starter Plan' ? 'checked' : '' ?> required>
                         <label for="starter">
                             <h3 class="plan-label-name">Starter Plan</h3>
-                            <span class="plan-label-price">$59.99 / Rp999.000</span>
+                            <span class="plan-label-price">$59 / Rp999.000</span>
                             <span class="plan-label-badge badge-starter">Landing + Hosting</span>
                         </label>
 
@@ -228,7 +228,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <?= $defaultPlan === 'Pro Plan' ? 'checked' : '' ?> required>
                         <label for="pro">
                             <h3 class="plan-label-name">Pro Plan</h3>
-                            <span class="plan-label-price">$149.99 / Rp2.499.000</span>
+                            <span class="plan-label-price">$148 / Rp2.499.000</span>
                             <span class="plan-label-badge badge-pro">Most Popular</span>
                         </label>
 
@@ -236,17 +236,10 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <?= $defaultPlan === 'Premium Plan' ? 'checked' : '' ?> required>
                         <label for="business">
                             <h3 class="plan-label-name">Premium Plan</h3>
-                            <span class="plan-label-price">$299.99 / Rp4.999.000</span>
+                            <span class="plan-label-price">$295 / Rp4.999.000</span>
                             <span class="plan-label-badge badge-business">Best Value</span>
                         </label>
 
-                        <input type="radio" name="package" id="custom" value="Custom Plan"
-                            <?= $defaultPlan === 'Custom Plan' ? 'checked' : '' ?> required>
-                        <label for="custom">
-                            <h3 class="plan-label-name">Custom Plan</h3>
-                            <span class="plan-label-price"><?= $isCustom ? 'Rp' . number_format($customTotal, 0, ',', '.') : 'from Rp1.000.000' ?></span>
-                            <span class="plan-label-badge badge-custom">Build Your Own</span>
-                        </label>
 
                     </div>
 
@@ -288,7 +281,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                         <div class="addon-grid">
                             <?php foreach ($availableAddons as $addon): ?>
                                 <?php
-                                $priceLabel = 'Rp' . number_format($addon['price_idr'], 0, ',', '.') . ' / $' . number_format($addon['price_usd'], 2);
+                                $priceLabel = 'Rp' . number_format($addon['price_idr'], 0, ',', '.') . ' / $' . (int)ceil($addon['price_idr'] / 17000);
                                 if ($addon['type'] === 'per_page') $priceLabel .= ' per page';
                                 if ($addon['type'] === 'monthly')  $priceLabel .= '/month';
                                 ?>
@@ -410,10 +403,10 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
 
             document.getElementById('addonsTotalDisplay').textContent = formatRp(total);
 
-            // Hide domain/hosting buttons when total >= 1,000,000 IDR
+            // Hide domain/hosting buttons when total >= Rp2,000,000 (free hosting unlocked)
             const domainHostingWrap = document.getElementById('domainHostingWrap');
             if (domainHostingWrap) {
-                domainHostingWrap.style.display = total >= 1000000 ? 'none' : 'block';
+                domainHostingWrap.style.display = total >= 2000000 ? 'none' : 'block';
             }
         }
     </script>

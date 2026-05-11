@@ -99,15 +99,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif ($table === 'orders') {
-        $status = trim($_POST['status'] ?? '');
-        $description = trim($_POST['description'] ?? '');
+        // Progress portal sub-actions (separate POST handlers — guarded by hidden input "pp_action")
+        $pp = $_POST['pp_action'] ?? '';
+
+        if ($pp === 'add_note' && $id) {
+            $note = trim($_POST['pp_note'] ?? '');
+            if ($note !== '') {
+                $stmt = $pdo->prepare("INSERT INTO order_progress_notes (order_id, note) VALUES (?, ?)");
+                $stmt->execute([$id, $note]);
+                rc_flash('Progress note added.');
+            } else {
+                rc_flash('Note is empty.', 'error');
+            }
+            header("Location: admin_edit.php?table=orders&id=$id");
+            exit;
+        }
+
+        if ($pp === 'delete_note' && $id) {
+            $noteId = (int)($_POST['note_id'] ?? 0);
+            if ($noteId > 0) {
+                $stmt = $pdo->prepare("DELETE FROM order_progress_notes WHERE id = ? AND order_id = ?");
+                $stmt->execute([$noteId, $id]);
+                rc_flash('Note deleted.');
+            }
+            header("Location: admin_edit.php?table=orders&id=$id");
+            exit;
+        }
+
+        if ($pp === 'deactivate_token' && $id) {
+            $stmt = $pdo->prepare("UPDATE order_access_tokens SET deactivated_at = NOW() WHERE order_id = ? AND deactivated_at IS NULL");
+            $stmt->execute([$id]);
+            $stmt = $pdo->prepare("UPDATE orders SET project_stage = 'delivered' WHERE id = ?");
+            $stmt->execute([$id]);
+            rc_flash('Client link deactivated & marked Delivered.');
+            header("Location: admin_edit.php?table=orders&id=$id");
+            exit;
+        }
+
+        if ($pp === 'reactivate_token' && $id) {
+            $stmt = $pdo->prepare("UPDATE order_access_tokens SET deactivated_at = NULL WHERE order_id = ?");
+            $stmt->execute([$id]);
+            rc_flash('Client link reactivated.');
+            header("Location: admin_edit.php?table=orders&id=$id");
+            exit;
+        }
+
+        if ($pp === 'regen_token' && $id) {
+            // Deactivate old tokens, create fresh one
+            $stmt = $pdo->prepare("UPDATE order_access_tokens SET deactivated_at = NOW() WHERE order_id = ? AND deactivated_at IS NULL");
+            $stmt->execute([$id]);
+            $newTok = bin2hex(random_bytes(32));
+            $stmt = $pdo->prepare("INSERT INTO order_access_tokens (order_id, token) VALUES (?, ?)");
+            $stmt->execute([$id, $newTok]);
+            rc_flash('New client link generated.');
+            header("Location: admin_edit.php?table=orders&id=$id");
+            exit;
+        }
+
+        // Main order edit (status, description, project_stage, staging_url)
+        $status        = trim($_POST['status']        ?? '');
+        $description   = trim($_POST['description']   ?? '');
+        $project_stage = trim($_POST['project_stage'] ?? 'pending');
+        $staging_url   = trim($_POST['staging_url']   ?? '');
 
         $allowedStatuses = ['Pending', 'On Progress', 'Completed', 'Cancelled'];
+        $allowedStages   = ['pending','design','development','qa','delivered','closed'];
         if (!in_array($status, $allowedStatuses)) $errors[] = "Invalid status.";
+        if (!in_array($project_stage, $allowedStages)) $project_stage = 'pending';
+        if ($staging_url !== '' && !preg_match('~^https?://~i', $staging_url)) {
+            $errors[] = "Staging URL must start with http:// or https://";
+        }
 
         if (empty($errors) && $id) {
-            $stmt = $pdo->prepare("UPDATE orders SET status = ?, description = ? WHERE id = ?");
-            $stmt->execute([$status, $description, $id]);
+            $stmt = $pdo->prepare("UPDATE orders SET status = ?, description = ?, project_stage = ?, staging_url = ? WHERE id = ?");
+            $stmt->execute([$status, $description, $project_stage, $staging_url !== '' ? $staging_url : null, $id]);
             $success = "Order updated successfully.";
         }
     }
@@ -123,6 +188,31 @@ if ($id) {
         header("Location: admin.php?table=$table");
         exit;
     }
+}
+
+// --- Progress portal context for orders ---
+$ppActiveToken    = null;
+$ppDeactivatedTok = null;
+$ppNotes          = [];
+$ppPortalBaseUrl  = (in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost','127.0.0.1']))
+    ? 'http://localhost/rielcode-progress'
+    : 'https://progress.rielcode.com';
+
+if ($table === 'orders' && $data) {
+    $stmt = $pdo->prepare("SELECT token, deactivated_at FROM order_access_tokens WHERE order_id = ? ORDER BY id DESC LIMIT 1");
+    $stmt->execute([$id]);
+    $tokRow = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($tokRow) {
+        if ($tokRow['deactivated_at'] === null) {
+            $ppActiveToken = $tokRow['token'];
+        } else {
+            $ppDeactivatedTok = $tokRow['token'];
+        }
+    }
+
+    $stmt = $pdo->prepare("SELECT id, note, created_at FROM order_progress_notes WHERE order_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$id]);
+    $ppNotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 $pageTitle = $id ? 'Edit' : 'Add';
@@ -162,7 +252,10 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
             </h2>
             <a href="admin.php?table=chat_logs">Chat Logs</a>
             <a href="admin.php?table=orders" class="<?= $table === 'orders' ? 'active' : '' ?>">Orders</a>
+            <a href="admin.php?table=invoices">Invoices</a>
             <a href="admin.php?table=packages" class="<?= $table === 'packages' ? 'active' : '' ?>">Packages</a>
+            <a href="admin.php?table=projects">Projects</a>
+            <a href="admin.php?table=testimonials">Testimonials</a>
             <a href="admin_logout.php">Logout</a>
         </div>
 
@@ -292,7 +385,7 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
                     <form method="post">
                         <div class="form-row">
                             <div>
-                                <label for="status">Status</label>
+                                <label for="status">Status (financial)</label>
                                 <select id="status" name="status" required>
                                     <?php
                                     $statuses = ['Pending', 'On Progress', 'Completed', 'Cancelled'];
@@ -304,10 +397,38 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
                                     <?php endforeach; ?>
                                 </select>
                             </div>
+                            <div>
+                                <label for="project_stage">Project Stage (client-facing)</label>
+                                <select id="project_stage" name="project_stage" required>
+                                    <?php
+                                    $stages = [
+                                        'pending'     => 'Pending',
+                                        'design'      => 'Design',
+                                        'development' => 'Development',
+                                        'qa'          => 'QA & Review',
+                                        'delivered'   => 'Delivered',
+                                        'closed'      => 'Closed',
+                                    ];
+                                    $currentStage = $data['project_stage'] ?? 'pending';
+                                    foreach ($stages as $key => $label):
+                                    ?>
+                                        <option value="<?= $key ?>" <?= $currentStage === $key ? 'selected' : '' ?>>
+                                            <?= $label ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
                         </div>
 
                         <div>
-                            <label for="description">Description / Notes</label>
+                            <label for="staging_url">Staging / Preview URL (shown to client)</label>
+                            <input type="url" id="staging_url" name="staging_url"
+                                   value="<?= htmlspecialchars($data['staging_url'] ?? '') ?>"
+                                   placeholder="https://staging.example.com">
+                        </div>
+
+                        <div>
+                            <label for="description">Description / Internal Notes</label>
                             <textarea id="description" name="description" rows="4"><?= htmlspecialchars($data['description'] ?? '') ?></textarea>
                         </div>
 
@@ -327,6 +448,134 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
                         </div>
                     </form>
                 </div>
+
+                <!-- ═══════════════════════════════════════════
+                     CLIENT PROGRESS PORTAL
+                ════════════════════════════════════════════ -->
+                <div style="margin-top: 32px;">
+                    <h2 style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: #3a7cff; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 16px;">
+                        ⬡ Client Progress Portal
+                    </h2>
+
+                    <div class="form-card" style="max-width: 720px;">
+
+                        <!-- Active / deactivated link -->
+                        <div style="margin-bottom: 24px;">
+                            <label>Client Portal Link</label>
+                            <?php if ($ppActiveToken): ?>
+                                <?php $portalUrl = $ppPortalBaseUrl . '/?t=' . $ppActiveToken; ?>
+                                <div style="display:flex;gap:8px;align-items:center;background:#0f172a;border:1px solid rgba(58,124,255,0.3);padding:10px 12px;border-radius:8px;margin-top:6px;">
+                                    <input type="text" id="ppLinkInput" readonly value="<?= htmlspecialchars($portalUrl) ?>"
+                                           style="flex:1;background:transparent;border:none;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;">
+                                    <button type="button" onclick="ppCopyLink()" class="button edit" style="padding:6px 12px;font-size:12px;">Copy</button>
+                                    <a href="<?= htmlspecialchars($portalUrl) ?>" target="_blank" rel="noopener" class="button edit" style="padding:6px 12px;font-size:12px;">Open</a>
+                                </div>
+                                <p style="color:#3ecf8e;font-family:'JetBrains Mono',monospace;font-size:0.7rem;margin-top:8px;">● Active — client can view progress</p>
+
+                                <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+                                    <form method="post" style="display:inline;">
+                                        <input type="hidden" name="pp_action" value="deactivate_token">
+                                        <button type="submit"
+                                                data-confirm="Deactivate the client's access link and mark this project as Delivered? They will lose access."
+                                                data-confirm-variant="danger"
+                                                data-confirm-title="Deactivate link"
+                                                data-confirm-label="Deactivate"
+                                                class="button delete" style="font-size:12px;">
+                                            Deactivate & Mark Delivered
+                                        </button>
+                                    </form>
+                                    <form method="post" style="display:inline;">
+                                        <input type="hidden" name="pp_action" value="regen_token">
+                                        <button type="submit"
+                                                data-confirm="Generate a new link? The old one will stop working immediately."
+                                                data-confirm-variant="warning"
+                                                data-confirm-title="Regenerate link"
+                                                data-confirm-label="Regenerate"
+                                                class="button edit" style="font-size:12px;">
+                                            Regenerate Link
+                                        </button>
+                                    </form>
+                                </div>
+                            <?php elseif ($ppDeactivatedTok): ?>
+                                <p style="color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:0.75rem;margin-top:6px;">
+                                    Link deactivated. Client no longer has access.
+                                </p>
+                                <div style="display:flex;gap:8px;margin-top:10px;">
+                                    <form method="post" style="display:inline;">
+                                        <input type="hidden" name="pp_action" value="reactivate_token">
+                                        <button type="submit" class="button edit" style="font-size:12px;">Reactivate Old Link</button>
+                                    </form>
+                                    <form method="post" style="display:inline;">
+                                        <input type="hidden" name="pp_action" value="regen_token">
+                                        <button type="submit" class="button edit" style="font-size:12px;">Generate New Link</button>
+                                    </form>
+                                </div>
+                            <?php else: ?>
+                                <p style="color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:0.75rem;margin-top:6px;">
+                                    No portal link exists for this order yet.
+                                </p>
+                                <form method="post" style="margin-top:10px;">
+                                    <input type="hidden" name="pp_action" value="regen_token">
+                                    <button type="submit" class="button edit" style="font-size:12px;">Generate Link</button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Add progress note -->
+                        <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;">
+                            <label for="pp_note">Post Update to Client</label>
+                            <form method="post">
+                                <input type="hidden" name="pp_action" value="add_note">
+                                <textarea id="pp_note" name="pp_note" rows="3" placeholder="e.g. Wireframes complete. Moving to visual design next." required></textarea>
+                                <button type="submit" class="button" style="margin-top:10px;background: linear-gradient(135deg, #3a7cff, #5b52f5); color: #fff; box-shadow: 0 4px 14px rgba(58,124,255,0.3);">
+                                    Post Update
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Notes feed -->
+                        <?php if (!empty($ppNotes)): ?>
+                            <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;margin-top:24px;">
+                                <label style="margin-bottom:12px;">Update History (<?= count($ppNotes) ?>)</label>
+                                <div style="display:flex;flex-direction:column;gap:10px;">
+                                    <?php foreach ($ppNotes as $n): ?>
+                                        <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.06);padding:12px 14px;border-radius:8px;display:flex;gap:12px;align-items:flex-start;">
+                                            <div style="flex:1;">
+                                                <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:#64748b;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;">
+                                                    <?= date('M j, Y · H:i', strtotime($n['created_at'])) ?>
+                                                </div>
+                                                <div style="color:#e2e8f0;font-size:0.85rem;line-height:1.5;">
+                                                    <?= nl2br(htmlspecialchars($n['note'])) ?>
+                                                </div>
+                                            </div>
+                                            <form method="post" style="display:inline;">
+                                                <input type="hidden" name="pp_action" value="delete_note">
+                                                <input type="hidden" name="note_id" value="<?= (int)$n['id'] ?>">
+                                                <button type="submit"
+                                                        data-confirm="Delete this update? The client will no longer see it."
+                                                        data-confirm-variant="danger"
+                                                        data-confirm-title="Delete update"
+                                                        data-confirm-label="Delete"
+                                                        class="button delete" style="font-size:11px;padding:5px 10px;">×</button>
+                                            </form>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                    </div>
+                </div>
+
+                <script>
+                    function ppCopyLink() {
+                        var inp = document.getElementById('ppLinkInput');
+                        if (!inp) return;
+                        inp.select(); inp.setSelectionRange(0, 9999);
+                        if (navigator.clipboard) { navigator.clipboard.writeText(inp.value); }
+                        else { document.execCommand('copy'); }
+                    }
+                </script>
 
                 <!-- ═══════════════════════════════════════════
                      AI Reply Draft Section

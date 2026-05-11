@@ -278,14 +278,28 @@ tbody tr:last-child td {
   white-space: nowrap;
 }
 
-.button.add, .button[type="submit"], button.button {
+.button.add {
   background: linear-gradient(135deg, #3a7cff, #5b52f5);
   color: #fff;
   box-shadow: 0 4px 14px rgba(58,124,255,0.3);
   margin-bottom: 16px;
 }
 
-.button.add:hover, .button[type="submit"]:hover, button.button:hover {
+.button.add:hover {
+  box-shadow: 0 6px 20px rgba(58,124,255,0.45);
+  transform: translateY(-1px);
+}
+
+/* Primary submit-style buttons — no forced margin-bottom */
+button.button:not(.edit):not(.delete):not(.add),
+.button[type="submit"] {
+  background: linear-gradient(135deg, #3a7cff, #5b52f5);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(58,124,255,0.3);
+}
+
+button.button:not(.edit):not(.delete):not(.add):hover,
+.button[type="submit"]:hover {
   box-shadow: 0 6px 20px rgba(58,124,255,0.45);
   transform: translateY(-1px);
 }
@@ -391,6 +405,8 @@ tbody tr:last-child td {
 .form-card input[type="text"],
 .form-card input[type="email"],
 .form-card input[type="number"],
+.form-card input[type="url"],
+.form-card input[type="file"],
 .form-card textarea,
 .form-card select {
   width: 100%;
@@ -406,7 +422,7 @@ tbody tr:last-child td {
   -webkit-appearance: none;
 }
 
-.form-card input:focus,
+.form-card input:focus:not([disabled]),
 .form-card textarea:focus,
 .form-card select:focus {
   border-color: rgba(58,124,255,0.5);
@@ -416,6 +432,50 @@ tbody tr:last-child td {
 
 .form-card input::placeholder,
 .form-card textarea::placeholder { color: #334155; }
+
+.form-card input[type="file"] {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.form-card input[type="file"]::-webkit-file-upload-button {
+  background: rgba(58,124,255,0.12);
+  border: 1px solid rgba(58,124,255,0.3);
+  border-radius: 6px;
+  color: #60a5fa;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: all 0.2s ease;
+}
+
+.form-card input[type="file"]::-webkit-file-upload-button:hover {
+  background: rgba(58,124,255,0.2);
+  border-color: rgba(58,124,255,0.5);
+}
+
+.form-card input[type="file"]::file-selector-button {
+  background: rgba(58,124,255,0.12);
+  border: 1px solid rgba(58,124,255,0.3);
+  border-radius: 6px;
+  color: #60a5fa;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: all 0.2s ease;
+}
+
+.form-card input[type="file"]::file-selector-button:hover {
+  background: rgba(58,124,255,0.2);
+  border-color: rgba(58,124,255,0.5);
+}
 
 .form-card textarea {
   min-height: 100px;
@@ -899,6 +959,87 @@ body.login-page::before { z-index: 0; }
   .form-card        { padding: 22px 18px; }
   .login-container  { margin: 20px; padding: 32px 24px; }
   .ai-reply-panel   { padding: 24px 20px; }
+}
+
+/* ============================================================
+   PROJECTS INLINE FORM (admin.php projects tab)
+   ============================================================ */
+.projects-form input[type="text"],
+.projects-form input[type="url"],
+.projects-form input[type="number"],
+.projects-form textarea,
+.projects-form select {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s ease;
+  -webkit-appearance: none;
+}
+
+.projects-form input:focus,
+.projects-form textarea:focus,
+.projects-form select:focus {
+  border-color: rgba(58,124,255,0.5);
+  background: rgba(58,124,255,0.05);
+  box-shadow: 0 0 0 3px rgba(58,124,255,0.1);
+}
+
+.projects-form input::placeholder,
+.projects-form textarea::placeholder { color: #334155; }
+
+.projects-form select option { background: #0f1623; color: #e2e8f0; }
+
+.projects-form textarea { resize: vertical; }
+
+.projects-form label {
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.projects-form input[type="file"] {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.projects-form input[type="file"]::-webkit-file-upload-button {
+  background: rgba(58,124,255,0.12);
+  border: 1px solid rgba(58,124,255,0.3);
+  border-radius: 6px;
+  color: #60a5fa;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: all 0.2s ease;
+}
+
+.projects-form input[type="file"]::file-selector-button {
+  background: rgba(58,124,255,0.12);
+  border: 1px solid rgba(58,124,255,0.3);
+  border-radius: 6px;
+  color: #60a5fa;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: all 0.2s ease;
 }
 
 /* ============================================================
