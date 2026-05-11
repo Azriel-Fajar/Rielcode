@@ -34,15 +34,25 @@
                 <article class="rc-prj__tile rc-prj__tile--md" style="--accent:#3ecf8e">
                     <div class="rc-prj__thumb"><img src="IMG/parallaxnet.jpg" alt="Parallaxnet" loading="lazy"></div>
                     <div class="rc-prj__meta">
-                        <div class="rc-prj__tags"><span class="rc-tag">Network / ISP</span></div>
+                        <div class="rc-prj__tags"><span class="rc-tag">Micro Learning Platform</span></div>
                         <h3 class="rc-prj__title">Parallaxnet</h3>
+                        <p class="rc-prj__tile-desc">Parallaxnet Siber Indonesia is a technology and education company focused on advancing cybersecurity, digital innovation, and tech talent development across Indonesia.</p>
+                        <a class="rc-prj__tile-cta" href="https://parallaxnet.id" target="_blank" rel="noopener">
+                            Visit Site
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+                        </a>
                     </div>
                 </article>
-                <article class="rc-prj__tile rc-prj__tile--md" style="--accent:#a35bff">
-                    <div class="rc-prj__thumb"><img src="IMG/Logo DAAM.png" alt="DAAM" loading="lazy"></div>
+                <article class="rc-prj__tile rc-prj__tile--md" style="--accent:#3ecf8e">
+                    <div class="rc-prj__thumb"><img src="IMG/parallaxnet ca.jpeg" alt="Parallaxnet" loading="lazy"></div>
                     <div class="rc-prj__meta">
-                        <div class="rc-prj__tags"><span class="rc-tag">Brand Identity</span></div>
-                        <h3 class="rc-prj__title">DAAM</h3>
+                        <div class="rc-prj__tags"><span class="rc-tag">Micro Learning Platform</span><span class="rc-tag">Canada</span></div>
+                        <h3 class="rc-prj__title">Parallaxnet Canada</h3>
+                        <p class="rc-prj__tile-desc">Parallaxnet Canada's mission is to nurture a generation of graduates who not only excel in their respective fields but also possess a profound understanding of the symbiotic relationship between technology and business.</p>
+                        <a class="rc-prj__tile-cta" href="https://parallaxnet.ca" target="_blank" rel="noopener">
+                            Visit Site
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+                        </a>
                     </div>
                 </article>
             </div>

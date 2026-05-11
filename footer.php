@@ -4,7 +4,7 @@
             <span class="rc-eyebrow">let's talk</span>
             <h2 class="rc-h2">Interested?</h2>
             <p class="rc-body-lg" style="max-width:480px;margin:0">Let's turn your ideas into reality. Get in touch with us through the channels below.</p>
-            <a class="rc-btn rc-contact__cta" href="order-form/">
+            <a class="rc-btn rc-contact__cta" href="<?= isset($base) ? $base : '' ?>order-form/">
                 Start a Project
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
@@ -65,7 +65,7 @@
 
 <footer class="rc-footer rc-footer--minimal">
     <div class="rc-container rc-footer__bar-inner">
-        <img class="rc-footer__logo-img" src="IMG/Rielcode Logo Transparent.png" alt="Rielcode">
+        <img class="rc-footer__logo-img" src="<?= isset($base) ? $base : '' ?>IMG/Rielcode Logo Transparent.png" alt="Rielcode">
         <span>Copyright &copy; 2026 Rielcode. All rights reserved.</span>
         <span class="rc-footer__legal">// real code, real results</span>
     </div>

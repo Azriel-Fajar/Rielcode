@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.body.insertAdjacentHTML("beforeend", chatbotHTML);
 
-  const promo = document.querySelector(".promo-bar.mobile");
+  const promo = document.querySelector(".rc-promo--bottom-bar");
   const chatIcon = document.getElementById("chatbot-icon");
   const chatContainer = document.getElementById("chatbot-container");
   const closeBtn = document.getElementById("close-chat");
@@ -131,8 +131,7 @@ document.addEventListener("DOMContentLoaded", function () {
     greeting.classList.remove("visible");
     badge.style.display = "none";
 
-    if (promo) promo.style.bottom = "-80px";
-    if (window.innerWidth <= 768) chatIcon.style.bottom = "25px";
+    if (promo) promo.style.transform = "translateY(100%)";
 
     if (!chatContainer.classList.contains("hidden")) {
       // Send bot greeting on first open
@@ -308,20 +307,49 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // ─── Scroll-based promo / icon behaviour ─────────────────────────────────
+  // ─── Promo height helper ──────────────────────────────────────────────────
+  function getPromoHeight() {
+    return promo ? promo.offsetHeight : 0;
+  }
+
+  function updateChatbotOffset(promoVisible) {
+    const isMobile = window.innerWidth <= 500;
+    if (!isMobile) return;
+    const offset = promoVisible ? getPromoHeight() + 12 : 20;
+    chatIcon.style.bottom = offset + "px";
+    if (!chatContainer.classList.contains("hidden")) {
+      chatContainer.style.bottom = (offset + 70) + "px";
+    }
+  }
+
+  // ─── Scroll-based promo hide/show ────────────────────────────────────────
   let lastScrollTop = 0;
+  let promoVisible = true;
   window.addEventListener("scroll", () => {
     const scrollTop = window.scrollY;
     const scrollingDown = scrollTop > lastScrollTop;
-    const chatOpen = !chatContainer.classList.contains("hidden");
 
-    if (promo) promo.style.bottom = scrollingDown ? "-100px" : "25px";
-    if (window.innerWidth <= 768) {
-      chatIcon.style.bottom = scrollingDown ? "25px" : "100px";
-      greeting.style.bottom = scrollingDown ? "92px" : "167px";
+    if (promo && promo.classList.contains("is-mounted")) {
+      if (scrollingDown && promoVisible) {
+        promo.classList.add("is-hidden-scroll");
+        promoVisible = false;
+        updateChatbotOffset(false);
+      } else if (!scrollingDown && !promoVisible) {
+        promo.classList.remove("is-hidden-scroll");
+        promoVisible = true;
+        updateChatbotOffset(true);
+      }
     }
-    lastScrollTop = scrollTop;
+    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
   });
+
+  // Set initial offset once promo mounts
+  const promoObserver = new MutationObserver(() => {
+    if (promo && promo.classList.contains("is-mounted")) {
+      updateChatbotOffset(true);
+    }
+  });
+  if (promo) promoObserver.observe(promo, { attributes: true, attributeFilter: ["class"] });
 });
 
 // ─── Injected styles ───────────────────────────────────────────────────────
@@ -343,7 +371,7 @@ style.textContent = `
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 1000;
+  z-index: 1001;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow:
     0 8px 24px rgba(58, 124, 255, 0.45),
@@ -390,7 +418,7 @@ style.textContent = `
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 9999;
+  z-index: 1002;
 
   /* Glassmorphism card */
   background: rgba(10, 15, 25, 0.92);
@@ -690,8 +718,15 @@ style.textContent = `
   }
 
   .chatbot-icon {
-    bottom: 20px;
+    bottom: 76px;
     right: 16px;
+    transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
+  }
+
+  .chatbot-greeting {
+    right: 12px;
+    max-width: calc(100vw - 80px);
+    bottom: 148px;
   }
 }
 
@@ -750,7 +785,7 @@ style.textContent = `
   color: #e2e8f0;
   max-width: 220px;
   line-height: 1.4;
-  z-index: 999;
+  z-index: 1001;
   box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(58,124,255,0.1);
   backdrop-filter: blur(12px);
   opacity: 0;
