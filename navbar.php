@@ -46,7 +46,7 @@
             Start a Project
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
-        <p class="rc-body-sm" style="margin:0">info@rielcode.com</p>
+        <span class="rc-mnav__foot-meta">info@rielcode.com</span>
     </div>
 </div>
 <button class="rc-mnav__scrim" id="rc-mnav-scrim" aria-label="Close menu" type="button" tabindex="-1"></button>
