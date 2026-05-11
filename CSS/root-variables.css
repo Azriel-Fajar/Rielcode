@@ -121,8 +121,8 @@
   --transition-slow: 0.6s ease;
 
   /* ── Z-index ── */
-  --z-nav:     999;
-  --z-overlay: 9999;
+  --z-nav:     1050;
+  --z-overlay: 10000;
 
   /* ── Layout ── */
   --container-max:      1200px;
