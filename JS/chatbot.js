@@ -66,6 +66,11 @@ document.addEventListener("DOMContentLoaded", function () {
   document.body.insertAdjacentHTML("beforeend", chatbotHTML);
 
   const promo = document.querySelector(".rc-promo--bottom-bar");
+
+  // Start widget at base corner position — lifted by updateChatbotOffset once promo mounts
+  const _initBase = window.innerWidth <= 500 ? 16 : 25;
+  document.getElementById("chatbot-icon").style.bottom = _initBase + "px";
+  document.getElementById("chatbot-greeting").style.bottom = (_initBase + 68) + "px";
   const chatIcon = document.getElementById("chatbot-icon");
   const chatContainer = document.getElementById("chatbot-container");
   const closeBtn = document.getElementById("close-chat");
@@ -307,49 +312,48 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // ─── Promo height helper ──────────────────────────────────────────────────
-  function getPromoHeight() {
-    return promo ? promo.offsetHeight : 0;
-  }
-
-  function updateChatbotOffset(promoVisible) {
-    const isMobile = window.innerWidth <= 500;
-    if (!isMobile) return;
-    const offset = promoVisible ? getPromoHeight() + 12 : 20;
+  function updateChatbotOffset(promoUp) {
+    const base = window.innerWidth <= 500 ? 16 : 25;
+    const offset = promoUp ? (promo ? promo.offsetHeight : 0) + 12 : base;
     chatIcon.style.bottom = offset + "px";
+    greeting.style.bottom = (offset + 68) + "px";
     if (!chatContainer.classList.contains("hidden")) {
       chatContainer.style.bottom = (offset + 70) + "px";
     }
   }
 
+  // ─── Promo mount / dismiss observer ──────────────────────────────────────
+  if (promo) {
+    new MutationObserver(() => {
+      if (promo.classList.contains("is-dismissed")) {
+        promoHiddenByScroll = false;
+        updateChatbotOffset(false);
+      } else if (promo.classList.contains("is-mounted") && !promo.classList.contains("is-hidden-scroll")) {
+        updateChatbotOffset(true);
+      }
+    }).observe(promo, { attributes: true, attributeFilter: ["class"] });
+  }
+
   // ─── Scroll-based promo hide/show ────────────────────────────────────────
   let lastScrollTop = 0;
-  let promoVisible = true;
+  let promoHiddenByScroll = false;
   window.addEventListener("scroll", () => {
     const scrollTop = window.scrollY;
     const scrollingDown = scrollTop > lastScrollTop;
 
     if (promo && promo.classList.contains("is-mounted")) {
-      if (scrollingDown && promoVisible) {
+      if (scrollingDown && !promoHiddenByScroll) {
         promo.classList.add("is-hidden-scroll");
-        promoVisible = false;
+        promoHiddenByScroll = true;
         updateChatbotOffset(false);
-      } else if (!scrollingDown && !promoVisible) {
+      } else if (!scrollingDown && promoHiddenByScroll) {
         promo.classList.remove("is-hidden-scroll");
-        promoVisible = true;
+        promoHiddenByScroll = false;
         updateChatbotOffset(true);
       }
     }
     lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
   });
-
-  // Set initial offset once promo mounts
-  const promoObserver = new MutationObserver(() => {
-    if (promo && promo.classList.contains("is-mounted")) {
-      updateChatbotOffset(true);
-    }
-  });
-  if (promo) promoObserver.observe(promo, { attributes: true, attributeFilter: ["class"] });
 });
 
 // ─── Injected styles ───────────────────────────────────────────────────────
@@ -791,7 +795,7 @@ style.textContent = `
   opacity: 0;
   transform: translateY(10px) scale(0.95);
   pointer-events: none;
-  transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.16,1,0.3,1);
+  transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.16,1,0.3,1);
 }
 
 .chatbot-greeting.visible {

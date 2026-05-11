@@ -174,7 +174,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                 .cp-preset-card__desc { font-size: 13px; color: rgba(255,255,255,0.6); }
                 @media (max-width: 640px) { .cp-presets { grid-template-columns: 1fr; } }
 
-                .cp-copy-url-row { display:none; margin: 12px 0 0; padding: 14px; border-radius: 12px; background: rgba(255,149,0,0.06); border: 1px solid rgba(255,149,0,0.20); }
+                .cp-copy-url-row { display:none; margin: 12px 0 12px; padding: 14px; border-radius: 12px; background: rgba(255,149,0,0.06); border: 1px solid rgba(255,149,0,0.20); }
                 .cp-copy-url-row.is-visible { display: block; }
                 .cp-copy-url-row label { display:block; font-size: 13px; color: #ff9500; font-weight: 600; margin-bottom: 6px; }
                 .cp-copy-url-row input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: #fff; font-size: 14px; }
@@ -372,7 +372,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <span>Total</span>
                             <span class="cp-summary-total" id="summary-total">Rp500.000</span>
                         </div>
-                        <div id="plan-cap-badge" style="display:none;margin-top:8px;padding:6px 10px;background:rgba(58,123,255,0.12);border:1px solid rgba(58,123,255,0.3);border-radius:6px;font-size:12px;color:#6fa3ff;line-height:1.4;"></div>
+                        <div id="plan-cap-badge" style="display:none;margin-top:8px;margin-bottom:8px;padding:6px 10px;background:rgba(58,123,255,0.12);border:1px solid rgba(58,123,255,0.3);border-radius:6px;font-size:12px;color:#6fa3ff;line-height:1.4;"></div>
 
                         <div class="cp-hosting-unlock" id="hosting-unlock-bar">
                             <!-- shown when hosting is unlocked -->
