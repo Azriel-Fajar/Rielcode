@@ -13,7 +13,7 @@ $_testimonials = $_tResult->fetch_all(MYSQLI_ASSOC);
 $_tStmt->close();
 ?>
 <section id="testimonials" class="section-padding w-full"<?= empty($_testimonials) ? ' style="display:none"' : '' ?>>
-    <div class="container mx-auto">
+    <div class="rc-container">
         <div class="text-center mb-12">
             <div class="rc-section-tag">Client Testimonials</div>
             <h2 class="font-bold text-5xl text-white">What Clients Say</h2>
