@@ -94,11 +94,16 @@ if ($action === 'delete' && $id && !in_array($table, ['chat_logs', 'referrers', 
                 unlink($filePath);
             }
         }
+        // Grab package_id before deleting
+        $pkgStmt = $pdo->prepare("SELECT package_id FROM orders WHERE id = ?");
+        $pkgStmt->execute([$id]);
+        $pkgId = $pkgStmt->fetchColumn();
         $pdo->prepare("DELETE FROM referral_commissions WHERE order_id = ?")->execute([$id]);
-        $stmt = $pdo->prepare("DELETE FROM orders WHERE id = ?");
-        $stmt->execute([$id]);
-        // Recalculate order counts
-        $pdo->exec("UPDATE packages p SET orders = (SELECT COUNT(*) FROM orders o WHERE o.package_id = p.id)");
+        $pdo->prepare("DELETE FROM orders WHERE id = ?")->execute([$id]);
+        // Update only the affected package's count
+        if ($pkgId) {
+            $pdo->prepare("UPDATE packages SET orders = (SELECT COUNT(*) FROM orders WHERE package_id = ?) WHERE id = ?")->execute([$pkgId, $pkgId]);
+        }
         rc_flash('Order deleted.');
     } elseif ($table === 'packages') {
         $stmt = $pdo->prepare("SELECT COUNT(*) as cnt FROM orders WHERE package_id = ?");
@@ -137,11 +142,32 @@ if ($table === 'projects' && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array($
         $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
         if (in_array($ext, ['jpg','jpeg','png','webp','gif'], true)) {
             $safe = preg_replace('/[^a-z0-9_-]/i', '_', pathinfo($_FILES['image']['name'], PATHINFO_FILENAME));
-            $filename = $safe . '_' . time() . '.' . $ext;
+            // Save compressed as jpg to save space
+            $filename = $safe . '_' . time() . '.jpg';
             $target = $uploadDir . '/' . $filename;
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
-                $imagePath = 'IMG/projects/' . $filename;
+            $tmpPath = $_FILES['image']['tmp_name'];
+            $compressed = false;
+            if (function_exists('imagecreatefromstring')) {
+                $imgData = file_get_contents($tmpPath);
+                $src = imagecreatefromstring($imgData);
+                if ($src !== false) {
+                    $w = imagesx($src); $h = imagesy($src);
+                    // Cap at 1600px wide
+                    if ($w > 1600) {
+                        $h = (int)round($h * 1600 / $w); $w = 1600;
+                        $dst = imagecreatetruecolor($w, $h);
+                        imagecopyresampled($dst, $src, 0, 0, 0, 0, $w, $h, imagesx($src), imagesy($src));
+                        imagedestroy($src); $src = $dst;
+                    }
+                    imagejpeg($src, $target, 82);
+                    imagedestroy($src);
+                    $compressed = true;
+                }
             }
+            if (!$compressed) {
+                move_uploaded_file($tmpPath, $target);
+            }
+            $imagePath = 'IMG/projects/' . $filename;
         }
     }
 
@@ -265,7 +291,7 @@ if ($table === 'projects' && $action === 'edit' && $id) {
 // --- Fetch paged data ---
 switch ($table) {
     case 'orders':
-        $stmt = $pdo->prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
+        $stmt = $pdo->prepare("SELECT id, order_name, email, package, owns_domain, owns_hosting, phone_number, description, status, invoice_file FROM orders ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
         $columns = ['id', 'order_name', 'email', 'package', 'owns_domain', 'owns_hosting', 'phone_number', 'description', 'status', 'invoice_file'];
         break;
     case 'packages':
@@ -858,11 +884,22 @@ $testimonialBaseUrl = $isLocalhost
                             <?php endif; ?>
                         </div>
 
-                        <div style="grid-column:span 2;display:flex;align-items:center;gap:10px;">
-                            <input type="checkbox" name="is_visible" id="is_visible" value="1"
-                                   style="width:auto;accent-color:#3a7cff;cursor:pointer;"
-                                   <?= ($editProject === null || (int)($editProject['is_visible'] ?? 1) === 1) ? 'checked' : '' ?>>
-                            <label for="is_visible" style="text-transform:none;font-size:0.875rem;color:#e2e8f0;letter-spacing:0;cursor:pointer;">Visible on public site</label>
+                        <div style="grid-column:span 2;display:flex;align-items:center;gap:12px;">
+                            <style>
+                                .toggle-switch{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
+                                .toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+                                .toggle-track{position:absolute;inset:0;background:#2d3748;border:1px solid #4a5568;border-radius:12px;cursor:pointer;transition:background .2s,border-color .2s}
+                                .toggle-track::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#718096;border-radius:50%;transition:transform .2s,background .2s}
+                                .toggle-switch input:checked+.toggle-track{background:#1e3a6e;border-color:#3a7cff}
+                                .toggle-switch input:checked+.toggle-track::after{transform:translateX(20px);background:#3a7cff;box-shadow:0 0 6px rgba(58,124,255,.6)}
+                                .toggle-switch input:focus-visible+.toggle-track{outline:2px solid #3a7cff;outline-offset:2px}
+                            </style>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="is_visible" id="is_visible" value="1"
+                                       <?= ($editProject === null || (int)($editProject['is_visible'] ?? 1) === 1) ? 'checked' : '' ?>>
+                                <span class="toggle-track"></span>
+                            </label>
+                            <label for="is_visible" style="text-transform:none;font-size:0.875rem;color:#e2e8f0;letter-spacing:0;cursor:pointer;user-select:none;">Visible on public site</label>
                         </div>
 
                         <div style="grid-column:span 2;display:flex;gap:10px;align-items:center;">
@@ -1023,7 +1060,7 @@ $testimonialBaseUrl = $isLocalhost
                             <?php foreach ($columns as $index => $col): ?>
                                 <th><?= $index === 0 ? 'No' : ucfirst(str_replace('_', ' ', $col)) ?></th>
                             <?php endforeach; ?>
-                            <th>Actions</th>
+                            <?php if ($table !== 'chat_logs'): ?><th>Actions</th><?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
@@ -1071,23 +1108,21 @@ $testimonialBaseUrl = $isLocalhost
                                         </td>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
+                                <?php if ($table !== 'chat_logs'): ?>
                                 <td>
-                                    <?php if ($table === 'chat_logs'): ?>
-                                        <span class="no-actions">—</span>
-                                    <?php else: ?>
-                                        <div class="table-actions">
-                                            <a href="admin_edit.php?table=<?= $table ?>&id=<?= $row['id'] ?>" class="button edit">Edit</a>
-                                            <?php if ($table === 'packages'): ?>
-                                                <a href="?table=<?= $table ?>&action=delete&id=<?= $row['id'] ?>"
-                                                    data-confirm="Are you sure you want to delete this record?"
-                                                    data-confirm-variant="danger"
-                                                    data-confirm-title="Delete record"
-                                                    data-confirm-label="Delete"
-                                                    class="button delete">Delete</a>
-                                            <?php endif; ?>
-                                        </div>
-                                    <?php endif; ?>
+                                    <div class="table-actions">
+                                        <a href="admin_edit.php?table=<?= $table ?>&id=<?= $row['id'] ?>" class="button edit">Edit</a>
+                                        <?php if ($table === 'packages'): ?>
+                                            <a href="?table=<?= $table ?>&action=delete&id=<?= $row['id'] ?>"
+                                                data-confirm="Are you sure you want to delete this record?"
+                                                data-confirm-variant="danger"
+                                                data-confirm-title="Delete record"
+                                                data-confirm-label="Delete"
+                                                class="button delete">Delete</a>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
