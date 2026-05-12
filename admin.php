@@ -81,8 +81,8 @@ if ($table === 'testimonials' && $action === 'gen_token') {
     exit;
 }
 
-// --- Handle Delete (orders & packages only) ---
-if ($action === 'delete' && $id && $table !== 'chat_logs') {
+// --- Handle Delete (orders, packages — NOT referrers/projects which have their own handlers) ---
+if ($action === 'delete' && $id && !in_array($table, ['chat_logs', 'referrers', 'projects', 'testimonials'], true)) {
     if ($table === 'orders') {
         // BUG FIX: use PDO for the file lookup instead of raw mysqli
         $stmt = $pdo->prepare("SELECT invoice_file FROM orders WHERE id = ?");
@@ -94,6 +94,7 @@ if ($action === 'delete' && $id && $table !== 'chat_logs') {
                 unlink($filePath);
             }
         }
+        $pdo->prepare("DELETE FROM referral_commissions WHERE order_id = ?")->execute([$id]);
         $stmt = $pdo->prepare("DELETE FROM orders WHERE id = ?");
         $stmt->execute([$id]);
         // Recalculate order counts
@@ -229,13 +230,25 @@ if ($table === 'commissions' && $action === 'cancel' && $id) {
 $items_per_page = 20;
 $page           = max(1, (int)($_GET['page'] ?? 1));
 $offset         = ($page - 1) * $items_per_page;
+$filterReferrerId = 0;
+$filterStatus     = '';
 
 // `invoices` is a virtual view over `orders`
 if ($table === 'invoices') {
     $countTable = 'orders';
     $total_items = (int)$pdo->query("SELECT COUNT(*) FROM `$countTable`")->fetchColumn();
 } elseif ($table === 'commissions') {
-    $total_items = (int)$pdo->query("SELECT COUNT(*) FROM referral_commissions")->fetchColumn();
+    $filterReferrerId = isset($_GET['referrer_id']) ? (int)$_GET['referrer_id'] : 0;
+    $filterStatus      = in_array($_GET['status'] ?? '', ['pending','paid','cancelled'], true) ? $_GET['status'] : '';
+    $cntWhere = [];
+    $cntParams = [];
+    if ($filterReferrerId) { $cntWhere[] = 'referrer_id = :ref_id'; $cntParams[':ref_id'] = $filterReferrerId; }
+    if ($filterStatus !== '') { $cntWhere[] = 'status = :status'; $cntParams[':status'] = $filterStatus; }
+    $cntSql = 'SELECT COUNT(*) FROM referral_commissions' . ($cntWhere ? ' WHERE ' . implode(' AND ', $cntWhere) : '');
+    $cntStmt = $pdo->prepare($cntSql);
+    foreach ($cntParams as $k => $v) $cntStmt->bindValue($k, $v);
+    $cntStmt->execute();
+    $total_items = (int)$cntStmt->fetchColumn();
 } else {
     $total_items = (int)$pdo->query("SELECT COUNT(*) FROM `$table`")->fetchColumn();
 }
@@ -292,8 +305,6 @@ switch ($table) {
         $columns = ['id','name','phone','code','commission_rate','status','total_earned'];
         break;
     case 'commissions':
-        $filterReferrerId = isset($_GET['referrer_id']) ? (int)$_GET['referrer_id'] : 0;
-        $filterStatus      = in_array($_GET['status'] ?? '', ['pending','paid','cancelled'], true) ? $_GET['status'] : '';
         $where = [];
         $params = [];
         if ($filterReferrerId) { $where[] = 'rc.referrer_id = :ref_id'; $params[':ref_id'] = $filterReferrerId; }
@@ -1003,7 +1014,7 @@ $testimonialBaseUrl = $isLocalhost
                     </div>
                 <?php endif; ?>
 
-            <?php else: ?>
+            <?php elseif (!in_array($table, ['referrers', 'commissions'], true)): ?>
             <!-- ====== ORIGINAL TABLES (chat_logs / orders / packages) ====== -->
             <div class="table-container">
                 <table>

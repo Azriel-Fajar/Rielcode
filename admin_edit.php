@@ -53,6 +53,7 @@ if ($action === 'delete' && $id) {
             $filePath = ltrim(str_replace('../', '', $row['invoice_file']), '/');
             if (file_exists($filePath)) unlink($filePath);
         }
+        $pdo->prepare("DELETE FROM referral_commissions WHERE order_id = ?")->execute([$id]);
         $stmt = $pdo->prepare("DELETE FROM orders WHERE id = ?");
         $stmt->execute([$id]);
         $pdo->exec("UPDATE packages p SET orders = (SELECT COUNT(*) FROM orders o WHERE o.package_id = p.id)");
@@ -256,6 +257,8 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
             <a href="admin.php?table=packages" class="<?= $table === 'packages' ? 'active' : '' ?>">Packages</a>
             <a href="admin.php?table=projects">Projects</a>
             <a href="admin.php?table=testimonials">Testimonials</a>
+            <a href="admin.php?table=referrers">Referrers</a>
+            <a href="admin.php?table=commissions">Commissions</a>
             <a href="admin_logout.php">Logout</a>
         </div>
 
