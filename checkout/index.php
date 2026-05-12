@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $rawCode !== '') {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progress') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progress' && $referralError === '') {
 
     $orders_after = $currentOrders + 1;
     $stmt = $conn->prepare("UPDATE packages SET orders = ? WHERE package_name = ?");
