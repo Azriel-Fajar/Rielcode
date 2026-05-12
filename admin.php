@@ -28,7 +28,7 @@ try {
 }
 
 // Whitelist $table to prevent SQL injection via GET parameter
-$allowedTables = ['chat_logs', 'orders', 'packages', 'testimonials', 'projects', 'invoices'];
+$allowedTables = ['chat_logs', 'orders', 'packages', 'testimonials', 'projects', 'invoices', 'referrers', 'commissions'];
 $table = in_array($_GET['table'] ?? '', $allowedTables) ? $_GET['table'] : 'chat_logs';
 
 $action = $_GET['action'] ?? '';
@@ -164,6 +164,65 @@ if ($table === 'projects' && $action === 'delete' && $id) {
     exit;
 }
 
+// --- Referrers: add ---
+if ($table === 'referrers' && $_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'add') {
+    $rName  = trim($_POST['name']            ?? '');
+    $rPhone = trim($_POST['phone']           ?? '');
+    $rCode  = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim($_POST['code'] ?? '')));
+    $rRate  = min(100, max(0, (float)($_POST['commission_rate'] ?? 10)));
+    if ($rName !== '' && $rPhone !== '' && $rCode !== '') {
+        $stmt = $pdo->prepare("INSERT INTO referrers (name, phone, code, commission_rate) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$rName, $rPhone, $rCode, $rRate]);
+        rc_flash('Referrer added.');
+    } else {
+        rc_flash('Name, phone, and code are required.', 'error');
+    }
+    header("Location: admin.php?table=referrers");
+    exit;
+}
+
+// --- Referrers: toggle active/inactive ---
+if ($table === 'referrers' && $action === 'toggle' && $id) {
+    $stmt = $pdo->prepare("SELECT status FROM referrers WHERE id = ?");
+    $stmt->execute([$id]);
+    $cur = $stmt->fetchColumn();
+    $next = ($cur === 'active') ? 'inactive' : 'active';
+    $pdo->prepare("UPDATE referrers SET status = ? WHERE id = ?")->execute([$next, $id]);
+    rc_flash('Referrer status updated.');
+    header("Location: admin.php?table=referrers");
+    exit;
+}
+
+// --- Referrers: delete (only if no commissions linked) ---
+if ($table === 'referrers' && $action === 'delete' && $id) {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM referral_commissions WHERE referrer_id = ?");
+    $stmt->execute([$id]);
+    if ((int)$stmt->fetchColumn() > 0) {
+        rc_flash('Cannot delete — referrer has linked commissions.', 'error');
+    } else {
+        $pdo->prepare("DELETE FROM referrers WHERE id = ?")->execute([$id]);
+        rc_flash('Referrer deleted.');
+    }
+    header("Location: admin.php?table=referrers");
+    exit;
+}
+
+// --- Commissions: mark paid ---
+if ($table === 'commissions' && $action === 'paid' && $id) {
+    $pdo->prepare("UPDATE referral_commissions SET status='paid', paid_at=NOW() WHERE id = ?")->execute([$id]);
+    rc_flash('Commission marked as paid.');
+    header("Location: admin.php?table=commissions");
+    exit;
+}
+
+// --- Commissions: cancel ---
+if ($table === 'commissions' && $action === 'cancel' && $id) {
+    $pdo->prepare("UPDATE referral_commissions SET status='cancelled' WHERE id = ?")->execute([$id]);
+    rc_flash('Commission cancelled.');
+    header("Location: admin.php?table=commissions");
+    exit;
+}
+
 // --- Invoices: handled below (CRUD via dedicated routes in invoices admin block) ---
 
 // --- Pagination ---
@@ -172,8 +231,14 @@ $page           = max(1, (int)($_GET['page'] ?? 1));
 $offset         = ($page - 1) * $items_per_page;
 
 // `invoices` is a virtual view over `orders`
-$countTable = ($table === 'invoices') ? 'orders' : $table;
-$total_items = (int)$pdo->query("SELECT COUNT(*) FROM `$countTable`")->fetchColumn();
+if ($table === 'invoices') {
+    $countTable = 'orders';
+    $total_items = (int)$pdo->query("SELECT COUNT(*) FROM `$countTable`")->fetchColumn();
+} elseif ($table === 'commissions') {
+    $total_items = (int)$pdo->query("SELECT COUNT(*) FROM referral_commissions")->fetchColumn();
+} else {
+    $total_items = (int)$pdo->query("SELECT COUNT(*) FROM `$table`")->fetchColumn();
+}
 $total_pages = max(1, (int)ceil($total_items / $items_per_page));
 
 // Projects edit-mode preload
@@ -214,6 +279,39 @@ switch ($table) {
         $stmt = $pdo->prepare("SELECT id, order_name, email, package, final_price, invoice_number, invoice_status, invoice_amount, invoice_currency, invoice_sent, invoice_file, created_at FROM orders ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
         $columns = ['id','order_name','package','invoice_number','invoice_status','invoice_amount'];
         break;
+    case 'referrers':
+        $stmt = $pdo->prepare(
+            "SELECT r.id, r.name, r.phone, r.code, r.commission_rate, r.status,
+                    COALESCE(SUM(CASE WHEN rc.status='paid' THEN rc.commission_amount ELSE 0 END), 0) AS total_earned
+             FROM referrers r
+             LEFT JOIN referral_commissions rc ON rc.referrer_id = r.id
+             GROUP BY r.id
+             ORDER BY r.created_at DESC
+             LIMIT :limit OFFSET :offset"
+        );
+        $columns = ['id','name','phone','code','commission_rate','status','total_earned'];
+        break;
+    case 'commissions':
+        $filterReferrerId = isset($_GET['referrer_id']) ? (int)$_GET['referrer_id'] : 0;
+        $filterStatus      = in_array($_GET['status'] ?? '', ['pending','paid','cancelled'], true) ? $_GET['status'] : '';
+        $where = [];
+        $params = [];
+        if ($filterReferrerId) { $where[] = 'rc.referrer_id = :ref_id'; $params[':ref_id'] = $filterReferrerId; }
+        if ($filterStatus !== '') { $where[] = 'rc.status = :status'; $params[':status'] = $filterStatus; }
+        $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+        $stmt = $pdo->prepare(
+            "SELECT rc.id, r.name AS referrer_name, o.invoice_number, rc.order_amount,
+                    rc.commission_amount, rc.status, rc.created_at, rc.paid_at
+             FROM referral_commissions rc
+             JOIN referrers r ON r.id = rc.referrer_id
+             JOIN orders o ON o.id = rc.order_id
+             $whereSql
+             ORDER BY rc.created_at DESC
+             LIMIT :limit OFFSET :offset"
+        );
+        foreach ($params as $k => $v) { $stmt->bindValue($k, $v); }
+        $columns = ['id','referrer_name','invoice_number','order_amount','commission_amount','status','created_at'];
+        break;
     case 'chat_logs':
     default:
         $stmt = $pdo->prepare("SELECT id, LEFT(user_message, 120) AS user_message, LEFT(bot_reply, 120) AS bot_reply, tag, created_at FROM chat_logs ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
@@ -240,6 +338,12 @@ if ($table === 'testimonials') {
     if (!empty($_GET['new_token'])) {
         $newToken = $_GET['new_token'];
     }
+}
+
+// Referrers list for commissions filter dropdown
+$allReferrers = [];
+if ($table === 'commissions') {
+    $allReferrers = $pdo->query("SELECT id, name FROM referrers ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Build testimonial base URL — localhost in dev, production domain otherwise
