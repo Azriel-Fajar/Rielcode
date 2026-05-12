@@ -392,11 +392,194 @@ $testimonialBaseUrl = $isLocalhost
             <a href="admin.php?table=packages" class="<?= $table === 'packages'    ? 'active' : '' ?>">Packages</a>
             <a href="admin.php?table=projects" class="<?= $table === 'projects'    ? 'active' : '' ?>">Projects</a>
             <a href="admin.php?table=testimonials" class="<?= $table === 'testimonials' ? 'active' : '' ?>">Testimonials</a>
+            <a href="admin.php?table=referrers" class="<?= $table === 'referrers' ? 'active' : '' ?>">Referrers</a>
+            <a href="admin.php?table=commissions" class="<?= $table === 'commissions' ? 'active' : '' ?>">Commissions</a>
             <a href="admin_logout.php">Logout</a>
         </div>
 
         <div class="main-content">
             <h1><?= $table === 'testimonials' ? 'Testimonials' : ucfirst(str_replace('_', ' ', $table)) ?></h1>
+
+            <?php if ($table === 'referrers'): ?>
+
+                <!-- ====== ADD REFERRER FORM ====== -->
+                <form method="post" action="admin.php?table=referrers&action=add" style="margin-bottom:24px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+                    <div>
+                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Name</label>
+                        <input type="text" name="name" required placeholder="Budi Santoso" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Phone (WhatsApp)</label>
+                        <input type="text" name="phone" required placeholder="081234567890" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Code</label>
+                        <input type="text" name="code" required placeholder="BUDI10" maxlength="20" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;text-transform:uppercase;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Rate (%)</label>
+                        <input type="number" name="commission_rate" value="10" min="0" max="100" step="0.01" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;width:80px;">
+                    </div>
+                    <button type="submit" class="button add" style="margin-bottom:0;">Add Referrer</button>
+                </form>
+
+                <!-- ====== REFERRERS TABLE ====== -->
+                <?php if (empty($logs)): ?>
+                    <p style="color:#475569;font-family:'JetBrains Mono',monospace;font-size:0.8rem;">No referrers yet.</p>
+                <?php else: ?>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Code</th>
+                                <th>Rate</th>
+                                <th>Status</th>
+                                <th>Total Earned (Paid)</th>
+                                <th>Dashboard URL</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($logs as $row): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($row['name']) ?></td>
+                                <td>
+                                    <a href="https://wa.me/<?= preg_replace('/[^0-9]/', '', $row['phone']) ?>" target="_blank" style="color:#25d366;">
+                                        <?= htmlspecialchars($row['phone']) ?>
+                                    </a>
+                                </td>
+                                <td style="font-family:'JetBrains Mono',monospace;font-weight:600;color:#60a5fa;"><?= htmlspecialchars($row['code']) ?></td>
+                                <td><?= number_format((float)$row['commission_rate'], 2) ?>%</td>
+                                <td>
+                                    <?php $active = $row['status'] === 'active'; ?>
+                                    <span style="<?= $active ? 'background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;' : 'background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.30);color:#f87171;' ?>padding:3px 10px;border-radius:20px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;font-weight:600;">
+                                        <?= ucfirst($row['status']) ?>
+                                    </span>
+                                </td>
+                                <td>Rp<?= number_format((float)$row['total_earned'], 0, ',', '.') ?></td>
+                                <td style="font-size:0.72rem;">
+                                    <?php
+                                    $isLocalDev = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost','127.0.0.1']);
+                                    $baseUrl = $isLocalDev ? 'http://localhost/Rielcode/referrer/' : 'https://rielcode.com/referrer/';
+                                    $dashUrl = $baseUrl . '?code=' . urlencode($row['code']);
+                                    ?>
+                                    <a href="<?= htmlspecialchars($dashUrl) ?>" target="_blank" style="color:#60a5fa;"><?= htmlspecialchars($dashUrl) ?></a>
+                                </td>
+                                <td>
+                                    <div class="table-actions">
+                                        <a href="admin.php?table=referrers&action=toggle&id=<?= $row['id'] ?>"
+                                           class="button edit" style="font-size:0.72rem;padding:5px 10px;">
+                                            <?= $row['status'] === 'active' ? 'Deactivate' : 'Activate' ?>
+                                        </a>
+                                        <a href="admin.php?table=referrers&action=delete&id=<?= $row['id'] ?>"
+                                           data-confirm="Delete this referrer? Only possible if they have no linked commissions."
+                                           data-confirm-variant="danger"
+                                           data-confirm-title="Delete referrer"
+                                           data-confirm-label="Delete"
+                                           class="button delete" style="font-size:0.72rem;padding:5px 10px;">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php endif; ?>
+
+            <?php elseif ($table === 'commissions'): ?>
+
+                <!-- ====== COMMISSIONS FILTER ====== -->
+                <form method="get" action="admin.php" style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+                    <input type="hidden" name="table" value="commissions">
+                    <div>
+                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Referrer</label>
+                        <select name="referrer_id" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;">
+                            <option value="">All</option>
+                            <?php foreach ($allReferrers as $ref): ?>
+                                <option value="<?= $ref['id'] ?>" <?= $filterReferrerId === $ref['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($ref['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Status</label>
+                        <select name="status" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;">
+                            <option value="">All</option>
+                            <option value="pending"   <?= $filterStatus === 'pending'   ? 'selected' : '' ?>>Pending</option>
+                            <option value="paid"      <?= $filterStatus === 'paid'      ? 'selected' : '' ?>>Paid</option>
+                            <option value="cancelled" <?= $filterStatus === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="button" style="margin-bottom:0;padding:7px 14px;">Filter</button>
+                </form>
+
+                <!-- ====== COMMISSIONS TABLE ====== -->
+                <?php if (empty($logs)): ?>
+                    <p style="color:#475569;font-family:'JetBrains Mono',monospace;font-size:0.8rem;">No commissions yet.</p>
+                <?php else: ?>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Referrer</th>
+                                <th>Invoice</th>
+                                <th>Order Amount</th>
+                                <th>Commission</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Paid At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($logs as $row): ?>
+                            <?php
+                            $comColors = [
+                                'pending'   => 'background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;',
+                                'paid'      => 'background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;',
+                                'cancelled' => 'background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.30);color:#f87171;',
+                            ];
+                            ?>
+                            <tr>
+                                <td><?= htmlspecialchars($row['referrer_name']) ?></td>
+                                <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:#60a5fa;"><?= htmlspecialchars($row['invoice_number'] ?? '—') ?></td>
+                                <td>Rp<?= number_format((float)$row['order_amount'], 0, ',', '.') ?></td>
+                                <td style="font-weight:600;color:#4ade80;">Rp<?= number_format((float)$row['commission_amount'], 0, ',', '.') ?></td>
+                                <td>
+                                    <span style="<?= $comColors[$row['status']] ?? '' ?>padding:3px 10px;border-radius:20px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;font-weight:600;">
+                                        <?= ucfirst($row['status']) ?>
+                                    </span>
+                                </td>
+                                <td style="font-size:0.78rem;color:#475569;"><?= htmlspecialchars(substr($row['created_at'], 0, 16)) ?></td>
+                                <td style="font-size:0.78rem;color:#475569;"><?= $row['paid_at'] ? htmlspecialchars(substr($row['paid_at'], 0, 16)) : '—' ?></td>
+                                <td>
+                                    <div class="table-actions">
+                                        <?php if ($row['status'] === 'pending'): ?>
+                                        <a href="admin.php?table=commissions&action=paid&id=<?= $row['id'] ?>"
+                                           data-confirm="Mark this commission as paid?"
+                                           data-confirm-title="Mark Paid"
+                                           data-confirm-label="Mark Paid"
+                                           class="button" style="font-size:0.72rem;padding:5px 10px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;">Mark Paid</a>
+                                        <a href="admin.php?table=commissions&action=cancel&id=<?= $row['id'] ?>"
+                                           data-confirm="Cancel this commission?"
+                                           data-confirm-variant="danger"
+                                           data-confirm-title="Cancel commission"
+                                           data-confirm-label="Cancel"
+                                           class="button delete" style="font-size:0.72rem;padding:5px 10px;">Cancel</a>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php endif; ?>
+
+            <?php endif; ?>
 
             <?php if ($table === 'packages'): ?>
                 <a href="admin_edit.php?table=packages" class="button add">Add Package</a>
