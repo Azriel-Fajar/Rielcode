@@ -109,6 +109,23 @@ if (!$isStudentPlan && !$claimedFreePromo) {
     $needsHostingWarning = ($owns_hosting === 'No');
 }
 
+// Referral code resolution — runs on both GET and POST so the error message can re-render
+$referralError = '';
+$referrer = null;
+$rawCode = trim($_POST['referral_code'] ?? '');
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $rawCode !== '') {
+    $stmt = $conn->prepare("SELECT id, commission_rate FROM referrers WHERE code = ? AND status = 'active'");
+    $stmt->bind_param("s", $rawCode);
+    $stmt->execute();
+    $refRow = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    if ($refRow) {
+        $referrer = $refRow;
+    } else {
+        $referralError = 'This code is invalid or inactive.';
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progress') {
 
     $orders_after = $currentOrders + 1;
@@ -121,6 +138,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
     $stmt->bind_param("iiii", $package_price, $addons_total, $final_price, $id);
     $stmt->execute();
     $stmt->close();
+
+    // Referral: store code on order and insert commission row if valid code was submitted
+    if ($referrer !== null) {
+        $stmtRef = $conn->prepare("UPDATE orders SET referral_code = ? WHERE id = ?");
+        $stmtRef->bind_param("si", $rawCode, $id);
+        $stmtRef->execute();
+        $stmtRef->close();
+
+        $commissionAmount = round($final_price * ($referrer['commission_rate'] / 100), 2);
+        $stmtCom = $conn->prepare("INSERT INTO referral_commissions (referrer_id, order_id, order_amount, commission_amount) VALUES (?, ?, ?, ?)");
+        $stmtCom->bind_param("iidd", $referrer['id'], $id, $final_price, $commissionAmount);
+        $stmtCom->execute();
+        $stmtCom->close();
+    }
 
     if (!empty($selectedAddons)) {
         $stmtAddon = $conn->prepare("INSERT INTO order_addons (order_id, addon_id, quantity, price_total) VALUES (?,?,?,?)");
@@ -321,6 +352,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
             </div>
 
             <form method="post" id="checkoutForm">
+                <div style="margin-bottom:16px;">
+                    <label for="referral_code" style="display:block;font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:6px;">Referral Code (optional)</label>
+                    <input
+                        type="text"
+                        name="referral_code"
+                        id="referral_code"
+                        placeholder="e.g. BUDI10"
+                        value="<?= htmlspecialchars($rawCode) ?>"
+                        style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#fff;font-size:14px;outline:none;"
+                    >
+                    <?php if ($referralError !== ''): ?>
+                        <p style="color:#f87171;font-size:12px;margin-top:6px;"><?= htmlspecialchars($referralError) ?></p>
+                    <?php endif; ?>
+                </div>
                 <div class="checkbox">
                     <input type="checkbox" name="terms" id="terms" required>
                     <label for="terms">
