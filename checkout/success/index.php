@@ -97,6 +97,7 @@ $progress_url = $progress_token
             align-items: center;
             gap: 6px;
             margin-top: 14px;
+            margin-bottom: 14px;
             background: #fff;
             color: #0a0a0a;
             font-weight: 600;
