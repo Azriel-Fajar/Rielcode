@@ -2,6 +2,9 @@ config.php
 smtp_config.php
 db.txt
 node_modules/
+vendor/
+dompdf/
+invoices/
 test-results/
 playwright-report/
 blob-report/
