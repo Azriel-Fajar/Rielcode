@@ -31,27 +31,37 @@ window.addEventListener("scroll", () => {
 }, { passive: true });
 
 // ===== ScrollReveal animations =====
-ScrollReveal({ distance: "50px", duration: 1000, delay: 100 });
+// Emil: keep stagger short (30–80ms). Distance reduced — large slides feel sluggish.
+ScrollReveal({
+    distance: "28px",
+    duration: 700,
+    delay: 80,
+    easing: "cubic-bezier(0.23, 1, 0.32, 1)",
+    reset: false
+});
 
 // Hero
 ScrollReveal().reveal(".rc-hero__copy",  { origin: "left" });
-ScrollReveal().reveal(".rc-hero__art",   { delay: 200, origin: "right" });
+ScrollReveal().reveal(".rc-hero__art",   { delay: 160, origin: "right" });
 
-// Packages
-ScrollReveal().reveal(".pricing-section h1",          { origin: "top" });
-ScrollReveal().reveal(".pricing-section .pricing-card",{ origin: "top" });
+// Packages — stagger cards
+ScrollReveal().reveal(".pricing-section h1",           { origin: "top" });
+ScrollReveal().reveal(".pricing-section .pricing-card",{ origin: "bottom", interval: 60 });
 
 // About
-ScrollReveal().reveal(".rc-about__head",  { origin: "left" });
-ScrollReveal().reveal(".rc-about__body p",{ interval: 80, origin: "right" });
+ScrollReveal().reveal(".rc-about__head",   { origin: "left" });
+ScrollReveal().reveal(".rc-about__body p", { interval: 60, origin: "right" });
 
-// Projects
-ScrollReveal().reveal(".rc-prj__head",  { origin: "top" });
-ScrollReveal().reveal(".rc-prj__feat",  { origin: "left" });
-ScrollReveal().reveal(".rc-prj__tile",  { interval: 100, origin: "right" });
+// Projects — stagger tiles
+ScrollReveal().reveal(".rc-prj__head", { origin: "top" });
+ScrollReveal().reveal(".rc-prj__feat", { origin: "left" });
+ScrollReveal().reveal(".rc-prj__tile", { interval: 60, origin: "bottom" });
 
-// Requirements (new section)
-ScrollReveal().reveal("#requirements h2",           { origin: "top" });
-ScrollReveal().reveal("#requirements .lead",        { origin: "top" });
-ScrollReveal().reveal("#requirements .req-intro-card", { origin: "top", delay: 150 });
-ScrollReveal().reveal("#requirements .req-card",    { origin: "bottom", interval: 80 });
+// Testimonials — stagger cards
+ScrollReveal().reveal(".rc-testi__card, .testimonial-card", { interval: 60, origin: "bottom" });
+
+// Requirements
+ScrollReveal().reveal("#requirements h2",              { origin: "top" });
+ScrollReveal().reveal("#requirements .lead",           { origin: "top" });
+ScrollReveal().reveal("#requirements .req-intro-card", { origin: "top", delay: 120 });
+ScrollReveal().reveal("#requirements .req-card",       { origin: "bottom", interval: 60 });

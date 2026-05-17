@@ -1,6 +1,10 @@
 # --- Enable Rewrite ---
 RewriteEngine On
-RewriteBase /
+
+# Auto-detect base: works at root (prod /) and subdir (dev /Rielcode/)
+# Sets %{ENV:BASE} to the directory this .htaccess lives in.
+RewriteCond %{REQUEST_URI}::$1 ^(.*?/)(.*)::\2$
+RewriteRule ^(.*)$ - [E=BASE:%1]
 
 # --- Prevent directory listing ---
 Options -Indexes
@@ -22,36 +26,32 @@ Options -Indexes
 # --- Proxy alias for chatbot (MUST be first) ---
 RewriteRule ^proxy$ proxy.php [L,QSA]
 
-# --- Admin aliases (allow direct access) ---
-RewriteRule ^admin_login\.php$ admin_login.php [L,QSA]
-RewriteRule ^admin_logout\.php$ admin_logout.php [L,QSA]
-RewriteRule ^admin\.php$ admin.php [L,QSA]
-RewriteRule ^admin_edit\.php$ admin_edit.php [L,QSA]
-RewriteRule ^admin_invoice_edit\.php$ admin_invoice_edit.php [L,QSA]
+# --- Admin aliases (.php direct access pass-through) ---
+RewriteRule ^admin_login\.php$ - [L]
+RewriteRule ^admin_logout\.php$ - [L]
+RewriteRule ^admin\.php$ - [L]
+RewriteRule ^admin_edit\.php$ - [L]
+RewriteRule ^admin_invoice_edit\.php$ - [L]
+RewriteRule ^admin_audit\.php$ - [L]
 
+# --- Admin clean-URL aliases ---
 RewriteRule ^admin_login$ admin_login.php [L,QSA]
 RewriteRule ^admin_logout$ admin_logout.php [L,QSA]
 RewriteRule ^admin$ admin.php [L,QSA]
 RewriteRule ^admin_edit$ admin_edit.php [L,QSA]
 RewriteRule ^admin_invoice_edit$ admin_invoice_edit.php [L,QSA]
+RewriteRule ^admin_audit$ admin_audit.php [L,QSA]
 
-# --- Redirect index.php to root (SEO) ---
-RewriteCond %{THE_REQUEST} /index\.php [NC]
-RewriteRule ^index\.php$ / [R=301,L]
+# --- Redirect /index.php → / (only if file actually exists) ---
+RewriteCond %{THE_REQUEST} \s%{ENV:BASE}index\.php[\s?] [NC]
+RewriteRule ^index\.php$ %{ENV:BASE} [R=301,L]
 
-# --- Clean URLs for all other .php files ---
-RewriteCond %{THE_REQUEST} \s/([^.]+)\.php[\s?]
-# BUG FIX: old pattern !^proxy$ only matched when %1 was exactly "proxy".
-# On localhost the subdirectory prefix makes %1 = "Rielcode/proxy", which
-# did NOT match, so proxy.php got redirected → 404.
-# New pattern !proxy$ excludes ANY path that ends with "proxy".
-RewriteCond %1 !proxy$
-RewriteCond %1 !^(admin|admin_edit|admin_login|admin_logout|admin_invoice_edit)
-RewriteRule ^ %1 [R=301,L]
+# --- Strip .php extension for clean URLs ---
+RewriteCond %{THE_REQUEST} \s%{ENV:BASE}([^.\s]+)\.php[\s?] [NC]
+RewriteCond %1 !^(proxy|admin|admin_edit|admin_login|admin_logout|admin_invoice_edit|admin_audit)$
+RewriteRule ^ %{ENV:BASE}%1 [R=301,L]
 
-# --- Internally rewrite clean URLs back to .php ---
+# --- Internally map clean URL → .php ---
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_URI}      !proxy$
-RewriteCond %{REQUEST_URI}      !^/(admin|admin_edit|admin_login|admin_logout|admin_invoice_edit)($|/)
-RewriteRule ^([^/]+)$ $1.php [L]
+RewriteRule ^([^/.]+)$ $1.php [L]

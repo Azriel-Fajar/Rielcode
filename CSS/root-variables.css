@@ -115,10 +115,21 @@
   --radius-xl:   40px;
   --radius-pill: 50px;
 
-  /* ── Motion ── */
-  --transition-fast: 0.2s ease;
-  --transition-base: 0.3s ease;
-  --transition-slow: 0.6s ease;
+  /* ── Motion ──
+     Curves from Emil Kowalski's design-engineering principles.
+     Use --ease-out for enters/exits, --ease-in-out for on-screen motion. */
+  --ease-out:        cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out:     cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer:     cubic-bezier(0.32, 0.72, 0, 1);
+
+  --dur-press:       140ms;
+  --dur-tooltip:     160ms;
+  --dur-dropdown:    200ms;
+  --dur-modal:       280ms;
+
+  --transition-fast: 160ms var(--ease-out);
+  --transition-base: 220ms var(--ease-out);
+  --transition-slow: 320ms var(--ease-out);
 
   /* ── Z-index ── */
   --z-nav:     1050;
@@ -131,4 +142,22 @@
 
   /* ── Tweak defaults (locked from prototype TWEAK_DEFAULTS) ── */
   --rc-accent: var(--color-primary);
+}
+
+/* ── View Transitions (Chromium 111+). Falls back silently. ── */
+@view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* ── Reduced motion: cut transforms and long animations, keep opacity fades for comprehension. ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

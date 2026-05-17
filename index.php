@@ -24,7 +24,6 @@ include 'connection.php';
     <link rel="icon" type="image/png" sizes="32x32" href="IMG/Rielcode Logo Square Transparent Icon.png">
     <link rel="icon" type="image/png" sizes="16x16" href="IMG/Rielcode Logo Square Transparent Icon.png">
 
-    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-B24L86THGN"></script>
@@ -42,7 +41,7 @@ include 'connection.php';
         })();
     </script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="CSS/tailwind.css">
     <script defer src="JS/main.js"></script>
     <script defer src="JS/redesign.js"></script>
     <script src="https://unpkg.com/scrollreveal"></script>
@@ -119,8 +118,7 @@ include 'connection.php';
         </div>
     </div>
 
-    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-    <script src="JS/chatbot.js"></script>
+    <script defer src="JS/chatbot.js"></script>
 
 </body>
 </html>

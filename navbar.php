@@ -50,3 +50,4 @@
     </div>
 </div>
 <button class="rc-mnav__scrim" id="rc-mnav-scrim" aria-label="Close menu" type="button" tabindex="-1"></button>
+<script defer src="<?= $base ?>JS/prefetch.js"></script>

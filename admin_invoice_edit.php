@@ -12,12 +12,18 @@ $dbName = $config['DB_NAME'] ?? 'rielcode';
 $dbUser = $config['DB_USER'] ?? 'root';
 $dbPass = $config['DB_PASS'] ?? '';
 
+require_once __DIR__ . '/inc/error_codes.php';
+require_once __DIR__ . '/inc/audit_logger.php';
+
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8mb4", $dbUser, $dbPass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    die("DB Connection failed: " . htmlspecialchars($e->getMessage()));
+    error_log('[RC-DB-001] admin_invoice_edit: ' . $e->getMessage());
+    include __DIR__ . '/inc/_db_down.php';
 }
+
+$rc_admin_user = $_SESSION['admin_username'] ?? 'admin';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$id) { header("Location: admin.php?table=invoices"); exit; }
@@ -25,7 +31,11 @@ if (!$id) { header("Location: admin.php?table=invoices"); exit; }
 $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ?");
 $stmt->execute([$id]);
 $order = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$order) die("Order not found.");
+if (!$order) {
+    error_log("[RC-ORDER-001] admin_invoice_edit: order id=$id missing");
+    header("Location: admin.php?table=invoices");
+    exit;
+}
 
 $flash = null;
 
@@ -185,29 +195,28 @@ $status   = $order['invoice_status']   ?? 'draft';
 <head>
     <meta charset="UTF-8">
     <title>Edit Invoice — <?= htmlspecialchars($order['invoice_number'] ?: ('Order #' . $id)) ?></title>
+    <?php include __DIR__ . '/inc/admin_theme_head.php'; ?>
     <link rel="stylesheet" href="CSS/admin_style.css">
     <link rel="icon" href="IMG/Rielcode Logo Square Transparent Icon.png" type="image/png">
     <meta name="robots" content="noindex,nofollow">
     <style>
-        .inv-wrap { max-width: 1080px; margin: 32px auto; padding: 0 24px; color: #e2e8f0; font-family: 'Outfit', sans-serif; }
-        .inv-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; gap:14px; flex-wrap:wrap; }
-        .inv-head h1 { margin:0; font-size: 1.6rem; }
-        .inv-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+        .inv-wrap { max-width: 1080px; margin: 32px auto; padding: 0 24px; }
+        .inv-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 24px; gap:14px; flex-wrap:wrap; }
+        .inv-head h1 { margin:0; font-size: 22px; }
+        .inv-card { background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 18px; }
         .inv-grid { display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
-        .inv-grid label { display:block; font-size:0.7rem; color:#94a3b8; letter-spacing:0.5px; margin-bottom:6px; text-transform:uppercase; font-family:'JetBrains Mono', monospace; }
-        .inv-grid input, .inv-grid select, .inv-grid textarea { width:100%; padding:10px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.12); border-radius:8px; color:#e2e8f0; font-family: inherit; }
         .inv-grid .full { grid-column: span 4; }
         table.lines { width:100%; border-collapse: collapse; }
-        table.lines th { background: rgba(58,124,255,0.12); color:#94a3b8; font-size:0.7rem; letter-spacing:0.5px; text-transform:uppercase; padding:10px; text-align:left; }
-        table.lines td { padding:8px 6px; }
-        table.lines input { width:100%; padding:8px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.12); border-radius:6px; color:#e2e8f0; font-family: inherit; }
-        .li-row-total { text-align: right; color: #4ade80; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+        table.lines th { background: var(--bg-sunken); color: var(--text-subtle); font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
+        table.lines td { padding:8px 6px; border-top: 1px solid var(--border); }
+        table.lines tbody tr:first-child td { border-top: 0; }
+        .li-row-total { text-align: right; color: var(--ok); font-weight: 600; font-family: var(--font-mono); }
         .inv-actions { display:flex; gap: 10px; flex-wrap: wrap; }
-        .btn-primary { background: linear-gradient(135deg, #3a7bff, #5b52f5); color: #fff; padding: 11px 22px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; }
-        .btn-secondary { background: rgba(255,255,255,0.06); color: #e2e8f0; padding: 11px 22px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); cursor: pointer; }
-        .btn-success { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.35); padding: 11px 22px; border-radius: 10px; cursor: pointer; font-weight: 600; }
-        .inv-totals { text-align: right; padding-top: 14px; font-size: 1.2rem; font-weight: 700; }
-        .inv-status { display:inline-block; padding:4px 12px; border-radius: 20px; font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.6px; }
+        .inv-totals { text-align: right; padding-top: 14px; font-size: 18px; font-weight: 700; color: var(--text); }
+        .inv-status { display:inline-block; padding: 3px 12px; border-radius: var(--radius-pill); font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; background: var(--info-bg); color: var(--info); border: 1px solid var(--info-bd); }
+        .inv-back { color: var(--text-muted); font-size: 13px; text-decoration: none; }
+        .inv-back:hover { color: var(--text); }
+        .inv-meta { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -220,14 +229,14 @@ $status   = $order['invoice_status']   ?? 'draft';
     <div class="inv-wrap">
         <div class="inv-head">
             <div>
-                <a href="admin.php?table=invoices" style="color:#60a5fa;text-decoration:none;font-size:0.85rem;">&larr; Back to Invoices</a>
+                <a href="admin.php?table=invoices" class="inv-back">&larr; Back to Invoices</a>
                 <h1 style="margin-top:6px;">Invoice for <?= htmlspecialchars($order['order_name']) ?></h1>
-                <div style="font-size:0.85rem;color:#94a3b8;"><?= htmlspecialchars($order['email']) ?> · <?= htmlspecialchars($order['package']) ?></div>
+                <div class="inv-meta"><?= htmlspecialchars($order['email']) ?> · <?= htmlspecialchars($order['package']) ?></div>
             </div>
             <div>
-                <span class="inv-status" style="background:rgba(58,124,255,0.15);color:#60a5fa;border:1px solid rgba(58,124,255,0.35);">Status: <?= htmlspecialchars($status) ?></span>
+                <span class="inv-status">Status: <?= htmlspecialchars($status) ?></span>
                 <?php if (!empty($order['invoice_file'])): ?>
-                    <a class="btn-secondary" style="margin-left:8px;text-decoration:none;display:inline-block;" href="<?= htmlspecialchars(ltrim(str_replace('../','', $order['invoice_file']),'/')) ?>" download>Download Current PDF</a>
+                    <a class="button" style="margin-left:8px;" href="<?= htmlspecialchars(ltrim(str_replace('../','', $order['invoice_file']),'/')) ?>" download>Download Current PDF</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -266,7 +275,7 @@ $status   = $order['invoice_status']   ?? 'draft';
             </div>
 
             <div class="inv-card">
-                <h3 style="margin:0 0 14px;color:#e2e8f0;font-size:1rem;">Line Items</h3>
+                <h3 style="margin:0 0 14px;">Line Items</h3>
                 <table class="lines" id="lines-table">
                     <thead>
                         <tr>
@@ -292,7 +301,7 @@ $status   = $order['invoice_status']   ?? 'draft';
                 <button type="button" class="btn-secondary" style="margin-top:12px;" onclick="addLine()">+ Add Line</button>
 
                 <div class="inv-totals">
-                    Total: <span id="grand-total" style="color:#4ade80;">—</span>
+                    Total: <span id="grand-total" class="adm-mono" style="color:var(--ok);">—</span>
                 </div>
             </div>
 
@@ -337,5 +346,6 @@ $status   = $order['invoice_status']   ?? 'draft';
         });
         recalc();
     </script>
+    <script src="JS/admin-ui.js" defer></script>
 </body>
 </html>

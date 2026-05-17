@@ -24,7 +24,27 @@ $conn = mysqli_connect(
 );
 
 if (mysqli_connect_errno()) {
-    die("Connection failed: " . mysqli_connect_error());
+    // Log full driver error for debugging; never leak it to the client.
+    error_log('[RC-DB-001] connection.php: ' . mysqli_connect_error());
+
+    $wantsJson = (
+        (isset($_SERVER['HTTP_ACCEPT'])      && stripos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) ||
+        (isset($_SERVER['CONTENT_TYPE'])     && stripos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) ||
+        (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+    );
+
+    if ($wantsJson) {
+        http_response_code(503);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'ok'    => false,
+            'code'  => 'RC-DB-001',
+            'reply' => 'Service temporarily unavailable. (ref: RC-DB-001)',
+        ]);
+        exit;
+    }
+
+    include __DIR__ . '/inc/_db_down.php';
 }
 
 // Clean up temporary variables so they don't pollute the global scope

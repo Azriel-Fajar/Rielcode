@@ -28,7 +28,7 @@ $progress_url = $progress_token
     <link rel="stylesheet" href="../../CSS/success.css">
     <link rel="icon" type="image/png" sizes="32x32" href="../../IMG/Rielcode Logo Square Transparent Icon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../../CSS/tailwind.css">
     <style>
         .progress-reveal {
             margin: 24px auto 0;

@@ -21,6 +21,12 @@ $safe_type        = htmlspecialchars($meta_type,        ENT_QUOTES, 'UTF-8');
 $safe_robots      = htmlspecialchars($meta_robots,      ENT_QUOTES, 'UTF-8');
 $safe_card        = htmlspecialchars($twitter_card,     ENT_QUOTES, 'UTF-8');
 ?>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://unpkg.com">
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">
+
 <title><?= $safe_title ?></title>
 <meta name="title" content="<?= $safe_title ?>">
 <meta name="description" content="<?= $safe_description ?>">

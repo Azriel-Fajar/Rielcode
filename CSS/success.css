@@ -275,7 +275,7 @@ body::after {
 }
 
 .popup .btn:hover::after { opacity: 1; }
-.popup .btn:active { transform: translateY(0); }
+.popup .btn:active { transform: scale(0.97); }
 
 /* ============================================================
    RESPONSIVE

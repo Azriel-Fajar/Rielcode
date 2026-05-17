@@ -2,6 +2,8 @@
 session_start();
 
 require_once '../connection.php';
+require_once '../inc/error_codes.php';
+require_once '../inc/audit_logger.php';
 require_once '../PHPMailer/src/PHPMailer.php';
 require_once '../PHPMailer/src/SMTP.php';
 require_once '../PHPMailer/src/Exception.php';
@@ -22,7 +24,11 @@ $stmt->execute();
 $orderRow = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$orderRow) die("Order not found.");
+if (!$orderRow) {
+    error_log("[RC-ORDER-001] checkout: order id=$id missing");
+    header("Location: ../order-form/?err=RC-ORDER-001");
+    exit;
+}
 
 $order_name = htmlspecialchars($orderRow['order_name']);
 $email      = htmlspecialchars($orderRow['email']);
@@ -52,7 +58,11 @@ $stmt->execute();
 $priceRow = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$priceRow) die("Package not found.");
+if (!$priceRow) {
+    error_log("[RC-ORDER-002] checkout: package='$plan' not in packages table");
+    header("Location: ../order-form/?err=RC-ORDER-002");
+    exit;
+}
 
 $price          = (int)$priceRow['idr_price'];
 $currentOrders  = (int)$priceRow['orders'];
@@ -217,8 +227,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $stmt->close();
+        rc_audit('PAYMENT_PROOF_RECEIVED', $email, ['order_id' => $id, 'plan' => $plan]);
     } catch (MailException $e) {
-        // swallow — invoice flow is decoupled now
+        // Non-fatal — order is saved, only the confirmation email failed.
+        error_log("[RC-PAY-003] checkout mail send: " . $e->getMessage());
+        rc_audit('PAYMENT_EMAIL_FAIL', $email, ['order_id' => $id, 'err' => $e->getMessage()], 'error');
     }
 
     unset($_SESSION['selected_addons'], $_SESSION['addon_qty']);
@@ -240,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
     <link rel="stylesheet" href="../CSS/checkout.css">
     <link rel="icon" type="image/png" sizes="32x32" href="../IMG/Rielcode Logo Square Transparent Icon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../CSS/tailwind.css">
 </head>
 
 <body class="rc-redesign">

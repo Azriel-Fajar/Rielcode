@@ -156,7 +156,8 @@ body {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--dur-press) var(--ease-out),
+              box-shadow var(--dur-press) var(--ease-out);
   box-shadow: 0 4px 24px rgba(58, 124, 255, 0.35);
 }
 
@@ -175,15 +176,16 @@ body {
   transition: transform 0.25s ease;
 }
 
-.hero .cta-container .btn:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 12px 40px rgba(58, 124, 255, 0.5);
-  color: #fff;
+@media (hover: hover) and (pointer: fine) {
+  .hero .cta-container .btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(58, 124, 255, 0.5);
+    color: #fff;
+  }
+  .hero .cta-container .btn:hover::before { opacity: 1; }
+  .hero .cta-container .btn:hover::after  { transform: translateX(4px); }
 }
-
-.hero .cta-container .btn:hover::before { opacity: 1; }
-.hero .cta-container .btn:hover::after  { transform: translateX(4px); }
-.hero .cta-container .btn:active        { transform: translateY(0) scale(1); }
+.hero .cta-container .btn:active { transform: scale(0.97); }
 
 /* ============================================================
    SECTION SPACING UTILITY

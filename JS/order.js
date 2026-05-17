@@ -46,4 +46,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Jalankan juga saat window di-resize
   window.addEventListener("resize", updatePromoText);
+
+  // Submit feedback — disable button + spinner + label swap so user knows it took.
+  const orderForm = document.getElementById("orderForm");
+  if (orderForm) {
+    orderForm.addEventListener("submit", function () {
+      const btn = orderForm.querySelector('button[type="submit"][name="submit"]');
+      if (!btn || btn.dataset.busy === "1") return;
+      btn.dataset.busy = "1";
+      btn.dataset.origLabel = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="rc-spinner" aria-hidden="true"></span>&nbsp;Sending…';
+    });
+  }
 });

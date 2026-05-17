@@ -180,7 +180,7 @@ nav .button-container .cta-navbar:hover {
 }
 
 nav .button-container .cta-navbar:hover::before { opacity: 1; }
-nav .button-container .cta-navbar:active { transform: translateY(0) scale(1); }
+nav .button-container .cta-navbar:active { transform: scale(0.97); }
 
 /* ============================================================
    BURGER ICON

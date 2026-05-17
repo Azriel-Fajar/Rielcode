@@ -19,13 +19,19 @@ $dbName = $config['DB_NAME'] ?? 'rielcode';
 $dbUser = $config['DB_USER'] ?? 'root';
 $dbPass = $config['DB_PASS'] ?? '';
 
+require_once __DIR__ . '/inc/error_codes.php';
+require_once __DIR__ . '/inc/audit_logger.php';
+
 // --- Connect to DB (PDO only — removed mixed mysqli usage) ---
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    die("DB Connection failed: " . htmlspecialchars($e->getMessage()));
+    error_log('[RC-DB-001] admin.php: ' . $e->getMessage());
+    include __DIR__ . '/inc/_db_down.php';
 }
+
+$rc_admin_user = $_SESSION['admin_username'] ?? 'admin';
 
 // Whitelist $table to prevent SQL injection via GET parameter
 $allowedTables = ['chat_logs', 'orders', 'packages', 'testimonials', 'projects', 'invoices', 'referrers', 'commissions'];
@@ -43,8 +49,14 @@ function rc_flash($msg, $variant = 'success') {
 if ($table === 'testimonials' && $action === 'del_token') {
     $tid = isset($_GET['token_id']) ? (int)$_GET['token_id'] : 0;
     if ($tid) {
-        $pdo->prepare("DELETE FROM testimonial_invites WHERE id=? AND used_at IS NULL")->execute([$tid]);
-        rc_flash('Token deleted.');
+        try {
+            $pdo->prepare("DELETE FROM testimonial_invites WHERE id=? AND used_at IS NULL")->execute([$tid]);
+            rc_flash('Token deleted.');
+            rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'testimonial_invites', 'action' => 'delete', 'id' => $tid]);
+        } catch (Throwable $e) {
+            rc_flash(rc_user_msg('RC-ADMIN-002'), 'error');
+            rc_audit('ADMIN_CRUD_FAIL', $rc_admin_user, ['table' => 'testimonial_invites', 'action' => 'delete', 'id' => $tid, 'err' => $e->getMessage()], 'error');
+        }
     }
     header("Location: admin.php?table=testimonials");
     exit;
@@ -52,19 +64,27 @@ if ($table === 'testimonials' && $action === 'del_token') {
 
 // --- Testimonials: approve / reject / delete ---
 if ($table === 'testimonials' && $action !== '' && $id) {
-    if ($action === 'approve') {
-        $stmt = $pdo->prepare("UPDATE testimonials SET status='approved', reviewed_at=NOW() WHERE id=?");
-        $stmt->execute([$id]);
-        rc_flash('Testimonial approved.');
-    } elseif ($action === 'reject') {
-        $stmt = $pdo->prepare("UPDATE testimonials SET status='rejected', reviewed_at=NOW() WHERE id=?");
-        $stmt->execute([$id]);
-        rc_flash('Testimonial rejected.');
-    } elseif ($action === 'delete') {
-        // Unlink any invite that referenced this testimonial
-        $pdo->prepare("UPDATE testimonial_invites SET testimonial_id=NULL WHERE testimonial_id=?")->execute([$id]);
-        $pdo->prepare("DELETE FROM testimonials WHERE id=?")->execute([$id]);
-        rc_flash('Testimonial deleted.');
+    try {
+        if ($action === 'approve') {
+            $stmt = $pdo->prepare("UPDATE testimonials SET status='approved', reviewed_at=NOW() WHERE id=?");
+            $stmt->execute([$id]);
+            rc_flash('Testimonial approved.');
+            rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'testimonials', 'action' => 'approve', 'id' => $id]);
+        } elseif ($action === 'reject') {
+            $stmt = $pdo->prepare("UPDATE testimonials SET status='rejected', reviewed_at=NOW() WHERE id=?");
+            $stmt->execute([$id]);
+            rc_flash('Testimonial rejected.');
+            rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'testimonials', 'action' => 'reject', 'id' => $id]);
+        } elseif ($action === 'delete') {
+            // Unlink any invite that referenced this testimonial
+            $pdo->prepare("UPDATE testimonial_invites SET testimonial_id=NULL WHERE testimonial_id=?")->execute([$id]);
+            $pdo->prepare("DELETE FROM testimonials WHERE id=?")->execute([$id]);
+            rc_flash('Testimonial deleted.');
+            rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'testimonials', 'action' => 'delete', 'id' => $id], 'warn');
+        }
+    } catch (Throwable $e) {
+        rc_flash(rc_user_msg('RC-ADMIN-002'), 'error');
+        rc_audit('ADMIN_CRUD_FAIL', $rc_admin_user, ['table' => 'testimonials', 'action' => $action, 'id' => $id, 'err' => $e->getMessage()], 'error');
     }
     header("Location: admin.php?table=testimonials");
     exit;
@@ -73,12 +93,20 @@ if ($table === 'testimonials' && $action !== '' && $id) {
 // --- Testimonials: generate invite token ---
 if ($table === 'testimonials' && $action === 'gen_token') {
     $label = trim($_POST['label'] ?? '');
-    $token = bin2hex(random_bytes(32));
-    $stmt  = $pdo->prepare("INSERT INTO testimonial_invites (token, label) VALUES (?, ?)");
-    $stmt->execute([$token, $label === '' ? null : $label]);
-    rc_flash('Invite link generated.');
-    header("Location: admin.php?table=testimonials&new_token=" . urlencode($token));
-    exit;
+    try {
+        $token = bin2hex(random_bytes(32));
+        $stmt  = $pdo->prepare("INSERT INTO testimonial_invites (token, label) VALUES (?, ?)");
+        $stmt->execute([$token, $label === '' ? null : $label]);
+        rc_flash('Invite link generated.');
+        rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'testimonial_invites', 'action' => 'create', 'label' => $label]);
+        header("Location: admin.php?table=testimonials&new_token=" . urlencode($token));
+        exit;
+    } catch (Throwable $e) {
+        rc_flash(rc_user_msg('RC-ADMIN-003'), 'error');
+        rc_audit('ADMIN_CRUD_FAIL', $rc_admin_user, ['action' => 'gen_token', 'err' => $e->getMessage()], 'error');
+        header("Location: admin.php?table=testimonials");
+        exit;
+    }
 }
 
 // --- Handle Delete (orders, packages — NOT referrers/projects which have their own handlers) ---
@@ -105,6 +133,7 @@ if ($action === 'delete' && $id && !in_array($table, ['chat_logs', 'referrers', 
             $pdo->prepare("UPDATE packages SET orders = (SELECT COUNT(*) FROM orders WHERE package_id = ?) WHERE id = ?")->execute([$pkgId, $pkgId]);
         }
         rc_flash('Order deleted.');
+        rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'orders', 'action' => 'delete', 'id' => $id], 'warn');
     } elseif ($table === 'packages') {
         $stmt = $pdo->prepare("SELECT COUNT(*) as cnt FROM orders WHERE package_id = ?");
         $stmt->execute([$id]);
@@ -112,6 +141,7 @@ if ($action === 'delete' && $id && !in_array($table, ['chat_logs', 'referrers', 
             $stmt = $pdo->prepare("DELETE FROM packages WHERE id = ?");
             $stmt->execute([$id]);
             rc_flash('Package deleted.');
+            rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'packages', 'action' => 'delete', 'id' => $id], 'warn');
         } else {
             rc_flash('Cannot delete package — has existing orders.', 'error');
         }
@@ -119,6 +149,7 @@ if ($action === 'delete' && $id && !in_array($table, ['chat_logs', 'referrers', 
         $stmt = $pdo->prepare("DELETE FROM chat_logs WHERE id = ?");
         $stmt->execute([$id]);
         rc_flash('Chat log deleted.');
+        rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'chat_logs', 'action' => 'delete', 'id' => $id]);
     }
     header("Location: admin.php?table=$table");
     exit;
@@ -174,11 +205,14 @@ if ($table === 'projects' && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array($
     if ($action === 'add') {
         $stmt = $pdo->prepare("INSERT INTO projects (title, description, image_path, url, tags, layout, sort_order, is_visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$title, $description, $imagePath, $url, $tags, $layout, $sort_order, $is_visible]);
+        $newId = (int)$pdo->lastInsertId();
         rc_flash('Project added.');
+        rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'projects', 'action' => 'add', 'id' => $newId, 'title' => $title]);
     } else {
         $stmt = $pdo->prepare("UPDATE projects SET title=?, description=?, image_path=?, url=?, tags=?, layout=?, sort_order=?, is_visible=? WHERE id=?");
         $stmt->execute([$title, $description, $imagePath, $url, $tags, $layout, $sort_order, $is_visible, $id]);
         rc_flash('Project updated.');
+        rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'projects', 'action' => 'update', 'id' => $id]);
     }
     header("Location: admin.php?table=projects");
     exit;
@@ -187,6 +221,7 @@ if ($table === 'projects' && $action === 'delete' && $id) {
     $stmt = $pdo->prepare("DELETE FROM projects WHERE id = ?");
     $stmt->execute([$id]);
     rc_flash('Project deleted.');
+    rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'projects', 'action' => 'delete', 'id' => $id], 'warn');
     header("Location: admin.php?table=projects");
     exit;
 }
@@ -200,7 +235,9 @@ if ($table === 'referrers' && $_SERVER['REQUEST_METHOD'] === 'POST' && $action =
     if ($rName !== '' && $rPhone !== '' && $rCode !== '') {
         $stmt = $pdo->prepare("INSERT INTO referrers (name, phone, code, commission_rate) VALUES (?, ?, ?, ?)");
         $stmt->execute([$rName, $rPhone, $rCode, $rRate]);
+        $newId = (int)$pdo->lastInsertId();
         rc_flash('Referrer added.');
+        rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'referrers', 'action' => 'add', 'id' => $newId, 'code' => $rCode]);
     } else {
         rc_flash('Name, phone, and code are required.', 'error');
     }
@@ -216,6 +253,7 @@ if ($table === 'referrers' && $action === 'toggle' && $id) {
     $next = ($cur === 'active') ? 'inactive' : 'active';
     $pdo->prepare("UPDATE referrers SET status = ? WHERE id = ?")->execute([$next, $id]);
     rc_flash('Referrer status updated.');
+    rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'referrers', 'action' => 'toggle', 'id' => $id, 'to' => $next]);
     header("Location: admin.php?table=referrers");
     exit;
 }
@@ -229,6 +267,7 @@ if ($table === 'referrers' && $action === 'delete' && $id) {
     } else {
         $pdo->prepare("DELETE FROM referrers WHERE id = ?")->execute([$id]);
         rc_flash('Referrer deleted.');
+        rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'referrers', 'action' => 'delete', 'id' => $id], 'warn');
     }
     header("Location: admin.php?table=referrers");
     exit;
@@ -238,6 +277,7 @@ if ($table === 'referrers' && $action === 'delete' && $id) {
 if ($table === 'commissions' && $action === 'paid' && $id) {
     $pdo->prepare("UPDATE referral_commissions SET status='paid', paid_at=NOW() WHERE id = ?")->execute([$id]);
     rc_flash('Commission marked as paid.');
+    rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'referral_commissions', 'action' => 'mark_paid', 'id' => $id]);
     header("Location: admin.php?table=commissions");
     exit;
 }
@@ -246,6 +286,7 @@ if ($table === 'commissions' && $action === 'paid' && $id) {
 if ($table === 'commissions' && $action === 'cancel' && $id) {
     $pdo->prepare("UPDATE referral_commissions SET status='cancelled' WHERE id = ?")->execute([$id]);
     rc_flash('Commission cancelled.');
+    rc_audit('ADMIN_CRUD', $rc_admin_user, ['table' => 'referral_commissions', 'action' => 'cancel', 'id' => $id], 'warn');
     header("Location: admin.php?table=commissions");
     exit;
 }
@@ -396,6 +437,7 @@ $testimonialBaseUrl = $isLocalhost
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RielBot Admin Panel</title>
+    <?php include __DIR__ . '/inc/admin_theme_head.php'; ?>
     <link rel="stylesheet" href="CSS/admin_style.css">
     <link rel="icon" href="IMG/Rielcode Logo Square Transparent Icon.png" type="image/png">
     <meta name="robots" content="noindex,nofollow">
@@ -414,25 +456,8 @@ $testimonialBaseUrl = $isLocalhost
             <span class="rc-toast__msg"><?= htmlspecialchars($flash['msg']) ?></span>
         </div>
     <?php endif; ?>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <div class="sidebar-toggle" id="sidebarToggle">☰ Menu</div>
-
     <div class="wrapper">
-        <div class="sidebar">
-            <h2>
-                <img src="IMG/Rielcode Logo Square Transparent Icon.png" alt="Rielcode" class="sidebar-logo">
-                RielBot Admin
-            </h2>
-            <a href="admin.php?table=chat_logs" class="<?= $table === 'chat_logs'    ? 'active' : '' ?>">Chat Logs</a>
-            <a href="admin.php?table=orders" class="<?= $table === 'orders'        ? 'active' : '' ?>">Orders</a>
-            <a href="admin.php?table=invoices" class="<?= $table === 'invoices'    ? 'active' : '' ?>">Invoices</a>
-            <a href="admin.php?table=packages" class="<?= $table === 'packages'    ? 'active' : '' ?>">Packages</a>
-            <a href="admin.php?table=projects" class="<?= $table === 'projects'    ? 'active' : '' ?>">Projects</a>
-            <a href="admin.php?table=testimonials" class="<?= $table === 'testimonials' ? 'active' : '' ?>">Testimonials</a>
-            <a href="admin.php?table=referrers" class="<?= $table === 'referrers' ? 'active' : '' ?>">Referrers</a>
-            <a href="admin.php?table=commissions" class="<?= $table === 'commissions' ? 'active' : '' ?>">Commissions</a>
-            <a href="admin_logout.php">Logout</a>
-        </div>
+        <?php $sidebar_active = $table; include __DIR__ . '/inc/admin_sidebar.php'; ?>
 
         <div class="main-content">
             <h1><?= $table === 'testimonials' ? 'Testimonials' : ucfirst(str_replace('_', ' ', $table)) ?></h1>
@@ -440,29 +465,29 @@ $testimonialBaseUrl = $isLocalhost
             <?php if ($table === 'referrers'): ?>
 
                 <!-- ====== ADD REFERRER FORM ====== -->
-                <form method="post" action="admin.php?table=referrers&action=add" style="margin-bottom:24px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+                <form method="post" action="admin.php?table=referrers&action=add" class="adm-row adm-row--end adm-mb-4">
                     <div>
-                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Name</label>
-                        <input type="text" name="name" required placeholder="Budi Santoso" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;">
+                        <label>Name</label>
+                        <input type="text" name="name" required placeholder="Budi Santoso">
                     </div>
                     <div>
-                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Phone (WhatsApp)</label>
-                        <input type="text" name="phone" required placeholder="081234567890" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;">
+                        <label>Phone (WhatsApp)</label>
+                        <input type="text" name="phone" required placeholder="081234567890">
                     </div>
                     <div>
-                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Code</label>
-                        <input type="text" name="code" required placeholder="BUDI10" maxlength="20" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;text-transform:uppercase;">
+                        <label>Code</label>
+                        <input type="text" name="code" required placeholder="BUDI10" maxlength="20" style="text-transform:uppercase;">
                     </div>
                     <div>
-                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Rate (%)</label>
-                        <input type="number" name="commission_rate" value="10" min="0" max="100" step="0.01" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;width:80px;">
+                        <label>Rate (%)</label>
+                        <input type="number" name="commission_rate" value="10" min="0" max="100" step="0.01" class="adm-w-sm">
                     </div>
-                    <button type="submit" class="button add" style="margin-bottom:0;">Add Referrer</button>
+                    <button type="submit" class="button add adm-mb-0">Add Referrer</button>
                 </form>
 
                 <!-- ====== REFERRERS TABLE ====== -->
                 <?php if (empty($logs)): ?>
-                    <p style="color:#475569;font-family:'JetBrains Mono',monospace;font-size:0.8rem;">No referrers yet.</p>
+                    <p class="adm-mono adm-subtle">No referrers yet.</p>
                 <?php else: ?>
                 <div class="table-container">
                     <table>
@@ -483,26 +508,26 @@ $testimonialBaseUrl = $isLocalhost
                             <tr>
                                 <td><?= htmlspecialchars($row['name']) ?></td>
                                 <td>
-                                    <a href="https://wa.me/<?= preg_replace('/[^0-9]/', '', $row['phone']) ?>" target="_blank" style="color:#25d366;">
+                                    <a href="https://wa.me/<?= preg_replace('/[^0-9]/', '', $row['phone']) ?>" target="_blank" class="adm-link-wa">
                                         <?= htmlspecialchars($row['phone']) ?>
                                     </a>
                                 </td>
-                                <td style="font-family:'JetBrains Mono',monospace;font-weight:600;color:#60a5fa;"><?= htmlspecialchars($row['code']) ?></td>
+                                <td><span class="adm-code"><?= htmlspecialchars($row['code']) ?></span></td>
                                 <td><?= number_format((float)$row['commission_rate'], 2) ?>%</td>
                                 <td>
                                     <?php $active = $row['status'] === 'active'; ?>
-                                    <span style="<?= $active ? 'background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;' : 'background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.30);color:#f87171;' ?>padding:3px 10px;border-radius:20px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;font-weight:600;">
+                                    <span class="adm-badge <?= $active ? 'adm-badge--ok' : 'adm-badge--err' ?>">
                                         <?= ucfirst($row['status']) ?>
                                     </span>
                                 </td>
                                 <td>Rp<?= number_format((float)$row['total_earned'], 0, ',', '.') ?></td>
-                                <td style="font-size:0.72rem;">
+                                <td class="adm-mono" style="font-size:11px;">
                                     <?php
                                     $isLocalDev = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost','127.0.0.1']);
                                     $baseUrl = $isLocalDev ? 'http://localhost/Rielcode/referrer/' : 'https://rielcode.com/referrer/';
                                     $dashUrl = $baseUrl . '?code=' . urlencode($row['code']);
                                     ?>
-                                    <a href="<?= htmlspecialchars($dashUrl) ?>" target="_blank" style="color:#60a5fa;"><?= htmlspecialchars($dashUrl) ?></a>
+                                    <a href="<?= htmlspecialchars($dashUrl) ?>" target="_blank" class="adm-link"><?= htmlspecialchars($dashUrl) ?></a>
                                 </td>
                                 <td>
                                     <div class="table-actions">
@@ -531,8 +556,8 @@ $testimonialBaseUrl = $isLocalhost
                 <form method="get" action="admin.php" style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
                     <input type="hidden" name="table" value="commissions">
                     <div>
-                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Referrer</label>
-                        <select name="referrer_id" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;">
+                        <label >Referrer</label>
+                        <select name="referrer_id" class="adm-input">
                             <option value="">All</option>
                             <?php foreach ($allReferrers as $ref): ?>
                                 <option value="<?= $ref['id'] ?>" <?= $filterReferrerId === $ref['id'] ? 'selected' : '' ?>>
@@ -542,8 +567,8 @@ $testimonialBaseUrl = $isLocalhost
                         </select>
                     </div>
                     <div>
-                        <label style="display:block;font-size:0.72rem;color:#475569;margin-bottom:4px;">Status</label>
-                        <select name="status" style="padding:7px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.82rem;">
+                        <label >Status</label>
+                        <select name="status" class="adm-input">
                             <option value="">All</option>
                             <option value="pending"   <?= $filterStatus === 'pending'   ? 'selected' : '' ?>>Pending</option>
                             <option value="paid"      <?= $filterStatus === 'paid'      ? 'selected' : '' ?>>Paid</option>
@@ -555,7 +580,7 @@ $testimonialBaseUrl = $isLocalhost
 
                 <!-- ====== COMMISSIONS TABLE ====== -->
                 <?php if (empty($logs)): ?>
-                    <p style="color:#475569;font-family:'JetBrains Mono',monospace;font-size:0.8rem;">No commissions yet.</p>
+                    <p class="adm-mono adm-subtle">No commissions yet.</p>
                 <?php else: ?>
                 <div class="table-container">
                     <table>
@@ -582,16 +607,16 @@ $testimonialBaseUrl = $isLocalhost
                             ?>
                             <tr>
                                 <td><?= htmlspecialchars($row['referrer_name']) ?></td>
-                                <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:#60a5fa;"><?= htmlspecialchars($row['invoice_number'] ?? '—') ?></td>
+                                <td class="adm-mono" style="font-size:12px;color:var(--link);"><?= htmlspecialchars($row['invoice_number'] ?? '—') ?></td>
                                 <td>Rp<?= number_format((float)$row['order_amount'], 0, ',', '.') ?></td>
-                                <td style="font-weight:600;color:#4ade80;">Rp<?= number_format((float)$row['commission_amount'], 0, ',', '.') ?></td>
+                                <td style="font-weight:600;color:var(--ok);">Rp<?= number_format((float)$row['commission_amount'], 0, ',', '.') ?></td>
                                 <td>
                                     <span style="<?= $comColors[$row['status']] ?? '' ?>padding:3px 10px;border-radius:20px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;font-weight:600;">
                                         <?= ucfirst($row['status']) ?>
                                     </span>
                                 </td>
-                                <td style="font-size:0.78rem;color:#475569;"><?= htmlspecialchars(substr($row['created_at'], 0, 16)) ?></td>
-                                <td style="font-size:0.78rem;color:#475569;"><?= $row['paid_at'] ? htmlspecialchars(substr($row['paid_at'], 0, 16)) : '—' ?></td>
+                                <td class="adm-subtle" style="font-size:12px;"><?= htmlspecialchars(substr($row['created_at'], 0, 16)) ?></td>
+                                <td class="adm-subtle" style="font-size:12px;"><?= $row['paid_at'] ? htmlspecialchars(substr($row['paid_at'], 0, 16)) : '—' ?></td>
                                 <td>
                                     <div class="table-actions">
                                         <?php if ($row['status'] === 'pending'): ?>
@@ -599,7 +624,7 @@ $testimonialBaseUrl = $isLocalhost
                                            data-confirm="Mark this commission as paid?"
                                            data-confirm-title="Mark Paid"
                                            data-confirm-label="Mark Paid"
-                                           class="button" style="font-size:0.72rem;padding:5px 10px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;">Mark Paid</a>
+                                           class="btn-tint btn-tint--ok">Mark Paid</a>
                                         <a href="admin.php?table=commissions&action=cancel&id=<?= $row['id'] ?>"
                                            data-confirm="Cancel this commission?"
                                            data-confirm-variant="danger"
@@ -626,7 +651,7 @@ $testimonialBaseUrl = $isLocalhost
 
                 <!-- ====== TESTIMONIALS TABLE ====== -->
                 <?php if (empty($logs)): ?>
-                    <p style="color:#475569;font-family:'JetBrains Mono',monospace;font-size:0.8rem;">No testimonials yet.</p>
+                    <p class="adm-mono adm-subtle">No testimonials yet.</p>
                 <?php else: ?>
                 <div class="table-container" style="margin-bottom:32px;">
                     <table>
@@ -646,13 +671,13 @@ $testimonialBaseUrl = $isLocalhost
                             <tr>
                                 <td><?= $no-- ?></td>
                                 <td style="white-space:normal;">
-                                    <div style="font-weight:600;color:#e2e8f0;"><?= htmlspecialchars($row['client_name']) ?></div>
-                                    <div style="font-size:0.75rem;color:#475569;"><?= htmlspecialchars($row['role_title']) ?></div>
+                                    <div style="font-weight:600;"><?= htmlspecialchars($row['client_name']) ?></div>
+                                    <div class="adm-subtle" style="font-size:12px;"><?= htmlspecialchars($row['role_title']) ?></div>
                                 </td>
                                 <td><?= htmlspecialchars($row['business_name']) ?></td>
                                 <td>
-                                    <span style="color:#ffc73a;letter-spacing:1px;"><?= str_repeat('★', (int)$row['rating']) . str_repeat('☆', 5 - (int)$row['rating']) ?></span>
-                                    <span style="color:#475569;font-size:0.75rem;margin-left:4px;"><?= (int)$row['rating'] ?>/5</span>
+                                    <span class="adm-stars"><?= str_repeat('★', (int)$row['rating']) . str_repeat('☆', 5 - (int)$row['rating']) ?></span>
+                                    <span class="adm-subtle" style="font-size:12px;margin-left:4px;"><?= (int)$row['rating'] ?>/5</span>
                                 </td>
                                 <td>
                                     <?php
@@ -668,64 +693,61 @@ $testimonialBaseUrl = $isLocalhost
                                         <?= ucfirst($s) ?>
                                     </span>
                                 </td>
-                                <td style="font-size:0.78rem;color:#475569;white-space:nowrap;"><?= htmlspecialchars(substr($row['submitted_at'], 0, 16)) ?></td>
+                                <td class="adm-subtle" style="font-size:12px;white-space:nowrap;"><?= htmlspecialchars(substr($row['submitted_at'], 0, 16)) ?></td>
                                 <td>
                                     <div class="table-actions" style="flex-wrap:wrap;gap:5px;">
-                                        <button class="button edit" style="font-size:0.72rem;padding:5px 10px;"
+                                        <button class="button"
                                             onclick="toggleTestimonial(<?= $row['id'] ?>)">Full</button>
                                         <?php if ($row['status'] !== 'approved'): ?>
                                             <a href="?table=testimonials&action=approve&id=<?= $row['id'] ?>"
                                                data-confirm="Approve this testimonial?"
                                                data-confirm-title="Approve testimonial"
                                                data-confirm-label="Approve"
-                                               class="button"
-                                               style="font-size:0.72rem;padding:5px 10px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;">Approve</a>
+                                               class="btn-tint btn-tint--ok">Approve</a>
                                         <?php endif; ?>
                                         <?php if ($row['status'] !== 'rejected'): ?>
                                             <a href="?table=testimonials&action=reject&id=<?= $row['id'] ?>"
                                                data-confirm="Reject this testimonial?"
                                                data-confirm-title="Reject testimonial"
                                                data-confirm-label="Reject"
-                                               class="button"
-                                               style="font-size:0.72rem;padding:5px 10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#f87171;">Reject</a>
+                                               class="btn-tint btn-tint--err">Reject</a>
                                         <?php endif; ?>
                                         <a href="?table=testimonials&action=delete&id=<?= $row['id'] ?>"
                                            data-confirm="Permanently delete this testimonial? This cannot be undone."
                                            data-confirm-variant="danger"
                                            data-confirm-title="Delete testimonial"
                                            data-confirm-label="Delete"
-                                           class="button delete"
-                                           style="font-size:0.72rem;padding:5px 10px;">Delete</a>
+                                           class="button del">Delete</a>
                                     </div>
                                 </td>
                             </tr>
                             <!-- Expandable full detail row -->
                             <tr class="testi-detail" id="testi-detail-<?= $row['id'] ?>" style="display:none;">
-                                <td colspan="7" style="background:rgba(255,255,255,0.02);padding:20px 24px;white-space:normal;">
+                                <td colspan="7" class="adm-row-hl" style="padding:20px 24px;white-space:normal;">
                                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;max-width:860px;">
                                         <div>
-                                            <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:#3a7cff;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Problem Before</div>
-                                            <p style="color:#94a3b8;font-size:0.82rem;line-height:1.6;margin:0;"><?= nl2br(htmlspecialchars($row['problem_before'])) ?></p>
+                                            <div class="adm-eyebrow">Problem Before</div>
+                                            <p class="adm-muted" style="font-size:13px;line-height:1.6;margin:0;"><?= nl2br(htmlspecialchars($row['problem_before'])) ?></p>
                                         </div>
                                         <div>
-                                            <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:#3a7cff;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Solution / What Was Built</div>
-                                            <p style="color:#94a3b8;font-size:0.82rem;line-height:1.6;margin:0;"><?= nl2br(htmlspecialchars($row['solution_after'])) ?></p>
+                                            <div class="adm-eyebrow">Solution / What Was Built</div>
+                                            <p class="adm-muted" style="font-size:13px;line-height:1.6;margin:0;"><?= nl2br(htmlspecialchars($row['solution_after'])) ?></p>
                                         </div>
                                         <div>
-                                            <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:#3a7cff;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Recommendation</div>
-                                            <p style="color:#94a3b8;font-size:0.82rem;line-height:1.6;margin:0;"><?= nl2br(htmlspecialchars($row['recommendation'])) ?></p>
+                                            <div class="adm-eyebrow">Recommendation</div>
+                                            <p class="adm-muted" style="font-size:13px;line-height:1.6;margin:0;"><?= nl2br(htmlspecialchars($row['recommendation'])) ?></p>
                                         </div>
                                         <div>
-                                            <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:#3a7cff;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Meta</div>
-                                            <div style="font-size:0.78rem;color:#475569;line-height:1.8;">
-                                                <div>Project: <a href="<?= htmlspecialchars($row['project_url']) ?>" target="_blank" style="color:#60a5fa;"><?= htmlspecialchars($row['project_url']) ?></a></div>
+                                            <div class="adm-eyebrow">Meta</div>
+                                            <div class="adm-subtle" style="font-size:12px;line-height:1.8;">
+                                                <div>Project: <a href="<?= htmlspecialchars($row['project_url']) ?>" target="_blank" style="color:var(--link);"><?= htmlspecialchars($row['project_url']) ?></a></div>
                                                 <?php if ($row['headline']): ?>
-                                                <div>Headline: <em style="color:#94a3b8;">"<?= htmlspecialchars($row['headline']) ?>"</em></div>
+                                                <div>Headline: <em style="color:var(--text-muted);">"<?= htmlspecialchars($row['headline']) ?>"</em></div>
                                                 <?php endif; ?>
                                                 <?php if ($row['client_email']): ?>
                                                 <div>Email: <?= htmlspecialchars($row['client_email']) ?></div>
                                                 <?php endif; ?>
-                                                <div>Consent: <?= $row['consent_given'] ? '<span style="color:#4ade80;">Yes</span>' : '<span style="color:#f87171;">No</span>' ?></div>
+                                                <div>Consent: <?= $row['consent_given'] ? '<span style="color:var(--ok);">Yes</span>' : '<span style="color:var(--err);">No</span>' ?></div>
                                                 <?php if ($row['reviewed_at']): ?>
                                                 <div>Reviewed: <?= htmlspecialchars(substr($row['reviewed_at'], 0, 16)) ?></div>
                                                 <?php endif; ?>
@@ -756,23 +778,23 @@ $testimonialBaseUrl = $isLocalhost
 
                 <!-- ====== INVITE TOKEN GENERATOR ====== -->
                 <div style="margin-bottom:16px;">
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:#3a7cff;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">Invite Token Generator</div>
+                    <div class="adm-eyebrow">Invite Token Generator</div>
                     <form method="POST" action="admin.php?table=testimonials&action=gen_token"
-                          style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px;">
+                          class="adm-row adm-row--end adm-mb-4">
                         <div>
-                            <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:#475569;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;">Label (optional)</label>
+                            <label>Label (optional)</label>
                             <input type="text" name="label" maxlength="200"
                                    placeholder="e.g. Azriel - Rielcode CEO"
-                                   style="padding:10px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:10px;color:#e2e8f0;font-family:'Outfit',sans-serif;font-size:0.85rem;outline:none;width:280px;">
+                                   style="width:280px;">
                         </div>
-                        <button type="submit" class="button add" style="margin-bottom:0;height:40px;">Generate Link</button>
+                        <button type="submit" class="button add adm-mb-0">Generate Link</button>
                     </form>
 
                     <?php if (!empty($newToken)): ?>
-                    <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:#4ade80;letter-spacing:0.5px;">New link generated:</span>
-                        <code id="newTokenUrl" style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:#e2e8f0;background:rgba(255,255,255,0.05);padding:4px 10px;border-radius:6px;word-break:break-all;"><?= htmlspecialchars($testimonialBaseUrl) ?>/?t=<?= htmlspecialchars($newToken) ?></code>
-                        <button onclick="copyToken()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:0.72rem;font-family:'Outfit',sans-serif;" id="copyTokenBtn">Copy</button>
+                    <div class="adm-row adm-mb-4" style="background:var(--ok-bg);border:1px solid var(--ok-bd);border-radius:var(--radius);padding:14px 18px;">
+                        <span class="adm-mono" style="font-size:11px;color:var(--ok);">New link generated:</span>
+                        <code id="newTokenUrl" class="adm-mono" style="font-size:12px;background:var(--bg-sunken);padding:4px 10px;border-radius:var(--radius);word-break:break-all;border:1px solid var(--border);"><?= htmlspecialchars($testimonialBaseUrl) ?>/?t=<?= htmlspecialchars($newToken) ?></code>
+                        <button onclick="copyToken()" class="button btn-sm" id="copyTokenBtn">Copy</button>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -793,28 +815,28 @@ $testimonialBaseUrl = $isLocalhost
                         <tbody>
                             <?php foreach ($invites as $inv): ?>
                             <tr>
-                                <td style="color:#e2e8f0;"><?= htmlspecialchars($inv['label'] ?? '—') ?></td>
-                                <td style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;"><?= htmlspecialchars(substr($inv['token'], 0, 12)) ?>…</td>
-                                <td style="font-size:0.78rem;color:#475569;"><?= htmlspecialchars(substr($inv['created_at'], 0, 16)) ?></td>
+                                <td ><?= htmlspecialchars($inv['label'] ?? '—') ?></td>
+                                <td class="adm-mono" style="font-size:12px;"><?= htmlspecialchars(substr($inv['token'], 0, 12)) ?>…</td>
+                                <td class="adm-subtle" style="font-size:12px;"><?= htmlspecialchars(substr($inv['created_at'], 0, 16)) ?></td>
                                 <td>
                                     <?php if ($inv['used_at']): ?>
-                                        <span style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-family:'JetBrains Mono',monospace;">Used</span>
+                                        <span class="adm-badge adm-badge--ok">Used</span>
                                     <?php else: ?>
-                                        <span style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-family:'JetBrains Mono',monospace;">Unused</span>
+                                        <span class="adm-badge adm-badge--warn">Unused</span>
                                     <?php endif; ?>
                                 </td>
                                 <td style="display:flex;gap:6px;align-items:center;">
                                     <?php if (!$inv['used_at']): ?>
                                     <button onclick="copyInvite('<?= htmlspecialchars($testimonialBaseUrl) ?>/?t=<?= htmlspecialchars($inv['token']) ?>', this)"
-                                            style="background:rgba(58,124,255,0.1);border:1px solid rgba(58,124,255,0.3);color:#60a5fa;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:0.72rem;font-family:'Outfit',sans-serif;font-weight:600;">Copy Link</button>
+                                            class="btn-tint btn-tint--info">Copy Link</button>
                                     <a href="admin.php?table=testimonials&action=del_token&token_id=<?= (int)$inv['id'] ?>"
                                        data-confirm="Delete this unused token?"
                                        data-confirm-variant="danger"
                                        data-confirm-title="Delete token"
                                        data-confirm-label="Delete"
-                                       style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:0.72rem;font-family:'Outfit',sans-serif;font-weight:600;text-decoration:none;">Delete</a>
+                                       class="btn-tint btn-tint--err">Delete</a>
                                     <?php else: ?>
-                                        <span style="color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:0.75rem;">—</span>
+                                        <span class="adm-mono adm-subtle" style="font-size:12px;">—</span>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -828,7 +850,7 @@ $testimonialBaseUrl = $isLocalhost
 
                 <!-- ====== PROJECTS CRUD ====== -->
                 <div style="margin-bottom:28px;padding:20px;background:rgba(58,124,255,0.05);border:1px solid rgba(58,124,255,0.2);border-radius:12px;">
-                    <h3 style="margin:0 0 14px;color:#e2e8f0;font-size:1.05rem;"><?= $editProject ? 'Edit Project' : 'Add New Project' ?></h3>
+                    <h3 style="margin:0 0 14px;"><?= $editProject ? 'Edit Project' : 'Add New Project' ?></h3>
                     <form method="POST" enctype="multipart/form-data"
                           action="admin.php?table=projects&action=<?= $editProject ? 'update&id=' . (int)$editProject['id'] : 'add' ?>"
                           class="projects-form"
@@ -877,8 +899,8 @@ $testimonialBaseUrl = $isLocalhost
                             <label>Project Image</label>
                             <input type="file" name="image" accept="image/*">
                             <?php if (!empty($editProject['image_path'])): ?>
-                                <div style="margin-top:8px;font-size:0.75rem;color:#475569;">
-                                    Current: <code style="color:#94a3b8;"><?= htmlspecialchars($editProject['image_path']) ?></code>
+                                <div class="adm-subtle" style="margin-top:8px;font-size:12px;">
+                                    Current: <code style="color:var(--text-muted);"><?= htmlspecialchars($editProject['image_path']) ?></code>
                                     <img src="<?= htmlspecialchars($editProject['image_path']) ?>" alt="" style="max-width:120px;max-height:80px;display:block;margin-top:6px;border-radius:6px;">
                                 </div>
                             <?php endif; ?>
@@ -899,7 +921,7 @@ $testimonialBaseUrl = $isLocalhost
                                        <?= ($editProject === null || (int)($editProject['is_visible'] ?? 1) === 1) ? 'checked' : '' ?>>
                                 <span class="toggle-track"></span>
                             </label>
-                            <label for="is_visible" style="text-transform:none;font-size:0.875rem;color:#e2e8f0;letter-spacing:0;cursor:pointer;user-select:none;">Visible on public site</label>
+                            <label for="is_visible" style="text-transform:none;font-size:13px;letter-spacing:0;cursor:pointer;user-select:none;color:var(--text);">Visible on public site</label>
                         </div>
 
                         <div style="grid-column:span 2;display:flex;gap:10px;align-items:center;">
@@ -912,7 +934,7 @@ $testimonialBaseUrl = $isLocalhost
                 </div>
 
                 <?php if (empty($logs)): ?>
-                    <p style="color:#475569;font-family:'JetBrains Mono',monospace;font-size:0.8rem;">No projects yet — add one above.</p>
+                    <p class="adm-mono adm-subtle">No projects yet — add one above.</p>
                 <?php else: ?>
                     <div class="table-container">
                         <table>
@@ -935,17 +957,17 @@ $testimonialBaseUrl = $isLocalhost
                                             <?php if (!empty($row['image_path'])): ?>
                                                 <img src="<?= htmlspecialchars($row['image_path']) ?>" alt="" style="width:60px;height:42px;object-fit:cover;border-radius:6px;">
                                             <?php else: ?>
-                                                <span style="color:#475569;font-size:0.75rem;">—</span>
+                                                <span class="adm-subtle" style="font-size:12px;">—</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td style="white-space:normal;color:#e2e8f0;font-weight:600;"><?= htmlspecialchars($row['title']) ?></td>
+                                        <td style="white-space:normal;font-weight:600;"><?= htmlspecialchars($row['title']) ?></td>
                                         <td>
-                                            <span style="<?= $row['layout'] === 'featured' ? 'background:rgba(58,124,255,0.15);color:#60a5fa;border:1px solid rgba(58,124,255,0.35);' : 'background:rgba(62,207,142,0.12);color:#4ade80;border:1px solid rgba(62,207,142,0.35);' ?>padding:3px 10px;border-radius:20px;font-size:0.7rem;font-family:'JetBrains Mono',monospace;">
+                                            <span class="adm-badge <?= $row['layout'] === 'featured' ? 'adm-badge--info' : 'adm-badge--ok' ?>">
                                                 <?= htmlspecialchars($row['layout']) ?>
                                             </span>
                                         </td>
                                         <td><?= (int)$row['sort_order'] ?></td>
-                                        <td><?= (int)$row['is_visible'] ? '<span style="color:#4ade80;">●</span> Yes' : '<span style="color:#f87171;">●</span> No' ?></td>
+                                        <td><?= (int)$row['is_visible'] ? '<span style="color:var(--ok);">●</span> Yes' : '<span style="color:var(--err);">●</span> No' ?></td>
                                         <td>
                                             <div class="table-actions">
                                                 <a href="?table=projects&action=edit&id=<?= $row['id'] ?>" class="button edit">Edit</a>
@@ -972,9 +994,9 @@ $testimonialBaseUrl = $isLocalhost
             <?php elseif ($table === 'invoices'): ?>
 
                 <!-- ====== INVOICES MANAGEMENT ====== -->
-                <p style="color:#94a3b8;margin-bottom:20px;">Generate, edit, download, and send invoices for orders. Click an order to manage its invoice.</p>
+                <p style="color:var(--text-muted);margin-bottom:20px;">Generate, edit, download, and send invoices for orders. Click an order to manage its invoice.</p>
                 <?php if (empty($logs)): ?>
-                    <p style="color:#475569;font-family:'JetBrains Mono',monospace;font-size:0.8rem;">No orders yet.</p>
+                    <p class="adm-mono adm-subtle">No orders yet.</p>
                 <?php else: ?>
                     <div class="table-container">
                         <table>
@@ -1007,30 +1029,30 @@ $testimonialBaseUrl = $isLocalhost
                                     <tr>
                                         <td><?= $no-- ?></td>
                                         <td style="white-space:normal;">
-                                            <div style="font-weight:600;color:#e2e8f0;"><?= htmlspecialchars($row['order_name']) ?></div>
-                                            <div style="font-size:0.75rem;color:#475569;"><?= htmlspecialchars($row['email']) ?></div>
+                                            <div style="font-weight:600;"><?= htmlspecialchars($row['order_name']) ?></div>
+                                            <div class="adm-subtle" style="font-size:12px;"><?= htmlspecialchars($row['email']) ?></div>
                                         </td>
                                         <td><?= htmlspecialchars($row['package']) ?></td>
-                                        <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:#94a3b8;"><?= htmlspecialchars($row['invoice_number'] ?: '—') ?></td>
+                                        <td class="adm-mono adm-muted" style="font-size:12px;"><?= htmlspecialchars($row['invoice_number'] ?: '—') ?></td>
                                         <td>
                                             <span style="<?= $statusStyles[$invStatus] ?? '' ?>padding:3px 10px;border-radius:20px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;font-weight:600;text-transform:uppercase;">
                                                 <?= htmlspecialchars($invStatus) ?>
                                             </span>
                                         </td>
-                                        <td style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:#e2e8f0;"><?= $amtStr ?></td>
-                                        <td style="font-size:0.78rem;color:#475569;white-space:nowrap;"><?= htmlspecialchars(substr($row['created_at'], 0, 16)) ?></td>
+                                        <td class="adm-mono" style="font-size:13px;"><?= $amtStr ?></td>
+                                        <td class="adm-subtle" style="font-size:12px;white-space:nowrap;"><?= htmlspecialchars(substr($row['created_at'], 0, 16)) ?></td>
                                         <td>
                                             <div class="table-actions" style="flex-wrap:wrap;gap:5px;">
                                                 <a href="admin_invoice_edit.php?id=<?= $row['id'] ?>" class="button edit" style="font-size:0.72rem;padding:5px 10px;">Edit Invoice</a>
                                                 <?php if (!empty($row['invoice_file'])): ?>
                                                     <a href="<?= htmlspecialchars(ltrim(str_replace('../','', $row['invoice_file']), '/')) ?>"
-                                                       download class="button" style="font-size:0.72rem;padding:5px 10px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;">Download</a>
+                                                       download class="btn-tint btn-tint--ok">Download</a>
                                                 <?php endif; ?>
                                                 <a href="admin_invoice_edit.php?id=<?= $row['id'] ?>&send=1"
                                                    data-confirm="Regenerate PDF and send invoice email?"
                                                    data-confirm-title="Send invoice"
                                                    data-confirm-label="Send"
-                                                   class="button" style="font-size:0.72rem;padding:5px 10px;background:rgba(58,124,255,0.12);border:1px solid rgba(58,124,255,0.35);color:#60a5fa;">Send</a>
+                                                   class="btn-tint btn-tint--info">Send</a>
                                             </div>
                                         </td>
                                     </tr>
@@ -1087,7 +1109,7 @@ $testimonialBaseUrl = $isLocalhost
                                                     echo "No File";
                                                 } else {
                                                     $filePath = ltrim(str_replace('../', '', $row[$col]), '/');
-                                                    echo '<a href="' . htmlspecialchars($filePath) . '" download="Invoice" class="button">Download</a>';
+                                                    echo '<a href="' . htmlspecialchars($filePath) . '" download="Invoice" class="btn-tint btn-tint--ok">Download</a>';
                                                 }
                                             } elseif ($table === 'chat_logs' && in_array($col, ['user_message', 'bot_reply'])) {
                                                 $uid     = 'msg-' . $row['id'] . '-' . $col;
@@ -1147,27 +1169,7 @@ $testimonialBaseUrl = $isLocalhost
         </div>
     </div>
     <script>
-        (function() {
-            const toggle = document.getElementById('sidebarToggle');
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-
-            function openSidebar() {
-                sidebar.classList.add('active');
-                overlay.classList.add('active');
-            }
-
-            function closeSidebar() {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            }
-
-            toggle.addEventListener('click', function() {
-                sidebar.classList.contains('active') ? closeSidebar() : openSidebar();
-            });
-
-            overlay.addEventListener('click', closeSidebar);
-        })();
+        // Sidebar toggle handled by JS/admin-ui.js (bindSidebarToggle).
 
         function toggleMsg(uid, btn) {
             const preview = document.getElementById(uid + '-preview');

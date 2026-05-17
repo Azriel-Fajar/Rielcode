@@ -394,7 +394,7 @@ form .checkbox label a:hover {
 }
 
 #checkoutBtn:hover::before { opacity: 1; }
-#checkoutBtn:active { transform: translateY(0); }
+#checkoutBtn:active { transform: scale(0.97); }
 
 #checkoutBtn:disabled {
   background: linear-gradient(135deg, #1e3a6e 0%, #2d2a6e 100%);

@@ -1,3 +1,4 @@
+<?php if (!empty($_GET['err'])) include __DIR__ . '/inc/_err_banner.php'; ?>
 <section class="rc-req" id="requirements">
     <div class="rc-container">
 

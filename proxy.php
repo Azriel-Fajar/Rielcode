@@ -7,8 +7,28 @@ ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/php_error.log');
 error_reporting(E_ALL);
 
+require_once __DIR__ . '/inc/db.php';
+require_once __DIR__ . '/inc/ip.php';
+require_once __DIR__ . '/inc/error_codes.php';
+require_once __DIR__ . '/inc/audit_logger.php';
+require_once __DIR__ . '/inc/rate_limiter.php';
+require_once __DIR__ . '/inc/chat_stream.php';
+
+// Hard cap on model output. ~1 token ≈ 0.75 words, so 450 tokens ≈ 330 words / ~1600 chars.
+// Set high enough for the model to finish a complete answer; the system prompt below also
+// instructs it to self-budget tighter (~3–5 sentences) so most replies stay well under the cap.
+if (!defined('RC_BOT_MAX_TOKENS')) define('RC_BOT_MAX_TOKENS', 450);
+$rc_max_tokens   = RC_BOT_MAX_TOKENS;
+$rc_word_budget  = (int) round($rc_max_tokens * 0.7);
+$rc_target_words = 120; // soft target the model should aim for; cap is the safety net
+
+// --- Streaming detection (must happen before any "Content-Type: application/json" header is set) ---
+$rc_stream_requested = !empty($_GET['stream']);
+
 // --- CORS headers ---
-header("Content-Type: application/json");
+if (!$rc_stream_requested) {
+    header("Content-Type: application/json");
+}
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowedOrigins = [
     'https://rielcode.com',
@@ -56,8 +76,38 @@ $userMessageLower = strtolower($userMessage);
 
 if (!$userMessage) {
     ob_end_clean();
-    echo json_encode(["reply" => "⚠️ No message received."]);
+    $resp = rc_error_response('RC-CHAT-001');
+    http_response_code($resp['http']);
+    echo json_encode($resp);
     exit;
+}
+
+// --- Per-IP rate limit + token cap (chatbot widget only) ---
+$rc_ip      = rc_client_ip();
+$rc_stream  = $rc_stream_requested && $messageSource === 'chatbot';
+
+if ($messageSource === 'chatbot') {
+    try {
+        rc_rate_check($rc_ip);
+        rc_token_check($rc_ip);
+    } catch (RuntimeException $e) {
+        $code = $e->getMessage();
+        $resp = rc_error_response($code);
+        rc_audit('RATE_LIMIT_HIT', $rc_ip, ['code' => $code], 'warn');
+        ob_end_clean();
+        http_response_code(429);
+        if ($rc_stream) {
+            // Emit SSE-shaped error frame so the streaming client can render it.
+            header('Content-Type: text/event-stream; charset=utf-8');
+            header('Cache-Control: no-cache, no-transform');
+            header('X-Accel-Buffering: no');
+            echo "event: error\n";
+            echo 'data: ' . json_encode(['code' => $resp['code'], 'reply' => $resp['reply']]) . "\n\n";
+        } else {
+            echo json_encode($resp);
+        }
+        exit;
+    }
 }
 
 // --- Package knowledge base ---
@@ -232,7 +282,16 @@ RULES — always judge the INTENT and CONTEXT of the message before responding:
 - If the user sends only numbers, random characters, or gibberish → ask them to clarify what they need help with.
 - For anything else genuinely outside Rielcode's scope → politely redirect.
 
-STYLE: Reply in 2–4 sentences. Always use relevant emojis naturally (🚀 excitement, 💡 tips, ✅ confirmations, 😊 warmth, 💬 inviting questions). Be warm, clear, and helpful.";
+STYLE: Reply in 2–4 sentences. Always use relevant emojis naturally (🚀 excitement, 💡 tips, ✅ confirmations, 😊 warmth, 💬 inviting questions). Be warm, clear, and helpful.
+
+OUTPUT BUDGET — ABSOLUTE: Maximum {$rc_word_budget} words / {$rc_max_tokens} tokens. Aim for ~{$rc_target_words} words (3–5 short sentences).
+
+When the user asks \"what packages do you offer\", \"what plans do you have\", \"list your packages\", \"show me your plans\", \"all\", \"every\", \"thorough\", \"detailed\", \"compare every plan\", \"in depth\", or any similarly broad request:
+1. REFUSE to enumerate everything. Do NOT list all 4 packages with full features.
+2. Instead, give a 2-sentence high-level summary (e.g. \"Rielcode has 4 tiers from \$30 to \$295. Pro and Premium include free hosting & domain; Student/Starter don't.\").
+3. Then end with ONE short follow-up question offering to deep-dive on the single plan or aspect the user cares about most (e.g. \"Which plan are you most interested in — I'll break that one down properly?\").
+
+NEVER produce bulleted lists longer than 4 items. NEVER end mid-sentence, mid-word, or with a trailing comma/dash/colon. Always end with a complete sentence followed by punctuation (. ! or ?). If you sense you're approaching the cap, cut the list short and end with the follow-up question immediately.";
 
 // --- Build messages array (system + conversation history) ---
 $messages = [["role" => "system", "content" => $systemInstruction]];
@@ -246,106 +305,135 @@ $url     = "https://api.openai.com/v1/chat/completions";
 $payload = [
     "model"       => "gpt-4o-mini",   // fast & cost-effective; swap to "gpt-4o" for higher quality
     "messages"    => $messages,
-    "max_tokens"  => 300,
+    "max_tokens"  => RC_BOT_MAX_TOKENS,
     "temperature" => 0.7,
 ];
 
-$ch = curl_init($url);
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST           => true,
-    CURLOPT_HTTPHEADER     => [
-        "Content-Type: application/json",
-        "Authorization: Bearer $apiKey",
-    ],
-    CURLOPT_POSTFIELDS     => json_encode($payload),
-    CURLOPT_TIMEOUT        => 15,
-    // Safe to disable SSL peer verification on localhost only
-    CURLOPT_SSL_VERIFYPEER => !$isLocalhost,
-    CURLOPT_SSL_VERIFYHOST => $isLocalhost ? 0 : 2,
-]);
-
-$response  = curl_exec($ch);
-$curlError = curl_error($ch);
-$httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-
-if ($curlError) {
-    ob_end_clean();
-    echo json_encode(["reply" => "⚠️ AI connection failed: $curlError"]);
-    exit;
-}
-
-// --- Parse OpenAI response ---
-$responseData = json_decode($response, true);
 $reply        = '';
+$usageIn      = 0;
+$usageOut     = 0;
+$usageTotal   = 0;
+$openAiError  = null;   // null | ['code'=>'RC-CHAT-XXX','detail'=>'...']
 
-if (isset($responseData['error'])) {
-    $errMsg  = $responseData['error']['message'] ?? 'Unknown API error';
-    $errType = $responseData['error']['type']    ?? '';
-    error_log("RielBot OpenAI error [$httpCode] $errType: $errMsg");
+if ($rc_stream) {
+    // ---- Streaming branch: SSE relay from OpenAI to browser ----
+    ob_end_clean();
+    $streamResult = rc_stream_openai($apiKey, $payload, !$isLocalhost);
+    $reply        = (string)$streamResult['reply'];
+    $usageIn      = (int)$streamResult['usage']['in'];
+    $usageOut     = (int)$streamResult['usage']['out'];
+    $usageTotal   = (int)$streamResult['usage']['total'];
 
-    if ($httpCode === 400) {
-        $reply = "⚠️ Invalid request. Try sending a shorter message.";
-    } elseif ($httpCode === 401) {
-        $reply = "⚠️ API key invalid or expired. Please contact the Rielcode admin.";
-    } elseif ($httpCode === 429) {
-        $reply = "⚠️ RielBot is very busy right now. Please try again in a few seconds 😊.";
-    } elseif ($httpCode === 404) {
-        $reply = "⚠️ AI model not found. Please contact the Rielcode admin.";
+    if ($reply === '') {
+        // rc_stream_openai already sent an error frame; no reply to log/store.
+        $openAiError = ['code' => 'RC-CHAT-006', 'detail' => 'empty stream reply'];
+    }
+} else {
+    // ---- Non-streaming branch (existing flow) ----
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_HTTPHEADER     => [
+            "Content-Type: application/json",
+            "Authorization: Bearer $apiKey",
+        ],
+        CURLOPT_POSTFIELDS     => json_encode($payload),
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_SSL_VERIFYPEER => !$isLocalhost,
+        CURLOPT_SSL_VERIFYHOST => $isLocalhost ? 0 : 2,
+    ]);
+
+    $response  = curl_exec($ch);
+    $curlError = curl_error($ch);
+    $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($curlError) {
+        $resp = rc_error_response('RC-CHAT-003', $curlError);
+        rc_audit('OPENAI_ERROR', $rc_ip, ['type' => 'curl', 'err' => $curlError], 'error');
+        ob_end_clean();
+        http_response_code($resp['http']);
+        echo json_encode($resp);
+        exit;
+    }
+
+    $responseData = json_decode($response, true);
+
+    if (isset($responseData['error'])) {
+        $errMsg  = $responseData['error']['message'] ?? 'Unknown API error';
+        $errType = $responseData['error']['type']    ?? '';
+        rc_audit('OPENAI_ERROR', $rc_ip, ['http' => $httpCode, 'type' => $errType, 'err' => $errMsg], 'error');
+
+        if ($httpCode === 400 || $httpCode === 401 || $httpCode === 404) {
+            $openAiError = ['code' => 'RC-CHAT-004', 'detail' => "OpenAI HTTP $httpCode $errType: $errMsg"];
+        } else {
+            $openAiError = ['code' => 'RC-CHAT-005', 'detail' => "OpenAI HTTP $httpCode $errType: $errMsg"];
+        }
+        $reply = rc_user_msg($openAiError['code']);
     } else {
-        $reply = "⚠️ AI service error (code $httpCode). Please try again.";
+        $reply      = $responseData['choices'][0]['message']['content'] ?? '';
+        $usageIn    = (int)($responseData['usage']['prompt_tokens']     ?? 0);
+        $usageOut   = (int)($responseData['usage']['completion_tokens'] ?? 0);
+        $usageTotal = (int)($responseData['usage']['total_tokens']      ?? 0);
     }
-} else {
-    $reply = $responseData['choices'][0]['message']['content'] ?? '';
+
+    if (!$reply) {
+        rc_audit('OPENAI_ERROR', $rc_ip, ['http' => $httpCode, 'note' => 'empty reply'], 'error');
+        error_log('[RC-CHAT-006] RielBot empty reply. HTTP ' . $httpCode . '. Raw: ' . substr((string)$response, 0, 500));
+        $reply = rc_user_msg('RC-CHAT-006');
+        $openAiError = $openAiError ?? ['code' => 'RC-CHAT-006', 'detail' => 'empty reply'];
+    }
 }
 
-if (!$reply) {
-    error_log("RielBot empty reply. HTTP $httpCode. Raw: " . substr($response, 0, 500));
-    $reply = "⚠️ No response from the model. Please try again.";
-}
+// --- Clean response (only when we got a real model reply) ---
+if (!$openAiError) {
+    $reply = preg_replace('/(<\/?s>|\[\/?\s*OUT\]|\[IN\]|<PAD>)/i', '', trim($reply));
+    if (strlen($reply) > 600) {
+        $short = substr($reply, 0, 600);
+        $short = preg_replace('/\s+?[^.?!]*$/', '', $short);
+        $reply = $short . '...';
+    }
 
-// --- Clean response ---
-$reply = preg_replace('/(<\/?s>|\[\/?\s*OUT\]|\[IN\]|<PAD>)/i', '', trim($reply));
-if (strlen($reply) > 600) {
-    $short = substr($reply, 0, 600);
-    $short = preg_replace('/\s+?[^.?!]*$/', '', $short);
-    $reply = $short . '...';
-}
+    // Save assistant reply to session memory
+    $_SESSION['rielbot_memory'][] = ["role" => "assistant", "content" => $reply];
 
-// --- Save assistant reply to session memory ---
-$_SESSION['rielbot_memory'][] = ["role" => "assistant", "content" => $reply];
+    // Token cap increment — only when a real reply succeeded (don't burn quota on failures)
+    if ($messageSource === 'chatbot' && $usageTotal > 0) {
+        rc_token_add($rc_ip, $usageTotal);
+    }
+}
 
 // ==========================================
-// DATABASE LOGGING
+// DATABASE LOGGING (chatbot widget only)
 // ==========================================
-$configPath = '/home/rier5192/config.php';
-if (file_exists($configPath)) {
-    $cfg    = require $configPath;
-    $dbHost = $cfg['DB_HOST'];
-    $dbName = $cfg['DB_NAME'];
-    $dbUser = $cfg['DB_USER'];
-    $dbPass = $cfg['DB_PASS'];
-} else {
-    $dbHost = 'localhost';
-    $dbName = 'rielcode';
-    $dbUser = 'root';
-    $dbPass = '';
-}
-
-try {
-    $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    // Only log messages from the chatbot widget, not from checkout/admin AI calls
-    if ($messageSource === 'chatbot') {
-        $stmt = $pdo->prepare("INSERT INTO chat_logs (user_message, bot_reply, tag) VALUES (?, ?, ?)");
-        $stmt->execute([$userMessage, $reply, 'chat']);
+if ($messageSource === 'chatbot') {
+    try {
+        $pdo  = rc_pdo();
+        $stmt = $pdo->prepare(
+            "INSERT INTO chat_logs (user_message, bot_reply, ip_address, input_tokens, output_tokens, tag)
+             VALUES (?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->execute([
+            $userMessage,
+            $reply,
+            $rc_ip,
+            $usageIn  ?: null,
+            $usageOut ?: null,
+            $openAiError ? 'error' : 'chat',
+        ]);
+    } catch (Throwable $e) {
+        error_log('[RC-DB-002] proxy chat_logs insert: ' . $e->getMessage());
+        rc_audit('CHAT_LOG_INSERT_FAIL', $rc_ip, ['err' => $e->getMessage()], 'error');
+        // Non-fatal — still return the reply.
     }
-} catch (Exception $e) {
-    error_log("RielBot DB Error: " . $e->getMessage());
-    // Non-fatal — continue and return reply even if DB logging fails
 }
 
 // --- Send response ---
+if ($rc_stream) {
+    // Already streamed via SSE inside rc_stream_openai — nothing left to emit.
+    exit;
+}
+
 ob_end_clean();
 echo json_encode(["reply" => $reply], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

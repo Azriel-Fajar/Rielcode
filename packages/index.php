@@ -498,7 +498,7 @@ include '../connection.php';
 
     <?php include '../footer.php'; ?>
 
-    <script src="../JS/chatbot.js"></script>
+    <script defer src="../JS/chatbot.js"></script>
 
 </body>
 </html>

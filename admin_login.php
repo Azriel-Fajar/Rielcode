@@ -25,6 +25,9 @@ if (file_exists($configPath)) {
     $dbPass = $config['DB_PASS'] ?? '';
 }
 
+require_once __DIR__ . '/inc/error_codes.php';
+require_once __DIR__ . '/inc/audit_logger.php';
+
 // Connect to MySQL
 try {
     $pdo = new PDO(
@@ -34,31 +37,30 @@ try {
     );
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    die("DB Connection failed: " . $e->getMessage());
+    error_log('[RC-DB-001] admin_login: ' . $e->getMessage());
+    include __DIR__ . '/inc/_db_down.php';
 }
 
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'] ?? '';
     $stmt = $pdo->prepare("SELECT * FROM admins WHERE username = ?");
-    $stmt->execute([$_POST['username']]);
+    $stmt->execute([$username]);
     $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($admin) {
-        // Setelah login berhasil
-        if ($admin && password_verify($_POST['password'], $admin['password_hash'])) {
-            $_SESSION['admin_logged_in'] = true;
+    if ($admin && password_verify($_POST['password'] ?? '', $admin['password_hash'])) {
+        $_SESSION['admin_logged_in'] = true;
+        $_SESSION['admin_username']  = $admin['username'];
+        rc_audit('ADMIN_LOGIN_OK', $admin['username']);
 
-            // Redirect relatif (aman di localhost & live)
-            $redirect = 'admin.php';
-            header("Location: $redirect");
-            exit;
-        } else {
-            $error = "Invalid password.";
-        }
-    } else {
-        $error = "Invalid username.";
+        $redirect = 'admin.php';
+        header("Location: $redirect");
+        exit;
     }
+
+    $error = rc_user_msg('RC-AUTH-001');
+    rc_audit('ADMIN_LOGIN_FAIL', $username, ['reason' => $admin ? 'bad_password' : 'unknown_user'], 'warn');
 }
 
 ?>
@@ -67,8 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <head>
     <title>Admin Login - RielBot</title>
+    <?php include __DIR__ . '/inc/admin_theme_head.php'; ?>
     <link rel="stylesheet" href="CSS/admin_style.css">
     <link rel="icon" href="IMG/Rielcode Logo Square Transparent Icon.png" type="image/png">
+    <meta name="robots" content="noindex,nofollow">
 </head>
 
 <body class="login-page">
@@ -82,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Login</button>
         </form>
-        <p class="error"><?= htmlspecialchars($error) ?></p>
+        <?php if ($error !== ''): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endif; ?>
         <a href="https://rielcode.com" class="back-to-site">← Back to Website</a>
     </div>
 </body>

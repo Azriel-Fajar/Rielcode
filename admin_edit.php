@@ -19,13 +19,19 @@ $dbName = $config['DB_NAME'] ?? 'rielcode';
 $dbUser = $config['DB_USER'] ?? 'root';
 $dbPass = $config['DB_PASS'] ?? '';
 
+require_once __DIR__ . '/inc/error_codes.php';
+require_once __DIR__ . '/inc/audit_logger.php';
+
 // --- Connect to DB ---
 try {
     $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    die("DB Connection failed: " . htmlspecialchars($e->getMessage()));
+    error_log('[RC-DB-001] admin_edit: ' . $e->getMessage());
+    include __DIR__ . '/inc/_db_down.php';
 }
+
+$rc_admin_user = $_SESSION['admin_username'] ?? 'admin';
 
 // BUG FIX: whitelist $table
 $allowedTables = ['orders', 'packages'];
@@ -225,6 +231,7 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?> | RielBot Admin</title>
+    <?php include __DIR__ . '/inc/admin_theme_head.php'; ?>
     <link rel="stylesheet" href="CSS/admin_style.css">
     <link rel="icon" href="IMG/Rielcode Logo Square Transparent Icon.png" type="image/png">
     <meta name="robots" content="noindex,nofollow">
@@ -242,25 +249,8 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
             <span class="rc-toast__msg"><?= htmlspecialchars($flash['msg']) ?></span>
         </div>
     <?php endif; ?>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <div class="sidebar-toggle" id="sidebarToggle">☰ Menu</div>
-
     <div class="wrapper">
-        <div class="sidebar">
-            <h2>
-                <img src="IMG/Rielcode Logo Square Transparent Icon.png" alt="Rielcode" class="sidebar-logo">
-                RielBot Admin
-            </h2>
-            <a href="admin.php?table=chat_logs">Chat Logs</a>
-            <a href="admin.php?table=orders" class="<?= $table === 'orders' ? 'active' : '' ?>">Orders</a>
-            <a href="admin.php?table=invoices">Invoices</a>
-            <a href="admin.php?table=packages" class="<?= $table === 'packages' ? 'active' : '' ?>">Packages</a>
-            <a href="admin.php?table=projects">Projects</a>
-            <a href="admin.php?table=testimonials">Testimonials</a>
-            <a href="admin.php?table=referrers">Referrers</a>
-            <a href="admin.php?table=commissions">Commissions</a>
-            <a href="admin_logout.php">Logout</a>
-        </div>
+        <?php $sidebar_active = $table; include __DIR__ . '/inc/admin_sidebar.php'; ?>
 
         <div class="main-content">
             <h1><?= htmlspecialchars($pageTitle) ?></h1>
@@ -435,17 +425,17 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
                             <textarea id="description" name="description" rows="4"><?= htmlspecialchars($data['description'] ?? '') ?></textarea>
                         </div>
 
-                        <div class="form-actions">
-                            <button type="submit" class="button" style="background: linear-gradient(135deg, #3a7cff, #5b52f5); color: #fff; box-shadow: 0 4px 14px rgba(58,124,255,0.3);">
+                        <div class="form-actions adm-form-actions">
+                            <button type="submit" class="button button--primary">
                                 Save Changes
                             </button>
-                            <a href="admin.php?table=orders" class="button edit">Cancel</a>
+                            <a href="admin.php?table=orders" class="button">Cancel</a>
                             <a href="admin_edit.php?table=orders&id=<?= $data['id'] ?>&action=delete"
                                data-confirm="Are you sure you want to delete this order? This action cannot be undone."
                                data-confirm-variant="danger"
                                data-confirm-title="Delete order"
                                data-confirm-label="Delete"
-                               class="button delete" style="margin-left: auto;">
+                               class="button button--danger" style="margin-left: auto;">
                                 Delete Order
                             </a>
                         </div>
@@ -467,13 +457,13 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
                             <label>Client Portal Link</label>
                             <?php if ($ppActiveToken): ?>
                                 <?php $portalUrl = $ppPortalBaseUrl . '/?t=' . $ppActiveToken; ?>
-                                <div style="display:flex;gap:8px;align-items:center;background:#0f172a;border:1px solid rgba(58,124,255,0.3);padding:10px 12px;border-radius:8px;margin-top:6px;">
+                                <div class="adm-row" style="background:var(--bg-sunken);border:1px solid var(--border);padding:8px 10px;border-radius:var(--radius);margin-top:6px;gap:8px;">
                                     <input type="text" id="ppLinkInput" readonly value="<?= htmlspecialchars($portalUrl) ?>"
-                                           style="flex:1;background:transparent;border:none;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;">
-                                    <button type="button" onclick="ppCopyLink()" class="button edit" style="padding:6px 12px;font-size:12px;">Copy</button>
-                                    <a href="<?= htmlspecialchars($portalUrl) ?>" target="_blank" rel="noopener" class="button edit" style="padding:6px 12px;font-size:12px;">Open</a>
+                                           class="adm-mono" style="flex:1;background:transparent;border:none;font-size:12px;outline:none;padding:4px 0;">
+                                    <button type="button" onclick="ppCopyLink()" class="button btn-sm">Copy</button>
+                                    <a href="<?= htmlspecialchars($portalUrl) ?>" target="_blank" rel="noopener" class="button btn-sm">Open</a>
                                 </div>
-                                <p style="color:#3ecf8e;font-family:'JetBrains Mono',monospace;font-size:0.7rem;margin-top:8px;">● Active — client can view progress</p>
+                                <p class="adm-mono" style="color:var(--ok);font-size:11px;margin-top:8px;">● Active — client can view progress</p>
 
                                 <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
                                     <form method="post" style="display:inline;">
@@ -500,7 +490,7 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
                                     </form>
                                 </div>
                             <?php elseif ($ppDeactivatedTok): ?>
-                                <p style="color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:0.75rem;margin-top:6px;">
+                                <p class="adm-mono adm-muted" style="font-size:12px;margin-top:6px;">
                                     Link deactivated. Client no longer has access.
                                 </p>
                                 <div style="display:flex;gap:8px;margin-top:10px;">
@@ -514,7 +504,7 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
                                     </form>
                                 </div>
                             <?php else: ?>
-                                <p style="color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:0.75rem;margin-top:6px;">
+                                <p class="adm-mono adm-muted" style="font-size:12px;margin-top:6px;">
                                     No portal link exists for this order yet.
                                 </p>
                                 <form method="post" style="margin-top:10px;">
@@ -525,12 +515,12 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
                         </div>
 
                         <!-- Add progress note -->
-                        <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;">
+                        <div style="border-top:1px solid var(--border);padding-top:20px;">
                             <label for="pp_note">Post Update to Client</label>
                             <form method="post">
                                 <input type="hidden" name="pp_action" value="add_note">
                                 <textarea id="pp_note" name="pp_note" rows="3" placeholder="e.g. Wireframes complete. Moving to visual design next." required></textarea>
-                                <button type="submit" class="button" style="margin-top:10px;background: linear-gradient(135deg, #3a7cff, #5b52f5); color: #fff; box-shadow: 0 4px 14px rgba(58,124,255,0.3);">
+                                <button type="submit" class="button add" style="margin-top:10px;">
                                     Post Update
                                 </button>
                             </form>
@@ -538,16 +528,16 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
 
                         <!-- Notes feed -->
                         <?php if (!empty($ppNotes)): ?>
-                            <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;margin-top:24px;">
+                            <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:24px;">
                                 <label style="margin-bottom:12px;">Update History (<?= count($ppNotes) ?>)</label>
                                 <div style="display:flex;flex-direction:column;gap:10px;">
                                     <?php foreach ($ppNotes as $n): ?>
-                                        <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.06);padding:12px 14px;border-radius:8px;display:flex;gap:12px;align-items:flex-start;">
+                                        <div style="background:var(--bg-sunken);border:1px solid var(--border);padding:12px 14px;border-radius:var(--radius);display:flex;gap:12px;align-items:flex-start;">
                                             <div style="flex:1;">
-                                                <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:#64748b;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;">
+                                                <div class="adm-mono adm-subtle" style="font-size:10px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;">
                                                     <?= date('M j, Y · H:i', strtotime($n['created_at'])) ?>
                                                 </div>
-                                                <div style="color:#e2e8f0;font-size:0.85rem;line-height:1.5;">
+                                                <div style="font-size:13px;line-height:1.5;">
                                                     <?= nl2br(htmlspecialchars($n['note'])) ?>
                                                 </div>
                                             </div>
@@ -611,9 +601,9 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
 
                         <!-- Action buttons -->
                         <div class="reply-actions" style="margin-top: 12px;">
-                            <button class="ai-copy-btn" onclick="rielCopyReply()">📋 Copy</button>
-                            <button class="ai-wa-btn" onclick="rielOpenWA()">📲 WhatsApp</button>
-                            <button class="ai-gen-reply-btn" id="ai-gen-reply-btn" onclick="rielGenerateReply()">
+                            <button type="button" class="button ai-copy-btn" onclick="rielCopyReply()">📋 Copy</button>
+                            <button type="button" class="button ai-wa-btn" onclick="rielOpenWA()">📲 WhatsApp</button>
+                            <button type="button" class="button button--primary ai-gen-reply-btn" id="ai-gen-reply-btn" onclick="rielGenerateReply()">
                                 <div class="spin"></div>
                                 <span class="btn-txt">⬡ Generate Draft</span>
                             </button>
@@ -626,18 +616,7 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
     </div>
 
     <script>
-    /* ── Sidebar toggle ── */
-    (function () {
-        const toggle  = document.getElementById('sidebarToggle');
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-
-        function openSidebar()  { sidebar.classList.add('active');    overlay.classList.add('active'); }
-        function closeSidebar() { sidebar.classList.remove('active'); overlay.classList.remove('active'); }
-
-        toggle.addEventListener('click', () => sidebar.classList.contains('active') ? closeSidebar() : openSidebar());
-        overlay.addEventListener('click', closeSidebar);
-    })();
+    /* Sidebar toggle handled by JS/admin-ui.js. */
 
     <?php if ($table === 'orders' && $data): ?>
     /* ═══════════════════════════════════════════

@@ -1,4 +1,6 @@
-document.addEventListener("DOMContentLoaded", function () {
+// Chatbot boot — deferred to idle so first paint isn't blocked by ~33KB parse + DOM injection.
+(function rielChatbotBoot() {
+  const __initChatbot = function () {
   const chatbotHTML = `
 <div id="chatbot-icon" class="chatbot-icon" title="Chat with RielBot">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -113,7 +115,8 @@ document.addEventListener("DOMContentLoaded", function () {
     return window.location.origin + appRoot + "/proxy.php";
   }
 
-  const PROXY_URL = getProxyUrl();
+  const PROXY_URL        = getProxyUrl();
+  const PROXY_URL_STREAM = PROXY_URL + "?stream=1";
   // ─────────────────────────────────────────────────────────────────────────────
 
   // ─── Greeting bubble auto-show (after 3 s) ───────────────────────────────
@@ -265,51 +268,170 @@ document.addEventListener("DOMContentLoaded", function () {
     botMsgDiv.classList.add("typing");
     botMsgDiv.innerHTML = "<span></span><span></span><span></span>";
 
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+    // Highlight discounts in pricing-related replies
+    function highlightPromo(replyText) {
+      const priceKeywords = ["price", "pricing", "cost", "package", "plan", "how much"];
+      if (priceKeywords.some((kw) => text.toLowerCase().includes(kw))) {
+        return replyText.replace(/(Grand Opening.*?OFF)/gi, "🔥 $1 🔥");
+      }
+      return replyText;
+    }
 
-      const res = await fetch(PROXY_URL, {
+    const streamingDisabled = sessionStorage.getItem("rc_stream_ok") === "0";
+
+    try {
+      if (!streamingDisabled) {
+        await sendStreaming(text, botMsgDiv, highlightPromo);
+      } else {
+        await sendBlocking(text, botMsgDiv, highlightPromo);
+      }
+    } catch (err) {
+      if (err && err.code === "NO_CHUNKS") {
+        // Streaming likely buffered by Apache/FastCGI. Fall back to blocking JSON.
+        sessionStorage.setItem("rc_stream_ok", "0");
+        console.warn("[RielBot] Streaming watchdog tripped — falling back to blocking JSON.");
+        try {
+          await sendBlocking(text, botMsgDiv, highlightPromo);
+        } catch (err2) {
+          renderClientError(botMsgDiv, err2);
+        }
+      } else {
+        renderClientError(botMsgDiv, err);
+      }
+    }
+  }
+
+  function renderClientError(div, err) {
+    div.classList.remove("typing");
+    if (err && err.name === "AbortError") {
+      div.textContent = "⚠️ Request timed out. Please try again.";
+    } else {
+      const msg = (err && err.message) ? err.message : "Unknown error.";
+      div.textContent = "⚠️ " + msg;
+      console.warn("[RielBot] Error:", msg);
+    }
+  }
+
+  // ─── Streaming send (SSE) ────────────────────────────────────────────────
+  async function sendStreaming(text, div, highlightPromo) {
+    const controller = new AbortController();
+    const FIRST_CHUNK_MS = 5000;
+    const HARD_TIMEOUT_MS = 60000;
+
+    let gotChunk = false;
+    const firstChunkTimer = setTimeout(() => {
+      if (!gotChunk) controller.abort("no-chunks");
+    }, FIRST_CHUNK_MS);
+    const hardTimer = setTimeout(() => controller.abort("hard-timeout"), HARD_TIMEOUT_MS);
+
+    let res;
+    try {
+      res = await fetch(PROXY_URL_STREAM, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
+        body: JSON.stringify({ message: text, source: "chatbot" }),
+        signal: controller.signal,
+      });
+    } catch (e) {
+      clearTimeout(firstChunkTimer);
+      clearTimeout(hardTimer);
+      if (!gotChunk) throw { code: "NO_CHUNKS" };
+      throw e;
+    }
+
+    // Server didn't honor SSE — fall back.
+    const ct = (res.headers.get("content-type") || "").toLowerCase();
+    if (!ct.includes("text/event-stream") && res.status !== 429) {
+      clearTimeout(firstChunkTimer);
+      clearTimeout(hardTimer);
+      throw { code: "NO_CHUNKS" };
+    }
+
+    // 429 in SSE shape still gets emitted as event: error frames — handled below.
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let assembled = "";
+    let parseFails = 0;
+
+    div.classList.remove("typing");
+    div.textContent = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      gotChunk = true;
+      clearTimeout(firstChunkTimer);
+      buffer += decoder.decode(value, { stream: true });
+
+      let idx;
+      while ((idx = buffer.indexOf("\n\n")) !== -1) {
+        const frame = buffer.slice(0, idx);
+        buffer = buffer.slice(idx + 2);
+        if (!frame.trim()) continue;
+
+        let evt = "message", data = "";
+        for (const line of frame.split("\n")) {
+          if (line.startsWith("event:")) evt = line.slice(6).trim();
+          else if (line.startsWith("data:")) data += line.slice(5).trim();
+        }
+        let parsed = null;
+        try { parsed = data ? JSON.parse(data) : null; }
+        catch (e) {
+          parseFails++;
+          if (parseFails > 3) { clearTimeout(hardTimer); throw new Error("SSE parse error"); }
+          continue;
+        }
+
+        if (evt === "delta" && parsed && typeof parsed.v === "string") {
+          assembled += parsed.v;
+          div.textContent = assembled;
+          messages.scrollTop = messages.scrollHeight;
+        } else if (evt === "usage") {
+          // optional: stash on element if needed for debugging
+        } else if (evt === "done") {
+          // finalize
+        } else if (evt === "error" && parsed) {
+          clearTimeout(hardTimer);
+          const replyText = parsed.reply || "⚠️ Unknown error.";
+          div.innerHTML = parseMarkdown(replyText);
+          return;
+        }
+      }
+    }
+
+    clearTimeout(hardTimer);
+    if (!assembled) throw { code: "NO_CHUNKS" };
+    div.innerHTML = parseMarkdown(highlightPromo(assembled));
+  }
+
+  // ─── Blocking send (JSON) — original path, used as fallback ─────────────
+  async function sendBlocking(text, div, highlightPromo) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    let res;
+    try {
+      res = await fetch(PROXY_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text, source: "chatbot" }),
         signal: controller.signal,
       });
+    } finally {
       clearTimeout(timeoutId);
-
-      if (!res.ok) {
-        // Surface the HTTP status to make debugging easier
-        throw new Error(
-          `Server error (HTTP ${res.status}). URL tried: ${PROXY_URL}`,
-        );
-      }
-
-      const data = await res.json();
-      let replyText = data.reply || "⚠️ No response.";
-
-      // Highlight any active discount mention in pricing replies
-      const priceKeywords = ["price", "pricing", "cost", "package", "plan", "how much"];
-      if (priceKeywords.some((kw) => text.toLowerCase().includes(kw))) {
-        replyText = replyText.replace(/(Grand Opening.*?OFF)/gi, "🔥 $1 🔥");
-      }
-
-      botMsgDiv.classList.remove("typing");
-      botMsgDiv.innerHTML = parseMarkdown(replyText);
-    } catch (err) {
-      botMsgDiv.classList.remove("typing");
-      if (err.name === "AbortError") {
-        botMsgDiv.textContent = "⚠️ Request timed out. Please try again.";
-      } else {
-        botMsgDiv.textContent = "⚠️ " + err.message;
-        // Show URL in console to aid localhost debugging
-        console.warn(
-          "[RielBot] Proxy URL used:",
-          PROXY_URL,
-          "\nError:",
-          err.message,
-        );
-      }
     }
+
+    // 4xx/5xx still carry a JSON body with .reply/.code — render it instead of throwing.
+    let data;
+    try { data = await res.json(); }
+    catch (e) {
+      throw new Error(`Server error (HTTP ${res.status}). URL tried: ${PROXY_URL}`);
+    }
+
+    div.classList.remove("typing");
+    const replyText = highlightPromo(data.reply || "⚠️ No response.");
+    div.innerHTML = parseMarkdown(replyText);
   }
 
   function updateChatbotOffset(promoUp) {
@@ -354,7 +476,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
   });
-});
+  };
+  const __schedule = window.requestIdleCallback || function (cb) { return setTimeout(cb, 1500); };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      __schedule(__initChatbot, { timeout: 3000 });
+    });
+  } else {
+    __schedule(__initChatbot, { timeout: 3000 });
+  }
+})();
 
 // ─── Injected styles ───────────────────────────────────────────────────────
 const style = document.createElement("style");

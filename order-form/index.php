@@ -1,6 +1,10 @@
 <?php
 include '../connection.php';
 session_start();
+require_once __DIR__ . '/../inc/error_codes.php';
+require_once __DIR__ . '/../inc/audit_logger.php';
+
+const RC_ALLOWED_PLANS = ['Student Plan','Starter Plan','Starter','Pro Plan','Pro','Premium Plan','Premium','Custom Plan'];
 
 // --- Determine pre-selected plan from URL ---
 $aksiMap = [
@@ -65,6 +69,14 @@ if (isset($_POST['submit'])) {
         $hosting = 'No';
     }
 
+    // Validate plan against allowlist
+    if (!in_array($package, RC_ALLOWED_PLANS, true)) {
+        error_log("[RC-ORDER-004] order-form: rejected plan='$package'");
+        rc_audit('ORDER_REJECTED_PLAN', $email ?: 'guest', ['plan' => $package], 'warn');
+        header("Location: ./?err=RC-ORDER-004");
+        exit;
+    }
+
     // Get package_id
     $stmtPkg = $conn->prepare("SELECT id FROM packages WHERE package_name = ?");
     $stmtPkg->bind_param("s", $package);
@@ -74,25 +86,34 @@ if (isset($_POST['submit'])) {
     $stmtPkg->close();
 
     // Insert order
-    $stmt = $conn->prepare("
-        INSERT INTO orders
-            (order_name, email, package, package_id, owns_domain, owns_hosting, phone_number, description, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
-    ");
-    $stmt->bind_param(
-        "sssissss",
-        $order_name,
-        $email,
-        $package,
-        $package_id,
-        $domain,
-        $hosting,
-        $phone_number,
-        $description
-    );
-    $stmt->execute();
-    $_SESSION['transaction'] = $conn->insert_id;
-    $stmt->close();
+    try {
+        $stmt = $conn->prepare("
+            INSERT INTO orders
+                (order_name, email, package, package_id, owns_domain, owns_hosting, phone_number, description, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+        ");
+        if (!$stmt) throw new RuntimeException('prepare failed: ' . $conn->error);
+        $stmt->bind_param(
+            "sssissss",
+            $order_name,
+            $email,
+            $package,
+            $package_id,
+            $domain,
+            $hosting,
+            $phone_number,
+            $description
+        );
+        if (!$stmt->execute()) throw new RuntimeException('execute failed: ' . $stmt->error);
+        $_SESSION['transaction'] = $conn->insert_id;
+        $stmt->close();
+        rc_audit('ORDER_CREATED', $email, ['order_id' => $_SESSION['transaction'], 'plan' => $package]);
+    } catch (Throwable $e) {
+        error_log('[RC-ORDER-003] order-form insert: ' . $e->getMessage());
+        rc_audit('ORDER_INSERT_FAIL', $email ?: 'guest', ['plan' => $package, 'err' => $e->getMessage()], 'error');
+        header("Location: ./?err=RC-ORDER-003");
+        exit;
+    }
 
     // For Custom Plan, store the configured total in session so checkout can use it
     if ($package === 'Custom Plan') {
@@ -148,15 +169,19 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
     <script defer src="../JS/order.js"></script>
     <link rel="icon" type="image/png" sizes="32x32" href="../IMG/Rielcode Logo Square Transparent Icon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../CSS/tailwind.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 
 <body class="rc-redesign w-full">
+    <?php if (!empty($_GET['err'])) include __DIR__ . '/../inc/_err_banner.php'; ?>
     <script>
         (function() {
-            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            window.history.replaceState({}, document.title, cleanUrl);
+            // Preserve ?err= so the banner is visible on redirect-back; strip everything else.
+            const url = new URL(window.location.href);
+            const errParam = url.searchParams.get('err');
+            const clean = url.protocol + "//" + url.host + url.pathname + (errParam ? ('?err=' + encodeURIComponent(errParam)) : '');
+            window.history.replaceState({}, document.title, clean);
         })();
     </script>
 
