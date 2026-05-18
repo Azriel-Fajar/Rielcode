@@ -31,7 +31,7 @@ $progress_url = $progress_token
     <link rel="stylesheet" href="../../CSS/tailwind.css">
     <style>
         .progress-reveal {
-            margin: 24px auto 0;
+            margin: 24px auto 28px;
             padding: 22px;
             border: 1px solid rgba(58,123,255,0.32);
             border-radius: 14px;
@@ -79,6 +79,8 @@ $progress_url = $progress_token
             font-size: 12.5px;
             outline: none;
             font-family: 'JetBrains Mono', 'Courier New', monospace;
+            cursor: default;
+            user-select: all;
         }
         .progress-reveal__copy {
             background: #3a7bff;
@@ -118,7 +120,7 @@ $progress_url = $progress_token
 </head>
 <body class="rc-redesign">
     <div class="popup">
-        <div class="circle">
+        <div class="circle" role="img" aria-label="Order confirmed">
             <div class="checkmark"></div>
         </div>
         <span class="rc-eyebrow" style="margin-bottom:8px;">checkout complete</span>
@@ -160,7 +162,7 @@ $progress_url = $progress_token
         </script>
         <?php endif; ?>
 
-        <a href="/" class="btn" style="margin-top:18px;">Back to Home</a>
+        <a href="/" class="btn" style="margin-top:18px;"><span class="btn-arrow" aria-hidden="true">←</span> Back to Home</a>
     </div>
 
 </body>

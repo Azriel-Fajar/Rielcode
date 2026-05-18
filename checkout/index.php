@@ -266,7 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
 
         <div class="info-container">
             <div class="img-container">
-                <img src="../IMG/Rielcode Logo Transparent.png" alt="Rielcode Logo">
+                <img src="../IMG/Rielcode Logo Transparent.png" alt="Rielcode">
             </div>
 
             <div class="personal-info">
@@ -371,12 +371,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
                         type="text"
                         name="referral_code"
                         id="referral_code"
+                        class="referral-input"
                         placeholder="e.g. BUDI10"
                         value="<?= htmlspecialchars($rawCode) ?>"
-                        style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#fff;font-size:14px;outline:none;"
                     >
                     <?php if ($referralError !== ''): ?>
                         <p style="color:#f87171;font-size:12px;margin-top:6px;"><?= htmlspecialchars($referralError) ?></p>
+                    <?php else: ?>
+                        <p style="color:#475569;font-size:12px;margin-top:6px;">Code applied at confirmation.</p>
                     <?php endif; ?>
                 </div>
                 <div class="checkbox">

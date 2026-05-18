@@ -199,7 +199,7 @@ form .title p {
 /* Fallback for h2 not wrapped */
 form .customer-info-container > h2,
 form .package-details-container > h2,
-form .additional-contaianer > h2 {
+form .additional-container > h2 {
   font-size: 0.7rem;
   font-weight: 600;
   color: #64748b;
@@ -214,7 +214,7 @@ form .additional-contaianer > h2 {
 
 form .customer-info-container > h2::after,
 form .package-details-container > h2::after,
-form .additional-contaianer > h2::after {
+form .additional-container > h2::after {
   content: "";
   flex: 1;
   height: 1px;
@@ -283,7 +283,13 @@ form .package-details-container .plan-container {
 }
 
 form .package-details-container .plan-container input[type="radio"] {
-  display: none;
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 form .package-details-container .plan-container label {
@@ -305,7 +311,6 @@ form .package-details-container .plan-container label {
   color: #94a3b8;
   width: 100%;
   height: auto;
-  white-space: nowrap;
 }
 
 form .package-details-container .plan-container label h3 {
@@ -416,7 +421,13 @@ form .package-details-container h4 {
 }
 
 .promo-check input {
-  display: none;
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .promo-check label {
@@ -484,7 +495,13 @@ form .package-details-container .domain-container {
 }
 
 form .package-details-container .domain-container input[type="radio"] {
-  display: none;
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 form .package-details-container .domain-container label {
@@ -527,13 +544,13 @@ form
 /* ============================================================
    ADDITIONAL TEXTAREA
    ============================================================ */
-form .additional-contaianer {
+form .additional-container {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-form .additional-contaianer textarea {
+form .additional-container textarea {
   width: 100%;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -549,15 +566,15 @@ form .additional-contaianer textarea {
   line-height: 1.6;
 }
 
-form .additional-contaianer textarea::placeholder {
+form .additional-container textarea::placeholder {
   color: #475569;
 }
 
-form .additional-contaianer textarea:hover {
+form .additional-container textarea:hover {
   border-color: rgba(58, 124, 255, 0.3);
 }
 
-form .additional-contaianer textarea:focus {
+form .additional-container textarea:focus {
   border-color: rgba(58, 124, 255, 0.7);
   background: rgba(58, 124, 255, 0.04);
   box-shadow: 0 0 0 3px rgba(58, 124, 255, 0.1);
@@ -802,7 +819,13 @@ form .package-details-container .plan-container input[id="custom"] + label,
 }
 
 .plan-container input[type="radio"] {
-  display: none;
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .plan-container label {
@@ -1077,6 +1100,12 @@ form .package-details-container .plan-container input[id="custom"] + label,
 /* ============================================================
    RESPONSIVE
    ============================================================ */
+@media (max-width: 1200px) {
+  .form-container {
+    width: 64%;
+  }
+}
+
 @media (max-width: 1080px) {
   .form-container {
     width: 72%;
@@ -1142,7 +1171,7 @@ form .package-details-container .plan-container input[id="custom"] + label,
   form .title h1 {
     font-size: 1.6rem;
   }
-  form .additional-contaianer textarea {
+  form .additional-container textarea {
     font-size: 0.9rem;
   }
   .promo-check label {

@@ -164,12 +164,12 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
     <meta property="og:url" content="https://rielcode.com/order-form/">
     <meta property="og:image" content="https://rielcode.com/IMG/Rielcode Logo Square.png">
     <meta property="og:site_name" content="Rielcode">
+    <link rel="stylesheet" href="../CSS/tailwind.css">
     <link rel="stylesheet" href="../CSS/redesign.css">
     <link rel="stylesheet" href="../CSS/order-form.css">
     <script defer src="../JS/order.js"></script>
     <link rel="icon" type="image/png" sizes="32x32" href="../IMG/Rielcode Logo Square Transparent Icon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../CSS/tailwind.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 
@@ -223,9 +223,9 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
 
                 <div class="customer-info-container">
                     <h2>Customer Information</h2>
-                    <input type="text" name="nama" id="nama" placeholder="Name" required>
-                    <input type="email" name="email" id="email" placeholder="Email address" required>
-                    <input type="number" name="phone" id="phone" placeholder="ex. 081289328493" maxlength="13" required>
+                    <input type="text" name="nama" id="nama" placeholder="Name" aria-label="Full name" required>
+                    <input type="email" name="email" id="email" placeholder="Email address" aria-label="Email address" required>
+                    <input type="tel" name="phone" id="phone" placeholder="ex. 081289328493" maxlength="13" aria-label="Phone number" required>
                 </div>
 
                 <div class="package-details-container">
@@ -237,7 +237,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <?= $defaultPlan === 'Student Plan' ? 'checked' : '' ?> required>
                         <label for="landing">
                             <h3 class="plan-label-name">Student Plan</h3>
-                            <span class="plan-label-price">$30 / Rp499.000</span>
+                            <span class="plan-label-price">Rp499.000 / $30</span>
                             <span class="plan-label-badge badge-landing">For Students</span>
                         </label>
 
@@ -245,7 +245,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <?= $defaultPlan === 'Starter Plan' ? 'checked' : '' ?> required>
                         <label for="starter">
                             <h3 class="plan-label-name">Starter Plan</h3>
-                            <span class="plan-label-price">$59 / Rp999.000</span>
+                            <span class="plan-label-price">Rp999.000 / $59</span>
                             <span class="plan-label-badge badge-starter">Landing + Hosting</span>
                         </label>
 
@@ -253,7 +253,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <?= $defaultPlan === 'Pro Plan' ? 'checked' : '' ?> required>
                         <label for="pro">
                             <h3 class="plan-label-name">Pro Plan</h3>
-                            <span class="plan-label-price">$148 / Rp2.499.000</span>
+                            <span class="plan-label-price">Rp2.499.000 / $148</span>
                             <span class="plan-label-badge badge-pro">Most Popular</span>
                         </label>
 
@@ -261,19 +261,19 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <?= $defaultPlan === 'Premium Plan' ? 'checked' : '' ?> required>
                         <label for="business">
                             <h3 class="plan-label-name">Premium Plan</h3>
-                            <span class="plan-label-price">$295 / Rp4.999.000</span>
+                            <span class="plan-label-price">Rp4.999.000 / $295</span>
                             <span class="plan-label-badge badge-business">Best Value</span>
                         </label>
 
 
                     </div>
 
-                    <div class="landing-notice" id="landingNotice">
+                    <div class="landing-notice" id="landingNotice" style="display:<?= $defaultPlan === 'Student Plan' ? 'block' : 'none' ?>;">
                         ⚠ Note: The Student Plan does not include free hosting or domain.
                         This package covers website design only. Perfect for students &amp; personal projects.
                     </div>
 
-                    <div class="promo-check mt-3" id="promoCheckWrap">
+                    <div class="promo-check mt-3" id="promoCheckWrap" style="display:<?= ($defaultPlan === 'Student Plan' || $defaultPlan === 'Custom Plan') ? 'none' : '' ?>;">
                         <input type="checkbox" id="free_promo" name="free_promo" value="1">
                         <label for="free_promo">🎉 Claim Free Hosting &amp; .COM Domain</label>
                     </div>
@@ -358,7 +358,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                     <input type="hidden" name="custom_total" id="custom_total_input" value="<?= $customTotal ?>">
                 <?php endif; ?>
 
-                <div class="additional-contaianer">
+                <div class="additional-container">
                     <h2>Additional Information</h2>
                     <textarea name="additional" id="additional" rows="5"
                         placeholder="Anything else you want to tell us? (Optional)"><?= $isCustom && $customDesc ? $customDesc : '' ?></textarea>
@@ -388,6 +388,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
             const isCustom  = selected.value === 'Custom Plan';
 
             landingNotice.style.display = isLanding ? 'block' : 'none';
+            if (isLanding) landingNotice.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             promoWrap.style.display = (isLanding || isCustom) ? 'none' : '';
             domainHostingWrap.classList.toggle('hidden', isLanding);
 

@@ -10,7 +10,7 @@ document
     // tambahkan overlay
     const overlay = document.createElement("div");
     overlay.classList.add("loading-overlay");
-    overlay.innerHTML = "<div>Processing your order...</div>";
+    overlay.innerHTML = '<div class="loader"></div><div>Processing your order…</div>';
     document.body.appendChild(overlay);
   });
 
