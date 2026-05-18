@@ -551,7 +551,11 @@ body.rc-redesign
    HERO — terminal variant (design contract: Hero.jsx)
    ============================================================ */
 .rc-hero {
-  padding: 96px 0 120px;
+  min-height: calc(100vh - 72px);
+  margin-top: 72px;
+  display: flex;
+  align-items: center;
+  padding: 60px 0;
   position: relative;
   overflow: hidden;
 }
@@ -725,7 +729,7 @@ body.rc-redesign
 
 @media (max-width: 960px) {
   .rc-hero {
-    padding: 64px 0 80px;
+    padding: 48px 0;
   }
   .rc-hero__grid {
     grid-template-columns: 1fr;

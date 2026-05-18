@@ -73,6 +73,7 @@
   const _initBase = window.innerWidth <= 500 ? 16 : 25;
   document.getElementById("chatbot-icon").style.bottom = _initBase + "px";
   document.getElementById("chatbot-greeting").style.bottom = (_initBase + 68) + "px";
+  document.getElementById("chatbot-container").style.bottom = (_initBase + 70) + "px";
   const chatIcon = document.getElementById("chatbot-icon");
   const chatContainer = document.getElementById("chatbot-container");
   const closeBtn = document.getElementById("close-chat");
@@ -133,15 +134,34 @@
     badge.style.display = "none";
   });
 
+  // ─── Scroll state (declared here so click/close handlers can access it) ───
+  let lastScrollTop = 0;
+  let promoHiddenByScroll = false;
+
   // ─── UI event listeners ───────────────────────────────────────────────────
   chatIcon.addEventListener("click", () => {
     chatContainer.classList.toggle("hidden");
     greeting.classList.remove("visible");
     badge.style.display = "none";
 
-    if (promo) promo.style.transform = "translateY(100%)";
+    const isOpen = !chatContainer.classList.contains("hidden");
 
-    if (!chatContainer.classList.contains("hidden")) {
+    if (isOpen) {
+      // Opening: hide promo to avoid overlap
+      if (promo && !promo.classList.contains("is-dismissed")) {
+        promo.classList.add("is-hidden-scroll");
+        promoHiddenByScroll = true;
+        updateChatbotOffset(false);
+      }
+    } else {
+      // Closing via icon: restore promo visibility
+      if (promo && promo.classList.contains("is-mounted") && promo.classList.contains("is-hidden-scroll")) {
+        promo.classList.remove("is-hidden-scroll");
+        promoHiddenByScroll = false;
+      }
+    }
+
+    if (isOpen) {
       // Send bot greeting on first open
       if (!greetingSent) {
         greetingSent = true;
@@ -168,8 +188,17 @@
     }
   });
 
-  closeBtn.addEventListener("click", () => {
+  function closeChat() {
     chatContainer.classList.add("hidden");
+    // Restore promo visibility if hidden only because chatbot was open
+    if (promo && promo.classList.contains("is-mounted") && promo.classList.contains("is-hidden-scroll")) {
+      promo.classList.remove("is-hidden-scroll");
+      promoHiddenByScroll = false;
+    }
+  }
+
+  closeBtn.addEventListener("click", () => {
+    closeChat();
     if (typeof gtag === "function") {
       gtag("event", "chat_close", {
         event_category: "Chatbot",
@@ -183,7 +212,7 @@
     if (chatContainer.classList.contains("hidden")) return;
     // Ignore clicks inside the chatbot container or on the icon
     if (chatContainer.contains(e.target) || chatIcon.contains(e.target)) return;
-    chatContainer.classList.add("hidden");
+    closeChat();
   });
 
   // ─── Quick reply dropup ────────────────────────────────────────────────────
@@ -341,21 +370,27 @@
 
     // Server didn't honor SSE — fall back.
     const ct = (res.headers.get("content-type") || "").toLowerCase();
+    console.log("[RielBot] stream response status=" + res.status + " ct=" + ct + " body=" + (res.body ? "ok" : "NULL"));
     if (!ct.includes("text/event-stream") && res.status !== 429) {
       clearTimeout(firstChunkTimer);
       clearTimeout(hardTimer);
+      console.warn("[RielBot] CT mismatch → fallback");
       throw { code: "NO_CHUNKS" };
     }
 
     // 429 in SSE shape still gets emitted as event: error frames — handled below.
+    // Guard: Opera and some browsers return null body for streamed responses.
+    if (!res.body) {
+      clearTimeout(firstChunkTimer);
+      clearTimeout(hardTimer);
+      console.warn("[RielBot] res.body null → fallback");
+      throw { code: "NO_CHUNKS" };
+    }
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
     let assembled = "";
     let parseFails = 0;
-
-    div.classList.remove("typing");
-    div.textContent = "";
 
     while (true) {
       const { value, done } = await reader.read();
@@ -384,6 +419,10 @@
         }
 
         if (evt === "delta" && parsed && typeof parsed.v === "string") {
+          if (div.classList.contains("typing")) {
+            div.classList.remove("typing");
+            div.textContent = "";
+          }
           assembled += parsed.v;
           div.textContent = assembled;
           messages.scrollTop = messages.scrollHeight;
@@ -439,39 +478,39 @@
     const offset = promoUp ? (promo ? promo.offsetHeight : 0) + 12 : base;
     chatIcon.style.bottom = offset + "px";
     greeting.style.bottom = (offset + 68) + "px";
-    if (!chatContainer.classList.contains("hidden")) {
-      chatContainer.style.bottom = (offset + 70) + "px";
-    }
+    // Container bottom = icon bottom + icon height (56px) + gap (14px)
+    chatContainer.style.bottom = (offset + 70) + "px";
   }
 
   // ─── Promo mount / dismiss observer ──────────────────────────────────────
   if (promo) {
     new MutationObserver(() => {
-      if (promo.classList.contains("is-dismissed")) {
-        promoHiddenByScroll = false;
-        updateChatbotOffset(false);
-      } else if (promo.classList.contains("is-mounted") && !promo.classList.contains("is-hidden-scroll")) {
-        updateChatbotOffset(true);
+      if (chatContainer.classList.contains("hidden")) {
+        // Only reposition widget when chat is closed
+        if (promo.classList.contains("is-dismissed")) {
+          promoHiddenByScroll = false;
+          updateChatbotOffset(false);
+        } else if (promo.classList.contains("is-mounted")) {
+          const hiddenByScroll = promo.classList.contains("is-hidden-scroll");
+          updateChatbotOffset(!hiddenByScroll);
+        }
       }
     }).observe(promo, { attributes: true, attributeFilter: ["class"] });
   }
 
   // ─── Scroll-based promo hide/show ────────────────────────────────────────
-  let lastScrollTop = 0;
-  let promoHiddenByScroll = false;
   window.addEventListener("scroll", () => {
     const scrollTop = window.scrollY;
     const scrollingDown = scrollTop > lastScrollTop;
+    const chatOpen = !chatContainer.classList.contains("hidden");
 
-    if (promo && promo.classList.contains("is-mounted")) {
+    if (!chatOpen && promo && promo.classList.contains("is-mounted")) {
       if (scrollingDown && !promoHiddenByScroll) {
         promo.classList.add("is-hidden-scroll");
         promoHiddenByScroll = true;
-        updateChatbotOffset(false);
       } else if (!scrollingDown && promoHiddenByScroll) {
         promo.classList.remove("is-hidden-scroll");
         promoHiddenByScroll = false;
-        updateChatbotOffset(true);
       }
     }
     lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
@@ -544,10 +583,10 @@ style.textContent = `
 
 .chatbot-container {
   position: fixed;
-  bottom: 25px;
-  right: 96px;
+  bottom: 95px;
+  right: 25px;
   width: 360px;
-  max-width: 90vw;
+  max-width: calc(100vw - 36px);
   min-height: 70dvh;
   height: 70dvh;
   display: flex;
@@ -848,12 +887,12 @@ style.textContent = `
     width: calc(100vw - 24px);
     height: 75vh;
     right: 12px;
-    bottom: 90px;
+    bottom: 86px;
     border-radius: 18px;
   }
 
   .chatbot-icon {
-    bottom: 76px;
+    bottom: 16px;
     right: 16px;
     transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
   }
