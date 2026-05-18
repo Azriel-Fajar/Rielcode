@@ -140,20 +140,28 @@
   border-radius: 16px;
   padding: 20px 24px;
   margin-bottom: 16px;
+  transition: border-color 0.2s ease;
 }
 
 .cp-section-title {
   font-family: "Outfit", sans-serif;
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 700;
+  font-size: 0.88rem;
   color: #94a3b8;
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
 }
 
-.cp-section-title i { color: #f472b6; font-size: 1rem; }
+.cp-section-title i {
+  color: #f472b6;
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+}
 
 /* ── Stepper ─────────────────────────────────────────────── */
 .cp-stepper-row {
@@ -163,46 +171,59 @@
 }
 
 .cp-stepper-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: 1px solid rgba(244, 114, 182, 0.3);
+  border: 1.5px solid rgba(244, 114, 182, 0.35);
   background: rgba(244, 114, 182, 0.08);
   color: #f472b6;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   line-height: 1;
+  user-select: none;
+  flex-shrink: 0;
 }
 
 .cp-stepper-btn:hover {
-  background: rgba(244, 114, 182, 0.18);
-  border-color: rgba(244, 114, 182, 0.55);
+  background: rgba(244, 114, 182, 0.2);
+  border-color: rgba(244, 114, 182, 0.65);
+  transform: scale(1.08);
+}
+
+.cp-stepper-btn:active {
+  transform: scale(0.93);
 }
 
 .cp-stepper-val {
   font-family: "Outfit", sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: #f472b6;
-  min-width: 32px;
+  min-width: 36px;
   text-align: center;
+  background: rgba(244, 114, 182, 0.06);
+  border-radius: 8px;
+  padding: 2px 6px;
 }
 
 .cp-stepper-label {
   font-family: "Outfit", sans-serif;
   font-size: 0.82rem;
   color: #475569;
+  line-height: 1.4;
 }
 
 .cp-unit-price {
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
   color: #334155;
+  display: block;
+  margin-top: 1px;
 }
 
 /* ── Toggle items ─────────────────────────────────────────── */
@@ -214,7 +235,7 @@
 
 .cp-toggle-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -229,8 +250,10 @@
   cursor: pointer;
 }
 
-.cp-toggle-item--expandable > input[type="checkbox"] {
-  margin-top: 3px;
+.cp-toggle-item > input[type="checkbox"] {
+  margin-top: 1px;
+  flex-shrink: 0;
+  align-self: flex-start;
 }
 
 .cp-toggle-item:hover {
@@ -295,13 +318,24 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  animation: cp-expand 0.2s ease;
+}
+
+@keyframes cp-expand {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .cp-difficulty-label {
   font-family: "Outfit", sans-serif;
   font-size: 0.72rem;
-  color: #475569;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .cp-difficulty-options {
@@ -317,13 +351,13 @@
   font-family: "Outfit", sans-serif;
   color: #64748b;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   cursor: pointer;
   transition: all 0.15s ease;
   flex: 1;
-  min-width: 100px;
+  min-width: 90px;
 }
 
 .cp-diff-opt:hover {
@@ -492,11 +526,20 @@
   font-weight: 800;
   font-size: 1rem;
   color: #fff;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   letter-spacing: -0.2px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.cp-currency-hint {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.68rem;
+  color: #334155;
+  text-align: right;
+  margin-bottom: 16px;
+  letter-spacing: 0.1px;
 }
 
 .cp-summary-lines {
@@ -537,13 +580,18 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  background: rgba(244, 114, 182, 0.05);
+  border: 1px solid rgba(244, 114, 182, 0.12);
+  border-radius: 12px;
+  padding: 12px 14px;
 }
 
 .cp-summary-total-row > span:first-child {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.72rem;
-  color: #475569;
-  letter-spacing: 1px;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
 }
 
@@ -600,31 +648,47 @@
 
 .cp-order-note {
   font-family: "Outfit", sans-serif;
-  font-size: 0.68rem;
-  color: #334155;
+  font-size: 0.72rem;
+  color: #475569;
   text-align: center;
-  line-height: 1.5;
+  line-height: 1.6;
+  margin-top: 8px;
 }
 
 /* ── Currency toggle ──────────────────────────────────────── */
 .cp-currency-toggle {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.65rem;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.75rem;
   font-weight: 600;
-  padding: 4px 10px;
+  padding: 6px 14px;
   border-radius: 20px;
-  background: rgba(244, 114, 182, 0.08);
-  border: 1px solid rgba(244, 114, 182, 0.3);
+  background: rgba(244, 114, 182, 0.1);
+  border: 1.5px solid rgba(244, 114, 182, 0.4);
   color: #f472b6;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.3px;
+}
+
+.cp-currency-toggle::before {
+  content: "⇄";
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 .cp-currency-toggle:hover {
-  background: rgba(244, 114, 182, 0.18);
-  border-color: rgba(244, 114, 182, 0.55);
+  background: rgba(244, 114, 182, 0.22);
+  border-color: rgba(244, 114, 182, 0.7);
+  transform: scale(1.03);
+}
+
+.cp-currency-toggle:active {
+  transform: scale(0.97);
 }
 
 /* ── Page preset buttons ──────────────────────────────────── */

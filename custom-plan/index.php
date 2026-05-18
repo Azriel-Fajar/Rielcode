@@ -355,6 +355,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             Your Custom Plan
                             <button type="button" class="cp-currency-toggle" id="currencyToggle" onclick="toggleCurrency()">$ USD</button>
                         </div>
+                        <div class="cp-currency-hint">Click to switch currency</div>
 
                         <div class="cp-summary-lines" id="summary-lines">
                             <!-- filled by JS -->
@@ -372,7 +373,8 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                             <!-- shown when hosting is unlocked -->
                         </div>
 
-                        <p class="cp-order-note">Summary of your order above — fill in your details below to proceed.</p>
+                        <button type="button" class="cp-order-btn" onclick="scrollToOrderForm()">Fill In Your Details →</button>
+                        <p class="cp-order-note">Happy with your plan? Scroll down to complete your order.</p>
                     </div>
                 </div>
 
