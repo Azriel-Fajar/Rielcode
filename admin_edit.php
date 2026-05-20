@@ -204,6 +204,9 @@ $ppNotes          = [];
 $ppPortalBaseUrl  = (in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost','127.0.0.1']))
     ? 'http://localhost/rielcode-progress'
     : 'https://progress.rielcode.com';
+$ppBriefBaseUrl   = (in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost','127.0.0.1']))
+    ? 'http://localhost/Rielcode/client-brief'
+    : 'https://rielcode.com/client-brief';
 
 if ($table === 'orders' && $data) {
     $stmt = $pdo->prepare("SELECT token, deactivated_at FROM order_access_tokens WHERE order_id = ? ORDER BY id DESC LIMIT 1");
@@ -511,6 +514,25 @@ $pageTitle .= ' ' . ($table === 'packages' ? 'Package' : 'Order');
                                     <input type="hidden" name="pp_action" value="regen_token">
                                     <button type="submit" class="button edit" style="font-size:12px;">Generate Link</button>
                                 </form>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Client Brief Link -->
+                        <div style="margin-bottom: 24px; border-top:1px solid var(--border); padding-top:20px;">
+                            <label>Client Brief Link</label>
+                            <?php if ($ppActiveToken): ?>
+                                <?php $briefUrl = $ppBriefBaseUrl . '/?t=' . $ppActiveToken; ?>
+                                <div class="adm-row" style="background:var(--bg-sunken);border:1px solid var(--border);padding:8px 10px;border-radius:var(--radius);margin-top:6px;gap:8px;">
+                                    <input type="text" id="briefLinkInput" readonly value="<?= htmlspecialchars($briefUrl) ?>"
+                                           class="adm-mono" style="flex:1;background:transparent;border:none;font-size:12px;outline:none;padding:4px 0;">
+                                    <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('briefLinkInput').value)" class="button btn-sm">Copy</button>
+                                    <a href="<?= htmlspecialchars($briefUrl) ?>" target="_blank" rel="noopener" class="button btn-sm">Open</a>
+                                </div>
+                                <p class="adm-mono" style="color:var(--ok);font-size:11px;margin-top:8px;">● Active — send this to client via DM to collect project requirements</p>
+                            <?php else: ?>
+                                <p class="adm-mono adm-muted" style="font-size:12px;margin-top:6px;">
+                                    No active token — generate a portal link above first.
+                                </p>
                             <?php endif; ?>
                         </div>
 

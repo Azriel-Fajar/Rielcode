@@ -38,6 +38,10 @@ const RC_ERRORS = [
     'RC-ADMIN-001' => ['msg' => 'Forbidden.',                             'http' => 403],
     'RC-ADMIN-002' => ['msg' => 'Action failed.',                         'http' => 500],
     'RC-ADMIN-003' => ['msg' => 'Could not generate token.',              'http' => 500],
+
+    'RC-BRIEF-001' => ['msg' => 'Invalid or expired brief link.',         'http' => 404],
+    'RC-BRIEF-002' => ['msg' => 'Please fill in all 5 questions.',        'http' => 400],
+    'RC-BRIEF-003' => ['msg' => 'Brief could not be sent. Please try again.', 'http' => 500],
 ];
 
 if (!function_exists('rc_user_msg')) {

@@ -31,7 +31,8 @@ if (!$orderRow) {
 }
 
 $order_name = htmlspecialchars($orderRow['order_name']);
-$email      = htmlspecialchars($orderRow['email']);
+$email      = $orderRow['email'];
+$email_display = htmlspecialchars($email);
 $phone      = htmlspecialchars($orderRow['phone_number']);
 $plan       = htmlspecialchars($orderRow['package']);
 $owns_domain   = htmlspecialchars($orderRow['owns_domain'] ?? 'No');
@@ -190,7 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
     $progress_url = 'https://progress.rielcode.com/?t=' . $progress_token;
 
     // Send thank-you email only (no invoice attachment).
-    include_once '../smtp_config.php';
+    require __DIR__ . '/../smtp_config.php';
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
@@ -272,7 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
             <div class="personal-info">
                 <div class="order-name">
                     <p>Billed to: <b><?= strtoupper($order_name) ?></b></p>
-                    <span><?= $email ?></span>
+                    <span><?= $email_display ?></span>
                 </div>
                 <div class="package-type">
                     <p>Package type: <b><?= $plan ?></b></p>
@@ -331,7 +332,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $orderRow['status'] !== 'On Progres
             <div class="discount-info">
                 <h3>Discount</h3>
                 <div class="discount-price">
-                    <p>Grand Opening (<b>50%</b>)</p>
+                    <p>Introductory Price (<b>50%</b>)</p>
                     <span>-Rp<?= number_format($discount_price, 0, ',', '.') ?></span>
                 </div>
             </div>

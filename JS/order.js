@@ -55,8 +55,12 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!btn || btn.dataset.busy === "1") return;
       btn.dataset.busy = "1";
       btn.dataset.origLabel = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = '<span class="rc-spinner" aria-hidden="true"></span>&nbsp;Sending…';
+      // Defer disable until after navigation starts — synchronous disable mid-submit
+      // triggers Navigation API InvalidStateError and strips btn from POST body.
+      setTimeout(() => {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="rc-spinner" aria-hidden="true"></span>&nbsp;Sending…';
+      }, 0);
     });
   }
 });

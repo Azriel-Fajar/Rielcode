@@ -310,7 +310,7 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
                                 if ($addon['type'] === 'per_page') $priceLabel .= ' per page';
                                 if ($addon['type'] === 'monthly')  $priceLabel .= '/month';
                                 ?>
-                                <div class="addon-item" id="addon-item-<?= $addon['id'] ?>">
+                                <div class="addon-item" id="addon-item-<?= $addon['id'] ?>" onclick="if(event.target.type!=='checkbox'&&event.target.type!=='number'){var cb=document.getElementById('addon_<?= $addon['id'] ?>');cb.checked=!cb.checked;updateAddonTotal(cb);}"  style="cursor:pointer">
                                     <input type="checkbox"
                                         name="addon_<?= $addon['id'] ?>"
                                         id="addon_<?= $addon['id'] ?>"
@@ -429,10 +429,18 @@ if (isset($_SESSION['transaction']) && $_SESSION['transaction']) {
 
             document.getElementById('addonsTotalDisplay').textContent = formatRp(total);
 
-            // Hide domain/hosting buttons when total >= Rp2,000,000 (free hosting unlocked)
+            // Hide domain/hosting when total >= Rp2,000,000 (free hosting unlocked)
+            // Don't restore if promo checkbox is checked or Student Plan selected (those also hide it)
             const domainHostingWrap = document.getElementById('domainHostingWrap');
             if (domainHostingWrap) {
-                domainHostingWrap.style.display = total >= 2000000 ? 'none' : 'block';
+                const promoChecked = document.getElementById('free_promo')?.checked;
+                const selectedPlan = document.querySelector('input[name="package"]:checked')?.value;
+                const isStudentPlan = selectedPlan === 'Student Plan';
+                if (promoChecked || isStudentPlan) {
+                    domainHostingWrap.style.display = 'none';
+                } else {
+                    domainHostingWrap.style.display = total >= 2000000 ? 'none' : 'block';
+                }
             }
         }
     </script>
