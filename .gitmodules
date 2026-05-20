@@ -1,0 +1,9 @@
+[submodule "portfolio"]
+	path = portfolio
+	url = https://github.com/Azriel-Fajar/Portfolio
+[submodule "progress"]
+	path = progress
+	url = https://github.com/Azriel-Fajar/rielcode-progress
+[submodule "testimonials-app"]
+	path = testimonials-app
+	url = https://github.com/Azriel-Fajar/rielcode-testimonials
