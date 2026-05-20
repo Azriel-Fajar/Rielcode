@@ -427,7 +427,7 @@ if ($table === 'commissions') {
 // Build testimonial base URL — localhost in dev, production domain otherwise
 $isLocalhost = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1']);
 $testimonialBaseUrl = $isLocalhost
-    ? 'http://localhost/rielcode-testimonials'
+    ? 'http://localhost/Rielcode/testimonials-app'
     : 'https://testimonials.rielcode.com';
 ?>
 <!DOCTYPE html>

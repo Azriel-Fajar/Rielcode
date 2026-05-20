@@ -202,7 +202,7 @@ $ppActiveToken    = null;
 $ppDeactivatedTok = null;
 $ppNotes          = [];
 $ppPortalBaseUrl  = (in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost','127.0.0.1']))
-    ? 'http://localhost/rielcode-progress'
+    ? 'http://localhost/Rielcode/progress'
     : 'https://progress.rielcode.com';
 $ppBriefBaseUrl   = (in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost','127.0.0.1']))
     ? 'http://localhost/Rielcode/client-brief'
