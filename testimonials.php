@@ -33,9 +33,9 @@ $_tStmt->close();
                 <?php if (!empty($t['headline'])): ?>
                 <p class="rc-testimonial-headline">"<?= htmlspecialchars($t['headline'], ENT_QUOTES, 'UTF-8') ?>"</p>
                 <?php else: ?>
-                <p class="rc-testimonial-headline">"<?= htmlspecialchars(mb_substr($t['solution_after'], 0, 120), ENT_QUOTES, 'UTF-8') ?>…"</p>
+                <p class="rc-testimonial-headline">"<?= htmlspecialchars(mb_substr($t['solution_after'], 0, 120), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>…"</p>
                 <?php endif; ?>
-                <p class="rc-testimonial-body"><?= htmlspecialchars($t['recommendation'], ENT_QUOTES, 'UTF-8') ?></p>
+                <p class="rc-testimonial-body"><?= htmlspecialchars($t['recommendation'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></p>
                 <div class="rc-testimonial-author">
                     <div class="rc-author-avatar"><?= htmlspecialchars(mb_substr($t['client_name'], 0, 1), ENT_QUOTES, 'UTF-8') ?></div>
                     <div>
