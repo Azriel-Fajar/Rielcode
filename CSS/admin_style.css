@@ -207,7 +207,7 @@ p {
   width: 240px;
   flex-shrink: 0;
   background: var(--bg-elev);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid #a1a1aa;
   padding: 20px 12px;
   position: sticky;
   top: 0;
@@ -224,7 +224,7 @@ p {
   gap: 10px;
   padding: 4px 10px 16px;
   margin: 0 0 8px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #a1a1aa;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -294,6 +294,21 @@ p {
 }
 .sidebar__logout.active::before {
   display: none;
+}
+
+[data-theme="dark"] .sidebar {
+  border-right-color: var(--border);
+}
+[data-theme="dark"] .sidebar h2 {
+  border-bottom-color: var(--border);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sidebar {
+    border-right-color: var(--border);
+  }
+  :root:not([data-theme="light"]) .sidebar h2 {
+    border-bottom-color: var(--border);
+  }
 }
 
 .theme-toggle--fixed {
@@ -373,8 +388,14 @@ p {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   margin-bottom: 24px;
+  max-width: 100%;
+}
+.table-container table {
+  min-width: 720px;
 }
 
 table {
@@ -401,9 +422,39 @@ thead th {
 
 tbody td {
   padding: 12px 14px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid #a1a1aa;
   color: var(--text);
   vertical-align: middle;
+}
+[data-theme="dark"] tbody td {
+  border-top-color: var(--border);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) tbody td {
+    border-top-color: var(--border);
+  }
+}
+thead {
+  border-bottom-color: #a1a1aa;
+}
+[data-theme="dark"] thead {
+  border-bottom-color: var(--border);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) thead {
+    border-bottom-color: var(--border);
+  }
+}
+.table-container {
+  border-color: #a1a1aa;
+}
+[data-theme="dark"] .table-container {
+  border-color: var(--border);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .table-container {
+    border-color: var(--border);
+  }
 }
 tbody tr:first-child td {
   border-top: 0;
@@ -502,7 +553,7 @@ textarea,
   width: 100%;
   padding: 8px 12px;
   background: var(--bg);
-  border: 1px solid var(--border);
+  border: 1px solid #a1a1aa;
   border-radius: var(--radius);
   color: var(--text);
   font: inherit;
@@ -533,6 +584,35 @@ textarea {
 input[readonly] {
   background: var(--bg-sunken);
   color: var(--text-muted);
+}
+
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="url"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="datetime-local"],
+[data-theme="dark"] input[type="tel"],
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+[data-theme="dark"] .adm-input {
+  border-color: var(--border);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) input[type="text"],
+  :root:not([data-theme="light"]) input[type="email"],
+  :root:not([data-theme="light"]) input[type="number"],
+  :root:not([data-theme="light"]) input[type="password"],
+  :root:not([data-theme="light"]) input[type="url"],
+  :root:not([data-theme="light"]) input[type="date"],
+  :root:not([data-theme="light"]) input[type="datetime-local"],
+  :root:not([data-theme="light"]) input[type="tel"],
+  :root:not([data-theme="light"]) select,
+  :root:not([data-theme="light"]) textarea,
+  :root:not([data-theme="light"]) .adm-input {
+    border-color: var(--border);
+  }
 }
 
 .form-row {
@@ -718,7 +798,12 @@ input[type="file"]::file-selector-button:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+td:has(.table-actions),
+table td:last-child {
+  white-space: nowrap;
 }
 .table-actions .button,
 .table-actions .btn-tint,

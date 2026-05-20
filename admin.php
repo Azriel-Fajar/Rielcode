@@ -521,7 +521,7 @@ $testimonialBaseUrl = $isLocalhost
                                     </span>
                                 </td>
                                 <td>Rp<?= number_format((float)$row['total_earned'], 0, ',', '.') ?></td>
-                                <td class="adm-mono" style="font-size:11px;">
+                                <td class="adm-mono" style="font-size:12px;white-space:nowrap;">
                                     <?php
                                     $isLocalDev = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost','127.0.0.1']);
                                     $baseUrl = $isLocalDev ? 'http://localhost/Rielcode/referrer/' : 'https://rielcode.com/referrer/';
