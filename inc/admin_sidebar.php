@@ -3,9 +3,9 @@
  * Shared admin sidebar partial.
  *
  * Expected vars (optional, default empty):
- *   $sidebar_active — one of: 'chat_logs','orders','invoices','packages',
+ *   $sidebar_active — one of: 'chat_logs','orders','packages',
  *                     'projects','testimonials','referrers','commissions',
- *                     'audit','edit','invoice_edit'
+ *                     'audit','edit'
  */
 $active = $sidebar_active ?? '';
 function rc_sb_cls($name, $active) {
@@ -26,8 +26,7 @@ function rc_sb_cls($name, $active) {
     </h2>
     <a href="admin.php?table=chat_logs"    class="<?= rc_sb_cls('chat_logs', $active) ?>">Chat Logs</a>
     <a href="admin.php?table=orders"       class="<?= rc_sb_cls('orders', $active) ?>">Orders</a>
-    <a href="admin.php?table=invoices"     class="<?= rc_sb_cls('invoices', $active) ?>">Invoices</a>
-    <a href="admin.php?table=packages"     class="<?= rc_sb_cls('packages', $active) ?>">Packages</a>
+<a href="admin.php?table=packages"     class="<?= rc_sb_cls('packages', $active) ?>">Packages</a>
     <a href="admin.php?table=projects"     class="<?= rc_sb_cls('projects', $active) ?>">Projects</a>
     <a href="admin.php?table=testimonials" class="<?= rc_sb_cls('testimonials', $active) ?>">Testimonials</a>
     <a href="admin.php?table=referrers"    class="<?= rc_sb_cls('referrers', $active) ?>">Referrers</a>

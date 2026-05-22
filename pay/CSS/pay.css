@@ -1,0 +1,108 @@
+:root {
+    --bg: #111315;
+    --surface: #1a1d20;
+    --surface-2: #22262b;
+    --border: rgba(255,255,255,0.08);
+    --primary: #3a7bff;
+    --text: #fff;
+    --muted: rgba(255,255,255,0.5);
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; margin: 0; min-height: 100vh; }
+
+code, .mono { font-family: 'JetBrains Mono', monospace; }
+
+.navbar { background: #0d0f11; border-bottom: 1px solid var(--border); padding: 12px 24px; }
+.navbar-brand { font-weight: 700; font-size: 1.1rem; color: var(--text) !important; }
+.brand-rc { color: var(--primary); }
+
+.main-content { padding: 32px 24px; max-width: 1100px; margin: 0 auto; }
+
+.pay-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+.pay-card + .pay-card { margin-top: 16px; }
+
+.badge-draft, .badge-not_sent  { background: var(--surface-2); color: var(--muted); }
+.badge-sent     { background: rgba(58,123,255,0.15); color: var(--primary); }
+.badge-paid     { background: rgba(34,197,94,0.15); color: var(--success); }
+.badge-overdue  { background: rgba(239,68,68,0.15); color: var(--danger); }
+.badge-locked   { background: var(--surface-2); color: rgba(255,255,255,0.3); }
+
+.table-pay { width: 100%; border-collapse: collapse; }
+.table-pay th { color: var(--muted); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; padding: 10px 12px; border-bottom: 1px solid var(--border); font-weight: 500; }
+.table-pay td { padding: 14px 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+.table-pay tr:last-child td { border-bottom: none; }
+.table-pay tr:hover td { background: var(--surface-2); }
+
+.form-control, .form-select { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 14px; }
+.form-control:focus, .form-select:focus { background: var(--surface-2); border-color: var(--primary); color: var(--text); box-shadow: 0 0 0 3px rgba(58,123,255,0.15); }
+.form-label { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+
+.btn-primary { background: var(--primary); border-color: var(--primary); }
+.btn-primary:hover { background: #2563eb; border-color: #2563eb; }
+.btn-outline-secondary { border-color: var(--border); color: var(--muted); }
+.btn-outline-secondary:hover { background: var(--surface-2); color: var(--text); }
+.btn-success { background: var(--success); border-color: var(--success); }
+.btn-success:hover { background: #16a34a; border-color: #16a34a; }
+
+.stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; }
+.stat-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+.stat-value { font-size: 1.8rem; font-weight: 700; margin-top: 4px; }
+
+.section-title { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+
+.stage-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; height: 100%; }
+.stage-card.locked { opacity: 0.55; pointer-events: none; }
+.stage-card h5 { font-weight: 700; margin: 0 0 4px; }
+.stage-card .stage-amount { font-size: 1.6rem; font-weight: 700; margin: 8px 0 16px; }
+.stage-card .stage-meta { color: var(--muted); font-size: 13px; }
+
+.link-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; word-break: break-all; }
+
+.login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; }
+.login-logo { font-size: 1.4rem; font-weight: 700; color: var(--primary); text-align: center; margin-bottom: 28px; }
+
+/* Public invoice page */
+.invoice-public { max-width: 680px; margin: 40px auto; padding: 0 16px 40px; }
+.invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
+.invoice-logo { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
+.invoice-total-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-top: 24px; text-align: center; }
+.invoice-total-amount { font-size: 2rem; font-weight: 700; color: var(--text); }
+
+.stage-banner { background: rgba(58,123,255,0.10); border: 1px solid rgba(58,123,255,0.30); color: #b8ccff; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; font-size: 14px; }
+
+.bank-details-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-top: 16px; text-align: left; }
+.bank-details-box .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.bank-details-box .value { font-weight: 600; font-size: 1rem; }
+.bank-details-box .row-2 { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.bank-details-box .row-2:last-child { border-bottom: none; }
+.bank-details-box .row-2 .k { color: var(--muted); }
+.bank-details-box .row-2 .v { color: var(--text); font-weight: 600; text-align: right; }
+
+.qris-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-top: 16px; text-align: center; }
+.qris-box .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.qris-box img { max-width: 160px; border-radius: 8px; background: #fff; padding: 6px; }
+.payment-divider { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin: 14px 0; }
+
+.qr-wrap { text-align: center; }
+.qr-wrap img { max-width: 180px; border-radius: 8px; }
+
+/* Confirm modal */
+.rc-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 9000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
+.rc-modal-overlay.active { opacity: 1; pointer-events: all; }
+.rc-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 32px 28px; max-width: 400px; width: 90%; text-align: center; transform: translateY(10px); transition: transform 0.15s; }
+.rc-modal-overlay.active .rc-modal { transform: translateY(0); }
+.rc-modal-icon { font-size: 2rem; margin-bottom: 12px; }
+.rc-modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+.rc-modal-body { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+.rc-modal-actions { display: flex; gap: 10px; justify-content: center; }
+
+@media print {
+    .no-print { display: none !important; }
+    body { background: #fff; color: #000; }
+    .pay-card, .invoice-public, .stage-card { border: none; }
+}

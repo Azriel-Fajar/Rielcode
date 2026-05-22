@@ -225,7 +225,80 @@
     bindSidebarToggle();
   }
 
+  /* ---------------- Loading overlay ---------------- */
+
+  let _overlayEl = null;
+  let _overlayTimer = null;
+
+  function buildOverlay() {
+    if (_overlayEl) return _overlayEl;
+    _overlayEl = document.createElement("div");
+    _overlayEl.className = "rc-loading-overlay";
+    _overlayEl.setAttribute("role", "status");
+    _overlayEl.setAttribute("aria-live", "polite");
+    _overlayEl.innerHTML = `
+      <div class="rc-loading-overlay__card">
+        <div class="rc-loading-overlay__spinner"></div>
+        <div class="rc-loading-overlay__label" id="rc-loading-label">Processing…</div>
+      </div>`;
+    document.documentElement.appendChild(_overlayEl);
+    return _overlayEl;
+  }
+
+  function showLoading(label) {
+    const el = buildOverlay();
+    const lbl = el.querySelector("#rc-loading-label");
+    if (lbl) lbl.textContent = label || "Processing…";
+    requestAnimationFrame(function () { el.classList.add("is-visible"); });
+    // Safety fallback — hide after 15s in case navigation never happens
+    if (_overlayTimer) clearTimeout(_overlayTimer);
+    _overlayTimer = setTimeout(function () { hideLoading(); }, 15000);
+  }
+
+  function hideLoading() {
+    if (!_overlayEl) return;
+    _overlayEl.classList.remove("is-visible");
+    if (_overlayTimer) { clearTimeout(_overlayTimer); _overlayTimer = null; }
+  }
+
+  // Show overlay on any form submit
+  document.addEventListener("submit", function (e) {
+    const form = e.target;
+    if (!form || form.tagName !== "FORM") return;
+    // Detect file upload to show a more specific label
+    const hasFile = form.querySelector('input[type="file"]');
+    const hasFileSelected = hasFile && hasFile.files && hasFile.files.length > 0;
+    showLoading(hasFileSelected ? "Uploading image…" : "Saving…");
+  }, true);
+
+  // Show overlay when a confirmed [data-confirm] action navigates
+  // (patch into the confirm flow — after user clicks OK, show overlay before navigation)
+  const _origConfirm = confirmDialog;
+  window.rcConfirm = function (message, opts) {
+    return _origConfirm(message, opts).then(function (ok) {
+      if (ok) showLoading("Processing…");
+      return ok;
+    });
+  };
+
+  // Also intercept direct action links (non-data-confirm ones) that navigate
+  document.addEventListener("click", function (e) {
+    const link = e.target.closest("a.button, a.btn-tint");
+    if (!link) return;
+    // Skip links that open a modal (data-confirm handles those above)
+    if (link.dataset.confirm) return;
+    // Skip anchors, javascript:, external links
+    const href = link.getAttribute("href") || "";
+    if (!href || href.startsWith("#") || href.startsWith("javascript")) return;
+    if (link.target === "_blank") return;
+    // Only show for same-origin action links (admin.php?action=...)
+    if (href.includes("action=") || href.includes("admin.php")) {
+      showLoading("Processing…");
+    }
+  });
+
   // Expose
-  window.rcConfirm = confirmDialog;
+  window.rcShowLoading = showLoading;
+  window.rcHideLoading = hideLoading;
   window.rcToast = showToast;
 })();

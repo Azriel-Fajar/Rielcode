@@ -1509,3 +1509,51 @@ table td:last-child {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Loading overlay ─────────────────────────────────────────── */
+.rc-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-enter) var(--ease-out);
+}
+.rc-loading-overlay.is-visible {
+  opacity: 1;
+  pointer-events: all;
+}
+.rc-loading-overlay__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 36px;
+  box-shadow: var(--shadow-lg);
+}
+.rc-loading-overlay__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: rc-spin 0.7s linear infinite;
+}
+.rc-loading-overlay__label {
+  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+@keyframes rc-spin {
+  to { transform: rotate(360deg); }
+}
+}

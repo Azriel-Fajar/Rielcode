@@ -52,17 +52,20 @@ if (!function_exists('rc_flash')) {
 // --- Handle Delete from edit view ---
 if ($action === 'delete' && $id) {
     if ($table === 'orders') {
-        $stmt = $pdo->prepare("SELECT invoice_file FROM orders WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT invoice_file, package_id FROM orders WHERE id = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row && !empty($row['invoice_file'])) {
             $filePath = ltrim(str_replace('../', '', $row['invoice_file']), '/');
             if (file_exists($filePath)) unlink($filePath);
         }
+        $pkgId = $row['package_id'] ?? null;
         $pdo->prepare("DELETE FROM referral_commissions WHERE order_id = ?")->execute([$id]);
         $stmt = $pdo->prepare("DELETE FROM orders WHERE id = ?");
         $stmt->execute([$id]);
-        $pdo->exec("UPDATE packages p SET orders = (SELECT COUNT(*) FROM orders o WHERE o.package_id = p.id)");
+        if ($pkgId) {
+            $pdo->prepare("UPDATE packages SET orders = (SELECT COUNT(*) FROM orders WHERE package_id = ?) WHERE id = ?")->execute([$pkgId, $pkgId]);
+        }
     } elseif ($table === 'packages') {
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE package_id = ?");
         $stmt->execute([$id]);

@@ -34,7 +34,7 @@ try {
 $rc_admin_user = $_SESSION['admin_username'] ?? 'admin';
 
 // Whitelist $table to prevent SQL injection via GET parameter
-$allowedTables = ['chat_logs', 'orders', 'packages', 'testimonials', 'projects', 'invoices', 'referrers', 'commissions'];
+$allowedTables = ['chat_logs', 'orders', 'packages', 'testimonials', 'projects', 'referrers', 'commissions'];
 $table = in_array($_GET['table'] ?? '', $allowedTables) ? $_GET['table'] : 'chat_logs';
 
 $action = $_GET['action'] ?? '';
@@ -113,7 +113,7 @@ if ($table === 'testimonials' && $action === 'gen_token') {
 if ($action === 'delete' && $id && !in_array($table, ['chat_logs', 'referrers', 'projects', 'testimonials'], true)) {
     if ($table === 'orders') {
         // BUG FIX: use PDO for the file lookup instead of raw mysqli
-        $stmt = $pdo->prepare("SELECT invoice_file FROM orders WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT invoice_file, package_id FROM orders WHERE id = ?");
         $stmt->execute([$id]);
         $row  = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row && !empty($row['invoice_file'])) {
@@ -122,10 +122,7 @@ if ($action === 'delete' && $id && !in_array($table, ['chat_logs', 'referrers', 
                 unlink($filePath);
             }
         }
-        // Grab package_id before deleting
-        $pkgStmt = $pdo->prepare("SELECT package_id FROM orders WHERE id = ?");
-        $pkgStmt->execute([$id]);
-        $pkgId = $pkgStmt->fetchColumn();
+        $pkgId = $row['package_id'] ?? null;
         $pdo->prepare("DELETE FROM referral_commissions WHERE order_id = ?")->execute([$id]);
         $pdo->prepare("DELETE FROM orders WHERE id = ?")->execute([$id]);
         // Update only the affected package's count
@@ -178,21 +175,43 @@ if ($table === 'projects' && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array($
             $target = $uploadDir . '/' . $filename;
             $tmpPath = $_FILES['image']['tmp_name'];
             $compressed = false;
-            if (function_exists('imagecreatefromstring')) {
-                $imgData = file_get_contents($tmpPath);
-                $src = imagecreatefromstring($imgData);
-                if ($src !== false) {
-                    $w = imagesx($src); $h = imagesy($src);
-                    // Cap at 1600px wide
-                    if ($w > 1600) {
-                        $h = (int)round($h * 1600 / $w); $w = 1600;
-                        $dst = imagecreatetruecolor($w, $h);
-                        imagecopyresampled($dst, $src, 0, 0, 0, 0, $w, $h, imagesx($src), imagesy($src));
-                        imagedestroy($src); $src = $dst;
+            if (function_exists('imagecreatefromjpeg')) {
+                $imgInfo = @getimagesize($tmpPath);
+                if ($imgInfo) {
+                    $origW = $imgInfo[0];
+                    $origH = $imgInfo[1];
+                    $imgType = $imgInfo[2];
+                    if ($origW > 1600) {
+                        // Only load into GD if resize is needed
+                        $src = false;
+                        if ($imgType === IMAGETYPE_JPEG)      $src = imagecreatefromjpeg($tmpPath);
+                        elseif ($imgType === IMAGETYPE_PNG)   $src = imagecreatefrompng($tmpPath);
+                        elseif ($imgType === IMAGETYPE_GIF)   $src = imagecreatefromgif($tmpPath);
+                        elseif ($imgType === IMAGETYPE_WEBP && function_exists('imagecreatefromwebp'))
+                                                              $src = imagecreatefromwebp($tmpPath);
+                        if ($src !== false) {
+                            $newH = (int)round($origH * 1600 / $origW);
+                            $dst  = imagecreatetruecolor(1600, $newH);
+                            imagecopyresampled($dst, $src, 0, 0, 0, 0, 1600, $newH, $origW, $origH);
+                            imagedestroy($src);
+                            imagejpeg($dst, $target, 82);
+                            imagedestroy($dst);
+                            $compressed = true;
+                        }
+                    } else {
+                        // Small enough — convert to JPEG without resize
+                        $src = false;
+                        if ($imgType === IMAGETYPE_JPEG)      $src = imagecreatefromjpeg($tmpPath);
+                        elseif ($imgType === IMAGETYPE_PNG)   $src = imagecreatefrompng($tmpPath);
+                        elseif ($imgType === IMAGETYPE_GIF)   $src = imagecreatefromgif($tmpPath);
+                        elseif ($imgType === IMAGETYPE_WEBP && function_exists('imagecreatefromwebp'))
+                                                              $src = imagecreatefromwebp($tmpPath);
+                        if ($src !== false) {
+                            imagejpeg($src, $target, 82);
+                            imagedestroy($src);
+                            $compressed = true;
+                        }
                     }
-                    imagejpeg($src, $target, 82);
-                    imagedestroy($src);
-                    $compressed = true;
                 }
             }
             if (!$compressed) {
@@ -300,11 +319,7 @@ $offset         = ($page - 1) * $items_per_page;
 $filterReferrerId = 0;
 $filterStatus     = '';
 
-// `invoices` is a virtual view over `orders`
-if ($table === 'invoices') {
-    $countTable = 'orders';
-    $total_items = (int)$pdo->query("SELECT COUNT(*) FROM `$countTable`")->fetchColumn();
-} elseif ($table === 'commissions') {
+if ($table === 'commissions') {
     $filterReferrerId = isset($_GET['referrer_id']) ? (int)$_GET['referrer_id'] : 0;
     $filterStatus      = in_array($_GET['status'] ?? '', ['pending','paid','cancelled'], true) ? $_GET['status'] : '';
     $cntWhere = [];
@@ -354,10 +369,6 @@ switch ($table) {
     case 'projects':
         $stmt = $pdo->prepare("SELECT * FROM projects ORDER BY layout DESC, sort_order ASC, id DESC LIMIT :limit OFFSET :offset");
         $columns = ['id','title','layout','sort_order','is_visible'];
-        break;
-    case 'invoices':
-        $stmt = $pdo->prepare("SELECT id, order_name, email, package, final_price, invoice_number, invoice_status, invoice_amount, invoice_currency, invoice_sent, invoice_file, created_at FROM orders ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
-        $columns = ['id','order_name','package','invoice_number','invoice_status','invoice_amount'];
         break;
     case 'referrers':
         $stmt = $pdo->prepare(
@@ -991,88 +1002,6 @@ $testimonialBaseUrl = $isLocalhost
                     </div>
                 <?php endif; ?>
 
-            <?php elseif ($table === 'invoices'): ?>
-
-                <!-- ====== INVOICES MANAGEMENT ====== -->
-                <p style="color:var(--text-muted);margin-bottom:20px;">Generate, edit, download, and send invoices for orders. Click an order to manage its invoice.</p>
-                <?php if (empty($logs)): ?>
-                    <p class="adm-mono adm-subtle">No orders yet.</p>
-                <?php else: ?>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Order</th>
-                                    <th>Package</th>
-                                    <th>Invoice #</th>
-                                    <th>Status</th>
-                                    <th>Amount</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php $no = $total_items - $offset; foreach ($logs as $row): ?>
-                                    <?php
-                                    $invStatus = $row['invoice_status'] ?? 'draft';
-                                    $statusStyles = [
-                                        'draft' => 'background:rgba(148,163,184,0.15);color:#94a3b8;border:1px solid rgba(148,163,184,0.35);',
-                                        'sent'  => 'background:rgba(58,124,255,0.15);color:#60a5fa;border:1px solid rgba(58,124,255,0.35);',
-                                        'paid'  => 'background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.35);',
-                                        'void'  => 'background:rgba(239,68,68,0.10);color:#f87171;border:1px solid rgba(239,68,68,0.30);',
-                                    ];
-                                    $amount = $row['invoice_amount'] !== null ? (float)$row['invoice_amount'] : (float)$row['final_price'];
-                                    $cur = $row['invoice_currency'] ?? 'IDR';
-                                    $amtStr = $cur === 'USD' ? '$' . number_format($amount, 2) : 'Rp' . number_format($amount, 0, ',', '.');
-                                    ?>
-                                    <tr>
-                                        <td><?= $no-- ?></td>
-                                        <td style="white-space:normal;">
-                                            <div style="font-weight:600;"><?= htmlspecialchars($row['order_name']) ?></div>
-                                            <div class="adm-subtle" style="font-size:12px;"><?= htmlspecialchars($row['email']) ?></div>
-                                        </td>
-                                        <td><?= htmlspecialchars($row['package']) ?></td>
-                                        <td class="adm-mono adm-muted" style="font-size:12px;"><?= htmlspecialchars($row['invoice_number'] ?: '—') ?></td>
-                                        <td>
-                                            <span style="<?= $statusStyles[$invStatus] ?? '' ?>padding:3px 10px;border-radius:20px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;font-weight:600;text-transform:uppercase;">
-                                                <?= htmlspecialchars($invStatus) ?>
-                                            </span>
-                                        </td>
-                                        <td class="adm-mono" style="font-size:13px;"><?= $amtStr ?></td>
-                                        <td class="adm-subtle" style="font-size:12px;white-space:nowrap;"><?= htmlspecialchars(substr($row['created_at'], 0, 16)) ?></td>
-                                        <td>
-                                            <div class="table-actions" style="flex-wrap:wrap;gap:5px;">
-                                                <a href="admin_invoice_edit.php?id=<?= $row['id'] ?>" class="button edit" style="font-size:0.72rem;padding:5px 10px;">Edit Invoice</a>
-                                                <?php if (!empty($row['invoice_file'])): ?>
-                                                    <a href="<?= htmlspecialchars(ltrim(str_replace('../','', $row['invoice_file']), '/')) ?>"
-                                                       download class="btn-tint btn-tint--ok">Download</a>
-                                                <?php endif; ?>
-                                                <a href="admin_invoice_edit.php?id=<?= $row['id'] ?>&send=1"
-                                                   data-confirm="Regenerate PDF and send invoice email?"
-                                                   data-confirm-title="Send invoice"
-                                                   data-confirm-label="Send"
-                                                   class="btn-tint btn-tint--info">Send</a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="pagination">
-                        <?php if ($page > 1): ?>
-                            <a href="?table=invoices&page=<?= $page - 1 ?>">&laquo; Prev</a>
-                        <?php endif; ?>
-                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                            <a href="?table=invoices&page=<?= $i ?>" class="<?= $i === $page ? 'active' : '' ?>"><?= $i ?></a>
-                        <?php endfor; ?>
-                        <?php if ($page < $total_pages): ?>
-                            <a href="?table=invoices&page=<?= $page + 1 ?>">Next &raquo;</a>
-                        <?php endif; ?>
-                    </div>
-                <?php endif; ?>
-
             <?php elseif (!in_array($table, ['referrers', 'commissions'], true)): ?>
             <!-- ====== ORIGINAL TABLES (chat_logs / orders / packages) ====== -->
             <div class="table-container">
@@ -1134,6 +1063,9 @@ $testimonialBaseUrl = $isLocalhost
                                 <td>
                                     <div class="table-actions">
                                         <a href="admin_edit.php?table=<?= $table ?>&id=<?= $row['id'] ?>" class="button edit">Edit</a>
+                                        <?php if ($table === 'orders'): ?>
+                                            <a href="pay/order/view.php?id=<?= $row['id'] ?>" target="_blank" class="btn-tint btn-tint--info" style="font-size:0.72rem;padding:5px 10px;">Payments</a>
+                                        <?php endif; ?>
                                         <?php if ($table === 'packages'): ?>
                                             <a href="?table=<?= $table ?>&action=delete&id=<?= $row['id'] ?>"
                                                 data-confirm="Are you sure you want to delete this record?"

@@ -1,0 +1,4 @@
+vendor/
+config.php
+IMG/qris.png
+*.log
