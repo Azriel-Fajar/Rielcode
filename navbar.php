@@ -10,6 +10,7 @@
             <li><a href="<?= $base ?>#about"        class="rc-nav__link" data-target="about">About</a></li>
             <li><a href="<?= $base ?>#projects"     class="rc-nav__link" data-target="projects">Projects</a></li>
             <li><a href="<?= $base ?>#requirements" class="rc-nav__link" data-target="requirements">Requirements</a></li>
+            <li><a href="<?= $base ?>audit/"        class="rc-nav__link">Free Audit</a></li>
             <li><a href="<?= $base ?>#contact"      class="rc-nav__link" data-target="contact">Contact</a></li>
         </ul>
         <div class="rc-nav__cta">

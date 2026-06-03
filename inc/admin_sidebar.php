@@ -31,6 +31,7 @@ function rc_sb_cls($name, $active) {
     <a href="admin.php?table=testimonials" class="<?= rc_sb_cls('testimonials', $active) ?>">Testimonials</a>
     <a href="admin.php?table=referrers"    class="<?= rc_sb_cls('referrers', $active) ?>">Referrers</a>
     <a href="admin.php?table=commissions"  class="<?= rc_sb_cls('commissions', $active) ?>">Commissions</a>
+    <a href="admin.php?table=audit_leads"  class="<?= rc_sb_cls('audit_leads', $active) ?>">Audit Leads</a>
     <a href="admin_audit.php"              class="<?= rc_sb_cls('audit', $active) ?>">Audit Log</a>
     <a href="admin_account.php"            class="<?= rc_sb_cls('account', $active) ?>">Account</a>
 

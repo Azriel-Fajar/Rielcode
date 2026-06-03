@@ -34,7 +34,7 @@ try {
 $rc_admin_user = $_SESSION['admin_username'] ?? 'admin';
 
 // Whitelist $table to prevent SQL injection via GET parameter
-$allowedTables = ['chat_logs', 'orders', 'packages', 'testimonials', 'projects', 'referrers', 'commissions'];
+$allowedTables = ['chat_logs', 'orders', 'packages', 'testimonials', 'projects', 'referrers', 'commissions', 'audit_leads'];
 $table = in_array($_GET['table'] ?? '', $allowedTables) ? $_GET['table'] : 'chat_logs';
 
 $action = $_GET['action'] ?? '';
@@ -400,6 +400,10 @@ switch ($table) {
         );
         foreach ($params as $k => $v) { $stmt->bindValue($k, $v); }
         $columns = ['id','referrer_name','invoice_number','order_amount','commission_amount','status','created_at'];
+        break;
+    case 'audit_leads':
+        $stmt = $pdo->prepare("SELECT id, url, email, score, status, created_at FROM audit_leads ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
+        $columns = ['id', 'url', 'email', 'score', 'status', 'created_at'];
         break;
     case 'chat_logs':
     default:
@@ -1011,7 +1015,7 @@ $testimonialBaseUrl = $isLocalhost
                             <?php foreach ($columns as $index => $col): ?>
                                 <th><?= $index === 0 ? 'No' : ucfirst(str_replace('_', ' ', $col)) ?></th>
                             <?php endforeach; ?>
-                            <?php if ($table !== 'chat_logs'): ?><th>Actions</th><?php endif; ?>
+                            <?php if (!in_array($table, ['chat_logs', 'audit_leads'], true)): ?><th>Actions</th><?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
@@ -1059,7 +1063,7 @@ $testimonialBaseUrl = $isLocalhost
                                         </td>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
-                                <?php if ($table !== 'chat_logs'): ?>
+                                <?php if (!in_array($table, ['chat_logs', 'audit_leads'], true)): ?>
                                 <td>
                                     <div class="table-actions">
                                         <a href="admin_edit.php?table=<?= $table ?>&id=<?= $row['id'] ?>" class="button edit">Edit</a>
